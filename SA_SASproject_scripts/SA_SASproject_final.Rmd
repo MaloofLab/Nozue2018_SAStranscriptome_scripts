@@ -1,0 +1,81 @@
+---
+title: "SA ET mutants SAS phenotyping (adult)"
+author: "Kazu Nozue"
+date: "June 8, 2016"
+output: html_document
+---
+#  060716 cleaning up scripts for SA project (paper) 
+* 
+```{r}
+if(Sys.info()["user"]=="nozue") {
+  setwd("/Volumes/Data7/Arabi_SAS_phenotyping/SASphenotyping2014/SA_SASproject_scripts/")
+}
+if(Sys.info()["user"]=="nozue") {
+homedir<-"/Volumes/Toshiba_CANVIO2/not synched with my computer-selected/Nozue2016_SAStranscriptome_scripts/SA_SASproject_scripts"
+} # customize homedir
+setwd(homedir)
+# reading necessary funcitons and libraries
+source("function.R")
+load("../../Nozue2016_SAStranscriptome_data/input/SASdata.merged.common2.Rdata")
+SASdata2014and2015.common2.ftable<-ftable(SASdata.merged.common2[,c("petioleLength","treatment","set","plant")],col.vars=c("set"),row.vars=c("plant","treatment"))
+SASdata2014and2015.common2.ftable
+# how many samples used?
+head(SASdata.merged.common2)
+SASdata.merged.common2$sample<-with(SASdata.merged.common2,paste(set,treatment,plant,rep,sep="_"))
+
+table(sub("([[:print:]]+)(_)(sun|shade)(_)([[:print:]]+)(_)([[:digit:]]+)","\\5",unique(SASdata.merged.common2$sample)))
+#  Col NahG npr1 sid1 sid2 
+#   33   31   17   21   15 
+# only leaf3 to leaf6
+SASdata.merged.leaf3_6.common<-SASdata.merged.common2[SASdata.merged.common2$leaf>2&SASdata.merged.common2$leaf<7,]
+
+### reference is "sun"
+# PL
+SASdata.merged.leaf3_6.common$plant<-relevel(SASdata.merged.leaf3_6.common$plant,ref="Col")
+SASdata.merged.leaf3_6.common$treatment<-relevel(SASdata.merged.leaf3_6.common$treatment,ref="sun")
+summary.table.PL.rCol.rSun.leaf3_6<-model2e.lmer("PL",SASdata.merged.leaf3_6.common,"Col","sun",lmer(petioleLength~plant*treatment  + (1 | leaf) + (treatment | set),data=SASdata.merged.leaf3_6.common),saveplot=T) 
+# PBL
+summary.table.PBL.rCol.rSun.leaf3_6<-model2e.lmer("PBL",SASdata.merged.leaf3_6.common,"Col","sun",lmer(petiole_bladeLength~plant*treatment  + (1 | leaf) + (treatment | set),data=SASdata.merged.leaf3_6.common),saveplot=T) 
+#BA
+summary.table.BA.rCol.rSun.leaf3_6<-model2e.lmer("BA",SASdata.merged.leaf3_6.common,"Col","sun",lmer(bladeArea~plant*treatment  + (1 | leaf) + (treatment | set),data=SASdata.merged.leaf3_6.common),saveplot=T) 
+
+### reference  is "Col" and "shade"
+# PL
+SASdata.merged.leaf3_6.common$treatment<-relevel(SASdata.merged.leaf3_6.common$treatment,ref="shade")
+summary.table.PL.rCol.rShade.leaf3_6<-model2e.lmer("PL",SASdata.merged.leaf3_6.common,"Col","shade",lmer(petioleLength~plant*treatment  + (1|leaf) + (treatment | set),data=SASdata.merged.leaf3_6.common),saveplot=T) 
+# PBL
+summary.table.PBL.rCol.rShade.leaf3_6<-model2e.lmer("PBL",SASdata.merged.leaf3_6.common,"Col","shade",lmer(petiole_bladeLength~plant*treatment  + (1 | leaf) + (treatment | set),data=SASdata.merged.leaf3_6.common),saveplot=T) 
+#BA
+summary.table.BA.rCol.rShade.leaf3_6<-model2e.lmer("BA",SASdata.merged.leaf3_6.common,"Col","shade",lmer(bladeArea~plant*treatment  + (1 | leaf) + (treatment | set),data=SASdata.merged.leaf3_6.common),saveplot=T) 
+
+       
+# summary plot
+
+# summary plot (PL)
+leaf3.6.PL<-plot.bar6(trait="PL",title="PL leaf3-6",ylabel="petiole length (mm)",data.input=merge(summary.table.PL.rCol.rSun.leaf3_6,summary.table.PL.rCol.rShade.leaf3_6,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# summary plot (PBL)
+leaf3.6.PBL<-plot.bar6(trait="PBL",title="PBL leaf3-6",ylabel="petiole/blade length",data.input=merge(summary.table.PBL.rCol.rSun.leaf3_6,summary.table.PBL.rCol.rShade.leaf3_6,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+leaf3.6.BA<-plot.bar6(trait="BA",title="BA leaf3-6",ylabel="blade area (mm^2)",data.input=merge(summary.table.BA.rCol.rSun.leaf3_6,summary.table.BA.rCol.rShade.leaf3_6,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+
+# plot in one fig by 
+library(cowplot)
+# plot.all.leaf3.6<-plot_grid(leaf3.6.PL+theme(legend.position="none")+labs(title=""),leaf3.6.PBL+theme(legend.position="none")+labs(title=""), ncol=2,labels=c("A","B"))
+# save_plot("Fig8_plot.SA.leaf3.6.png", plot.all.leaf3.6, ncol = 2, nrow = 1,base_aspect_ratio = 0.8)
+# # adding BA
+# plot.all.leaf3.6<-plot_grid(
+#   leaf3.6.PL+theme(legend.position="none",axis.text.x=element_text(size=8,vjust=0.5))+labs(title=""),
+#   leaf3.6.PBL+theme(legend.position="none",axis.text.x=element_text(size=8,vjust=0.5))+labs(title=""), 
+#   leaf3.6.BA+theme(legend.position="none",axis.text.x=element_text(size=8,vjust=0.5))+labs(title=""),
+#   ncol=3,labels=c("A","B","C"))
+# save_plot("Fig8_plot.SA.leaf3.6_v2.png", plot.all.leaf3.6, ncol = 3, nrow = 1,base_aspect_ratio = 0.8)
+# remove "high R/fR" and "low R/FR" from x-axis and instead have color key.
+plot.all.leaf3.6<-plot_grid(
+  leaf3.6.PL+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title=""),
+  leaf3.6.PBL+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title=""), 
+  leaf3.6.BA+theme(axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title=""),
+  ncol=3,labels=c("A","B","C"),rel_widths=c(1,1,1.35))
+save_plot("../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.SA.leaf3.6_v3.png", plot.all.leaf3.6, ncol = 3, nrow = 1,base_aspect_ratio = 0.8)
+
+```
+
+

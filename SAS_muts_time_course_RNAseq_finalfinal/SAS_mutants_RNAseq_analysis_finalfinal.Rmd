@@ -1,0 +1,2404 @@
+---
+"title: "SAS mutants time-course RNAseq analysis"
+output: html_document
+---
+## revision history
+* focused on using edgeRglm results
+* using genotype correction ver1 (eliminating wrong genotypes): 2014 ASPB version
+* using final reads count (081514 - )
+* using variance stabilization transformed expression value (by Julin, Nov 2014) for SOM (122114 -)
+* change format into Rmarkedown (122114 - )
+* modified `r paste("on",date()) `
+* move output file directory to prevent from reaching Bitbucket max volume (0601415)
+* delete old Bitbucket repository and make new one (06??15)
+* start working on SAS module network by multiple regression and move them to new Rmd file (111415)
+* move mutant expression data transformation part for module network analysis into module network analysis scripts ("SAS_module_network_model6v2.Rmd") (040116)
+* reorder of SOM clusters according to (a) upregulated, and (b) downregulated. (052316)
+* change legend name in heatmaps (052616)
+* use GOseq.overlapTable for all SOM cluster overlapTable (052616)
+* needs to eliminate eliminate bsk5_1 (genotype15) and AT5G02540_1 (genotype 2) from the beggining?
+* creating "SAS_mutants_RNAseq_analysis_document_v3.Rmd" (052616)
+* replace "toc" in to "counts" (070516)
+## outline of this scripts
+* eliminating libraries with wrong genotypes
+* eliminating outlier libraries
++ Use samples.nolow5.Rdata object for select libraries
+* differentially expressed gene analysis
++ 1. DE (treatment, ie, shade responsiveness) at any time point within given genotype
++ 2. DE at any time point (shade) (pending)
+* VST 
+* SOM analysis with DE(1) genes (using shade-responsiveness (shade/sun))
+* GOseq analysis of SOM clusters
+* overlap between SOM clusters and misexpressed genes in mutants
+* co-expression analysis by WGCNA (all Col samples)
+
+## preparation
+```{r load-data}
+if(Sys.info()["user"]=="nozue") {
+  setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal")
+}
+# Atmosphere (Cyverse)
+if(Sys.info()["user"]=="kazu") { 
+  setwd("/vol1/kazu/home/****/")
+}
+# Whitney
+if(Sys.info()["nodename"]=="whitney") {
+  setwd("~/NGS/SAS_muts_time_course_RNAseq4/")
+} # use git repository
+
+# reading necessary funcitons and libraries
+source("function_RNAseq_time_course.R")
+```
+
+## eliminating libraries with wrong genotypes
+```{r eval=FALSE}
+counts<-read.table("../input/SAS_counts_merged_updated_final.bam.tsv",header=TRUE) # use SAS_counts_merged_updated.bam.tsv (081514)
+# remove * row and move gene column into rowname
+rownames(counts)<-counts$gene
+counts<-counts[!counts$gene=="*",-1] 
+#head(counts)
+label<-names(counts)
+# eliminating wrong libraries (see "samples" spread sheet in https://docs.google.com/spreadsheets/d/1-llHCbrDQfQhLXIlRsLhabN-ezBjwKvrdfjiNy36wCg/edit#gid=2102778022)
+# updated 081514 based on final sequencing data 
+eliminated.libraries<-c(
+  "D2H16A.merged.bam", # AT5G02540_2
+  "D4H4A.merged.bam",  # jar1-1
+  "D4H16A.merged.bam", # jar1-1
+  "D4H49A.merged.bam", # jar1-1
+  "C6H1A.merged.bam", # phyB
+  "C6H16A.merged.bam", # phyB  	
+  "C7L4A.merged.bam", # pif4pi5
+  "C7H16A.merged.bam", # pif4pif5	
+  "C7H49A.merged.bam", # pif4pif5
+  "C7L49A.merged.bam", # pif4pif5
+  "C11H1A.merged.bam", # coi1_16
+  "C11L1A.merged.bam", # coi1_16
+  "C11H4A.merged.bam", # coi1_16
+  "D11H4A.merged.bam", # coi1_16
+  "C11L4A.merged.bam", # coi1_16
+  "C11H16A.merged.bam", # coi1_16
+  "C11L16A.merged.bam", # coi1_16
+  "C11H25A.merged.bam", # coi1_16
+  "C11L25A.merged.bam", # coi1_16
+  "C11H49A.merged.bam", # coi1_16
+  "D11H49A.merged.bam", # coi1_16
+  "C11L49A.merged.bam", # coi1_16
+  "C12H1A.merged.bam", # phyAB
+  "C12L1A.merged.bam", # phyAB
+  "D12L1A.merged.bam", # phyAB
+  "C12H4A.merged.bam", # phyAB
+  "C12L4A.merged.bam", # phyAB
+  "C12H16A.merged.bam", # phyAB
+  "C12L16A.merged.bam", # phyAB
+  "C12L25A.merged.bam", # phyAB
+  "C12H49A.merged.bam", # phyAB
+  "C12L49A.merged.bam", # phyAB
+  "C13H1A.merged.bam", # pif3_1
+  "C13H16A.merged.bam", # pif3_1
+  "E13H16A.merged.bam", # pif3_1
+  "C13L16A.merged.bam", # pif3_1
+  "E13L16A.merged.bam", # pif3_1
+  "C13H25A.merged.bam", # pif3_1
+  "C13L25A.merged.bam", # pif3_1
+  "C13H49A.merged.bam", # pif3_1
+  "D13H49A.merged.bam", # pif3_1
+  "C13L49A.merged.bam", # pif3_1
+  "D14L4A.merged.bam", # mida9_4
+  "C14H25A.merged.bam", # mida9_4
+  "D14L25A.merged.bam", # mida9_4
+  "C16H1A.merged.bam", # sto
+  "C16L1A.merged.bam", # sto
+  "C16H4A.merged.bam", # sto
+  "C16L4A.merged.bam", # sto
+  "C16H16A.merged.bam", # sto
+  "C16H25A.merged.bam", # sto
+  "C16L25A.merged.bam", # sto
+  "C16H49A.merged.bam", # sto
+  "C16L49A.merged.bam", # sto
+  "D16L49A.merged.bam") # sto
+# eliminate 55 libraries within my genotypes (081514)
+# conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","AT5G02760_2","AT5G59010_2","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0")) # 
+#
+#save(counts,file="../SAS_muts_time_course_RNAseq2_mycomp_output/counts.Rdata")
+#load("../SAS_muts_time_course_RNAseq2_mycomp_output/counts.Rdata")
+counts<-counts[,!names(counts) %in% eliminated.libraries]
+#head(counts) 
+dim(counts) #[1] 30533   749
+
+samples <- data.frame(file=colnames(counts),
+                      batch=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\1",colnames(counts))),
+                      trt=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\3",colnames(counts))),
+                      time=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\4",colnames(counts))),
+                      genotype=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\2",colnames(counts)))
+) # corrected
+#
+samples
+counts.nolow <- counts[,colSums(counts,na.rm=TRUE) > 1000000]
+samples.low<-samples[samples$file %in% names(counts)[colSums(counts,na.rm=TRUE) < 1000000],]
+samples.low$counts<-colSums(counts,na.rm=TRUE)[colSums(counts,na.rm=TRUE) < 1000000]
+samples.low$genotype2<-""
+for(i in 1:27){
+  samples.low[samples.low$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])  
+} 
+names(counts.nolow)
+counts.nolow[is.na(counts.nolow)]<-0
+save(counts.nolow,file="../output/counts.nolow.Rdata")
+
+```
+
+* eliminating outlier libraries
+```{r, eval=FALSE}
+# in whitney
+load("../output/counts.nolow.Rdata")
+samples.nolow <- data.frame(file=colnames(counts.nolow),
+                            batch=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\1",colnames(counts.nolow))),
+                            trt=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\3",colnames(counts.nolow))),
+                            time=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\4",colnames(counts.nolow))),
+                            genotype=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\2",colnames(counts.nolow)))
+) # corrected
+summary(counts.nolow)
+Genotype<-levels(samples.nolow$genotype)
+# Genotype = "11" (coi1-16) and "16" (sto) had an error:
+Genotype<-Genotype[!Genotype %in% c("11","16")]
+## normalizing 
+samples.nolow$group <- paste(samples.nolow$genotype,samples.nolow$trt,samples.nolow$time,sep=".") 
+samples.nolow$genotype<-as.character(samples.nolow$genotype)
+dge.nolow <- DGEList(counts=counts.nolow,group=samples.nolow$group)  
+dge.nolow<-calcNormFactors(dge.nolow)
+
+for(i in Genotype) { # error in i=11,16
+  print(paste("Genotype is ",i))
+  # subset genotype of interests from DGEList (with normalized). see ablove (081214)
+  samples.nolow.s<-samples.nolow[samples.nolow$genotype==i,]
+  dge.nolow.s<-dge.nolow[,samples.nolow$genotype==i]
+  # calculating cpm
+  temp<-cpm(dge.nolow.s)
+  # eliminating low expressed genes in dge.nolow.s
+  dge.nolow.s<-dge.nolow.s[rowSums(dge.nolow.s$counts > 5) >= 3,]  
+  design.nolow.s.batch<- model.matrix(~samples.nolow.s$time*samples.nolow.s$trt + samples.nolow.s$batch)
+  colnames(design.nolow.s.batch) <- gsub("samples.nolow.s$","",colnames(design.nolow.s.batch),fixed=TRUE) # nicer column names
+  colnames(design.nolow.s.batch)
+  print(design.nolow.s.batch)
+  dge.nolow.s.batch.glm <- estimateGLMCommonDisp(dge.nolow.s,design.nolow.s.batch, verbose=TRUE) 
+  dge.nolow.s.batch.glm <- estimateGLMTrendedDisp(dge.nolow.s.batch.glm,design.nolow.s.batch, verbose=TRUE)
+  dge.nolow.s.batch.glm <- estimateGLMTagwiseDisp(dge.nolow.s.batch.glm,design.nolow.s.batch) # why this is not included in original Julin's script?
+  pdf(file=paste("../output/BCV_MDS_with_genotype",i,".pdf",sep=""),width=11,height=8)
+  par(mfrow=c(1,2))
+  plotBCV(dge.nolow.s.batch.glm,main=paste("genotype",i))
+  plotMDS(dge.nolow.s.batch.glm,main=paste("genotype",i))
+  dev.off()
+  
+  dge.nolow.s.batch.glm.fit <- glmFit(dge.nolow.s.batch.glm,design.nolow.s.batch)
+  dge.nolow.s.batch.glm.lrt <- glmLRT(dge.nolow.s.batch.glm.fit,coef=c("trtL","time4:trtL","time16:trtL","time25:trtL","time49:trtL"))
+  DE.batch.anytime<-topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table[topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table$FDR<0.05,]
+  dim(DE.batch.anytime) # 416 (Col, w/o eliminating low expressed genes). 518 (Col, after eliminating low expressed genes)
+  save(DE.batch.anytime,file=paste("../output/DE.batch.anytime_genotype",i,".Rdata",sep=""))  	
+}
+# eliminate 16h and find outlier
+dge.nolow4<-dge.nolow[,!samples.nolow$time==16]
+samples.nolow4<-samples.nolow[!samples.nolow$time==16,]
+samples.nolow4$time<-as.character(samples.nolow4$time)
+for(i in Genotype) { # error in i=11,16 (they has been eliminated in Genotype)
+  print(paste("Genotype is ",i))
+  # subset genotype of interests from DGEList (with normalized) ?? see ablove (081214)
+  samples.nolow.s<-samples.nolow4[samples.nolow4$genotype==i,]
+  dge.nolow.s<-dge.nolow4[,samples.nolow4$genotype==i]
+  # calculating cpm
+  temp<-cpm(dge.nolow.s)  
+  # eliminating low expressed genes in dge.nolow.s
+  dge.nolow.s<-dge.nolow.s[rowSums(dge.nolow.s$counts > 5) >= 3,]
+  
+  design.nolow.s.batch<- model.matrix(~samples.nolow.s$time*samples.nolow.s$trt + samples.nolow.s$batch)
+  colnames(design.nolow.s.batch) <- gsub("samples.nolow.s$","",colnames(design.nolow.s.batch),fixed=TRUE) # nicer column names
+  colnames(design.nolow.s.batch)
+  print(design.nolow.s.batch)
+  dge.nolow.s.batch.glm <- estimateGLMCommonDisp(dge.nolow.s,design.nolow.s.batch, verbose=TRUE) 
+  dge.nolow.s.batch.glm <- estimateGLMTrendedDisp(dge.nolow.s.batch.glm,design.nolow.s.batch, verbose=TRUE)
+  dge.nolow.s.batch.glm <- estimateGLMTagwiseDisp(dge.nolow.s.batch.glm,design.nolow.s.batch) # why this is not included in original Julin's script?
+  pdf(file=paste("../output/BCV_MDS_with_genotype",i,".pdf",sep=""),width=11,height=8)
+  par(mfrow=c(1,2))
+  plotBCV(dge.nolow.s.batch.glm,main=paste("genotype",i))
+  plotMDS(dge.nolow.s.batch.glm,main=paste("genotype",i))
+  dev.off()
+  
+  dge.nolow.s.batch.glm.fit <- glmFit(dge.nolow.s.batch.glm,design.nolow.s.batch)
+  dge.nolow.s.batch.glm.lrt <- glmLRT(dge.nolow.s.batch.glm.fit,coef=c("trtL","time4:trtL","time25:trtL","time49:trtL"))
+  
+  DE.batch.anytime<-topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table[topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table$FDR<0.05,]
+  dim(DE.batch.anytime) # 416 (Col, w/o eliminating low expressed genes). 518 (Col, after eliminating low expressed genes)
+  save(DE.batch.anytime,file=paste("../output/DE.batch.anytime_genotype_wo16h",i,".Rdata",sep=""))  	
+}
+
+## check MDS plot and find outliner libraries (081514)
+# eliminate following libraries due to outlier after looking MDS plot
+# Col (genotype = 1) # 90 DE
+Col_outlier<-"C1L4A.merged.bam" # after elimination; 80 DE
+# PAR1_RNAi09 (genotype = 10) only 7 DE
+PAR1_RNAi09_outlier<-c("E10H4A.merged.bam","D10H1A.merged.bam") # 6 DE
+# coi1_16 (11) only 1 DE (did not work with edgeR possibly due to lots of library are eliminated by genotyping)
+#phyAB, (12), 105 DE 
+phyAB_outlier<-"C12H25A.merged.bam" #>>>  
+#pif3 (13) 73 DE
+# AT5G02760_2 (mida9_4) (genotype = 14) original DE (dim(DE.batch.anytime), 10 8
+# AT5G59010_2 (15) # 46 DE (no need to eliminate)
+# sto (genotype = 16) (eliminated entire sto libraries)
+# aos (17) #52 (no need to eliminate)
+# 18 (genotyping showed this is not mutant. Eliminate this genotype)
+# argos_outlier<-"D18L1A.merged.bam" #11 DE
+#co_9 (genotype=19) 20 DE 
+# AT5G02540_1 (genotype = 2)
+AT5G02540_1_outlier<-"D2H4A.merged.bam" # 23 DE
+# Blh_1 (genotype = 20) DE 4
+# ? (genotype = 21) DE 20 (no need to eliminate libraries)
+#Shahdara (genotype =22) # DE 2
+Shahdara_outlier<-"C22H25A.merged.bam" # 3 DE
+# Col_0 (23) # 59
+Col_0_outlier<-"E23H49A.merged.bam" # 58 DE
+# Cvi_0 (24) # 43
+# Bur_0 (25) # 53
+Bur_0_outlier<-"E25H25A.merged.bam" # ** DE
+# Oy_0 (26) , 2 DE 
+Oy_0_outlier<-"E26L1A.merged.bam" # only * DE
+# (27) only 3 DE genes, but MDS plot looks good 
+# hy5, (genotype 3) only 0 DE genes (MDS plot looks good) probably no response to shade?
+# jar1 (genotype 4) 30 DE (MDS plot looks good)
+# kat1_2 (5) 117 DE (no need to eliminate)
+# phyB (6) 25 DE
+# pif4 pif5 (7) only 6 DE genes (MDS plot looks OK)
+# spt_11 (8) 81 DE >> 
+#yuc2589 (9), only 10 DE genes but MDS plot looks OK. >> after outliner elimination, ** DE
+# combine outlier libraries
+outlier<-c(
+  Col_outlier,
+  PAR1_RNAi09_outlier,
+  phyAB_outlier,
+  AT5G02540_1_outlier,
+  Shahdara_outlier, 
+  Col_0_outlier,
+  Bur_0_outlier,
+  Oy_0_outlier
+)
+# eliminate outlier libraries
+#system("mkdir ../SAS_muts_time_course_RNAseq2_mycomp_output/edgeR")
+#system("mkdir ../SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h")
+#setwd("../SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h")
+samples.nolow5<-samples.nolow4[!samples.nolow4$file %in% outlier,]
+dge.nolow5<-dge.nolow4[,!samples.nolow4$file %in% outlier]
+Genotype<-levels(as.factor(samples.nolow5$genotype))
+Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
+save(dge.nolow5,file="../output/dge.nolow5.Rdata") # dge list object used for DE analysis
+save(samples.nolow5,file="../output/samples.nolow5.Rdata") # libraries used for DE analysis
+```
+
+## differentially expressed gene analysis
+1.DE (treatment, ie, shade responsiveness) at any time point within given genotype
+```{r eval=FALSE}
+load("../output/samples.nolow5.Rdata")
+load("../output/dge.nolow5.Rdata")
+Genotype<-levels(as.factor(samples.nolow5$genotype))
+Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
+for(i in Genotype) { # why I eliminate genotype 1 and 10???
+  print(paste("Genotype is ",i))
+  samples.nolow.s<-samples.nolow5[samples.nolow5$genotype==i,]
+  dge.nolow.s<-dge.nolow5[,samples.nolow5$genotype==i]
+  # calculating cpm
+  temp<-cpm(dge.nolow.s)
+  save(temp,file=paste("../output/genotype",i,"cpm.Rdata",sep=".")) # better to have mean value at each time point  
+  # eliminating low expressed genes in dge.nolow.s
+  dge.nolow.s<-dge.nolow.s[rowSums(dge.nolow.s$counts > 5) >= 3,]  
+  design.nolow.s.batch<- model.matrix(~samples.nolow.s$time*samples.nolow.s$trt + samples.nolow.s$batch)
+  colnames(design.nolow.s.batch) <- gsub("samples.nolow.s$","",colnames(design.nolow.s.batch),fixed=TRUE) # nicer column names
+  colnames(design.nolow.s.batch)
+  print(design.nolow.s.batch)
+  dge.nolow.s.batch.glm <- estimateGLMCommonDisp(dge.nolow.s,design.nolow.s.batch, verbose=TRUE) 
+  dge.nolow.s.batch.glm <- estimateGLMTrendedDisp(dge.nolow.s.batch.glm,design.nolow.s.batch, verbose=TRUE)
+  dge.nolow.s.batch.glm <- estimateGLMTagwiseDisp(dge.nolow.s.batch.glm,design.nolow.s.batch) # why this is not included in original Julin's script?
+  #pdf(file=paste("BCV_MDS_with_genotype_w_outlier_wo16h",i,".pdf",sep=""),width=11,height=8)
+  pdf(file=paste("../output/BCV_MDS_with_genotype_wo_outlier_wo16h",i,".pdf",sep=""),width=11,height=8) # fine name fixed (122214)
+  par(mfrow=c(1,2))
+  plotBCV(dge.nolow.s.batch.glm,main=paste("genotype",i))
+  plotMDS(dge.nolow.s.batch.glm,main=paste("genotype",i))
+  dev.off() 
+  dge.nolow.s.batch.glm.fit <- glmFit(dge.nolow.s.batch.glm,design.nolow.s.batch)
+  dge.nolow.s.batch.glm.lrt <- glmLRT(dge.nolow.s.batch.glm.fit,coef=c("trtL","time4:trtL","time25:trtL","time49:trtL"))
+  DE.batch.anytime<-topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table[topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table$FDR<0.05,]
+  dim(DE.batch.anytime) # 
+  #save(DE.batch.anytime,file=paste("DE.batch.anytime_genotype_w_outlier_wo16h",i,".Rdata",sep=""))  
+  save(DE.batch.anytime,file=paste("../output/DE.batch.anytime_genotype_wo_outlier_wo16h",i,".Rdata",sep="")) # file name fixed (122114)    
+}
+```
+
+# summary of DE genes 
+* (053014 - 053114): revised version (081514 - );more revision (060415 - )
+```{r eval=FALSE}
+DEfiles<-list.files(path="../output/",pattern="DE.batch.anytime")
+DEfiles<-grep("DE.batch.anytime_genotype_wo_outlier_wo16h",DEfiles,value=TRUE)
+setwd("../output/")
+load(DEfiles[1]) 
+rownames(DE.batch.anytime)<-paste(rownames(DE.batch.anytime),gsub("(DE.batch.anytime_genotype_wo_outlier_wo16h)([[:print:]]+)(.Rdata)","\\2",DEfiles[1]),sep=".")
+temp<-DE.batch.anytime
+
+for(i in DEfiles[-1]) {
+  load(i) 
+  if(dim(DE.batch.anytime)[1]>1) {
+    rownames(DE.batch.anytime)<-paste(rownames(DE.batch.anytime),gsub("(DE.batch.anytime_genotype_w_outlier_wo16h)([[:print:]]+)(.Rdata)","\\2",i),sep=".")
+    temp<-rbind(temp,DE.batch.anytime)  }
+  else next
+}
+DGEsummary.edgeR.response<-temp
+tail(DGEsummary.edgeR.response)
+dim(DGEsummary.edgeR.response) #755   8 for final sequence data with normalization (081514); 669 8 , why??? in edgeR DE loop I used "for(i in Genotype[-(1:2)]) {", but this should be "for(i in Genotype) {". After fixing this I got "755 8" . oK. (060515)
+
+save(DGEsummary.edgeR.response,file="../output/DGEsummary.edgeR.response.Rdata")
+# # genotype conversion 
+load("../output/samples.nolow5.Rdata")
+samples.nolow5
+samples.nolow5$genotype2<-""
+for(i in 1:27){
+  samples.nolow5[samples.nolow5$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])	
+} 
+## summary of DE gene numers
+load(DEfiles[1]) #"DE.batch.anytime_genotype_wo_outlier_wo16h1.Rdata"
+DEgenes.summary<-data.frame(genotype=gsub("(DE.batch.anytime_genotype_wo_outlier_wo16h)([[:digit:]]+)(.Rdata)","\\2",DEfiles))
+for(i in 1:length(DEfiles)) {
+  load(DEfiles[i])
+  DEgenes.summary$DEgenes_num[i]<-dim(DE.batch.anytime)[1]
+}
+DEgenes.summary$genotype2<-""
+for(i in 1:27) {
+  DEgenes.summary[DEgenes.summary$genotype==i,"genotype2"]<-as.character(conversion.table[i,2])
+}
+# DEgenes.summary
+#    genotype DEgenes_num   genotype2
+# 1        10           6 PAR1_RNAi09
+# 2        13          73        pif3
+# 3        14          10     mida9_4
+# 4        15          46      bsk5_1
+# 5        17          52         aos
+# 6        19          20        co_9
+# 7         1          80         Col
+# 8        20           4       Blh_1
+# 9        21          20         Jea
+# 10       22           3    Shahdara
+# 11       23          58       Col_0
+# 12       24          42       Cvi_0
+# 13       25          47       Bur_0
+# 14       26           3        Oy_0
+# 15       27           3       Ita_0
+# 16        2          23 AT5G02540_1
+# 17        3           0         hy5
+# 18        4          30        jar1
+# 19        5         117      kat1_2
+# 20        6          25        phyB
+# 21        7           6       pif45
+# 22        8          81      spt_11
+# 23        9           6     yuc2589
+
+setwd("../sas_timecourse_v4_scripts/")
+```
+## select genes with largeCV and calculate responsiveness for SOM analysis
+```{r eval=FALSE}
+# read vst transformed data
+# SAS.expression.vst<-read.csv("kazu.SAS.expression.vst.csv")
+SAS.expression.vst<-read.csv("../input/kazu.SAS.expression.VST.070516.csv") # new transformed data by DEseq2 (done by J, see VST.R). Updated by Kazu (070516)
+rownames(SAS.expression.vst)<-SAS.expression.vst$X
+# calculate mean value among replicates
+load("../output/PLoSGenetics2015mutants.errrDE.Rdata") # from VST.R
+PLoSGenetics2015mutants.errrDE$sample<-with(PLoSGenetics2015mutants.errrDE,paste(genotype,trt,time,sep=""))
+PLoSGenetics2015mutants.errrDE$sample<-factor(PLoSGenetics2015mutants.errrDE$sample) 
+SAS.expression.vst.s<-SAS.expression.vst[,names(SAS.expression.vst) %in% PLoSGenetics2015mutants.errrDE$file]
+Genotype<-levels(as.factor(PLoSGenetics2015mutants.errrDE$genotype))
+Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
+
+temp<-SAS.expression.vst.s[,names(SAS.expression.vst.s) %in% PLoSGenetics2015mutants.errrDE[PLoSGenetics2015mutants.errrDE$genotype==1,"file"]] # genotype 1 data
+summary.vst<-expression.mean(temp)　# custom function
+for(i in Genotype[-1]) {
+	temp<-SAS.expression.vst.s[,names(SAS.expression.vst.s) %in% PLoSGenetics2015mutants.errrDE[PLoSGenetics2015mutants.errrDE$genotype==i,"file"]]
+	temp<-as.data.frame(temp)
+	temp2<-expression.mean(temp)
+	summary.vst<-cbind(summary.vst,temp2)
+}
+#head(summary.vst,3)
+rownames(summary.vst)<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst$X)
+save(summary.vst,file="../output/summary.vst.Rdata") #
+# relative value 
+load("../output/summary.vst.Rdata")
+# note that summary.vst is log2 transformed
+summary.vst.response<-as.data.frame((2^summary.vst[,gsub("(.+)(H|L)(1|4|16|25|49)","\\2",names(summary.vst))=="L"])/(2^summary.vst[,gsub("(.+)(H|L)(1|4|16|25|49)","\\2",names(summary.vst))=="H"])) # shade/sun 
+rownames(summary.vst.response)<-rownames(summary.vst)
+names(summary.vst.response)<-paste(gsub("(.+)(H|L)(1|4|16|25|49)","\\1_\\3",names(summary.vst.response)),"hrA",sep="") #
+save(summary.vst.response,file="../output/summary.vst.response.Rdata")
+# select genes with higher CV
+co.var.df <- function(x) ( 100*apply(x,1,sd)/rowMeans(x) )
+SAS.expression.vst.s$cv <- co.var.df(SAS.expression.vst.s[,-1])
+hist(SAS.expression.vst.s$cv)
+sum(as.integer(SAS.expression.vst.s$cv>5))/dim(SAS.expression.vst.s)[1] #[1] 0.249566
+SAS.expression.vst.s.largeCV<-SAS.expression.vst.s[SAS.expression.vst.s$cv>5,]
+dim(SAS.expression.vst.s.largeCV) #[1] 7620  288
+save(SAS.expression.vst.s.largeCV,file="../output/SAS.expression.vst.s.largeCV.Rdata") # 
+
+# response value of genes with largeCV 
+# summary.vst.response<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
+dim(summary.vst.response)
+summary.vst.response.largeCV<-summary.vst.response[rownames(summary.vst.response) %in% gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(SAS.expression.vst.s.largeCV)),]
+dim(summary.vst.response.largeCV) # 7620    48
+save(summary.vst.response.largeCV,file="../output/summary.vst.response.largeCV.Rdata")
+```
+## select only DE genes
+```{r eval=TRUE}
+load("../output/summary.vst.response.largeCV.Rdata")
+summary.vst.response.largeCV[summary.vst.response.largeCV=="Inf"]<-0 # arbitral
+summary.vst.response.largeCV[summary.vst.response.largeCV=="-Inf"]<-0 # arbitral
+summary.vst.response.largeCV[is.na(summary.vst.response.largeCV)]<-0 # arbitral
+load("../output/DGEsummary.edgeR.response.Rdata") #"AT1G33925.1"
+DGEgenelist.edgeRglm<-unique(gsub("([[:print:]]+)(.[[:digit:]]+)(.DE.batch.anytime)([[:print:]]+)(.Rdata)","\\1",rownames(DGEsummary.edgeR.response)))
+length(DGEgenelist.edgeRglm) #373
+# 
+DGE.summary.vst.response.largeCV<-summary.vst.response.largeCV[rownames(summary.vst.response.largeCV) %in% DGEgenelist.edgeRglm,]
+save(DGE.summary.vst.response.largeCV,file="../output/DGE.summary.vst.response.largeCV.Rdata")
+DGE.summary.vst.response.largeCV[rownames(DGE.summary.vst.response.largeCV)=="AT4G16780",] #ATHB2 
+```
+#ATHB2 has to be induced in genotype 1 (= Col)
+
+
+
+## differentially expressed gene analysis
+2a.DE at any time point (sun)
+```{r eval=FALSE}
+rm(list=ls())
+source("function_RNAseq_time_course.R")
+load("../output/PLoSGenetics2015mutants.errrDE.Rdata")
+load("../output/dge.nolow5.Rdata")
+dge.PLoSGenetics2015mutants.errrDE<-dge.nolow5[,colnames(dge.nolow5$counts) %in% PLoSGenetics2015mutants.errrDE$file] 
+
+Genotype<-levels(as.factor(PLoSGenetics2015mutants.errrDE$genotype))
+#Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
+for(i in Genotype[-1]) {# Genotype 17, 3,4,5,6,7,9 exceed 2000 genes. List up 5000 genes
+  PLoSGenetics2015mutants.errrDE.s<-PLoSGenetics2015mutants.errrDE[PLoSGenetics2015mutants.errrDE$genotype=="1"|PLoSGenetics2015mutants.errrDE$genotype==i,]
+  PLoSGenetics2015mutants.errrDE.s<-PLoSGenetics2015mutants.errrDE.s[PLoSGenetics2015mutants.errrDE.s$trt=="H",] # only "sun" treatment
+  PLoSGenetics2015mutants.errrDE.s$genotype<-as.character(PLoSGenetics2015mutants.errrDE.s$genotype)
+  dge.PLoSGenetics2015mutants.errrDE.s<-dge.PLoSGenetics2015mutants.errrDE[,colnames(dge.PLoSGenetics2015mutants.errrDE) %in% PLoSGenetics2015mutants.errrDE.s$file]
+  # eliminating low expressed genes in dge.PLoSGenetics2015mutants.errrDE.s
+  dge.PLoSGenetics2015mutants.errrDE.s<-dge.PLoSGenetics2015mutants.errrDE.s[rowSums(dge.PLoSGenetics2015mutants.errrDE.s$counts > 5) >= 3,]
+  design.nolow.s.gt.batch3<- model.matrix(~PLoSGenetics2015mutants.errrDE.s$genotype*PLoSGenetics2015mutants.errrDE.s$time  + PLoSGenetics2015mutants.errrDE.s$batch) # new model to detect genes with gt effects (100314)  
+  colnames(design.nolow.s.gt.batch3) <- gsub("PLoSGenetics2015mutants.errrDE.s$","",colnames(design.nolow.s.gt.batch3),fixed=TRUE) # nicer column names
+  colnames(design.nolow.s.gt.batch3)
+  print(design.nolow.s.gt.batch3)
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm <- estimateGLMCommonDisp(dge.PLoSGenetics2015mutants.errrDE.s,design.nolow.s.gt.batch3, verbose=TRUE)
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm <- estimateGLMTrendedDisp(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,design.nolow.s.gt.batch3, verbose=TRUE)
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm<-estimateGLMTagwiseDisp(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,design.nolow.s.gt.batch3)
+    dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.fit <- glmFit(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,design.nolow.s.gt.batch3)
+  genotype.alltime.coef<-c(paste("genotype",i,sep=""),paste("genotype",i,":time4",sep=""),paste("genotype",i,":time25",sep=""),paste("genotype",i,":time49",sep=""))  
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt <- glmLRT(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.fit,coef=genotype.alltime.coef)
+  DE.batch3.gt<-topTags(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt,n=10000)$table[topTags(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt,n=10000)$table$FDR<0.001,] # 0.05 for genotype_specific2 which gave me 5000 genes in hy5 (genotype3)
+  dim(DE.batch3.gt) #
+    save(DE.batch3.gt,file=paste("../output/DE.genotype.batch.sun.gt.wo16h",i,".Rdata",sep="")) 
+  # save  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt
+    save(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt,file=paste("../output/dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt.sun",i,".Rdata",sep="")) # added this line (try to use this object for coef, 061715)
+}
+getwd()
+```
+2b.DE at any time point (shade)
+```{r eval=FALSE}
+for(i in Genotype[-1]) {# Genotype 17, 3,4,5,6,7,9 exceed 2000 genes. List up 5000 genes
+  PLoSGenetics2015mutants.errrDE.s<-PLoSGenetics2015mutants.errrDE[PLoSGenetics2015mutants.errrDE$genotype=="1"|PLoSGenetics2015mutants.errrDE$genotype==i,]
+  PLoSGenetics2015mutants.errrDE.s<-PLoSGenetics2015mutants.errrDE.s[PLoSGenetics2015mutants.errrDE.s$trt=="L",] # only "shade" treatment
+  PLoSGenetics2015mutants.errrDE.s$genotype<-as.character(PLoSGenetics2015mutants.errrDE.s$genotype)
+  dge.PLoSGenetics2015mutants.errrDE.s<-dge.PLoSGenetics2015mutants.errrDE[,colnames(dge.PLoSGenetics2015mutants.errrDE) %in% PLoSGenetics2015mutants.errrDE.s$file]
+  # eliminating low expressed genes in dge.PLoSGenetics2015mutants.errrDE.s
+  dge.PLoSGenetics2015mutants.errrDE.s<-dge.PLoSGenetics2015mutants.errrDE.s[rowSums(dge.PLoSGenetics2015mutants.errrDE.s$counts > 5) >= 3,]
+  design.nolow.s.gt.batch3<- model.matrix(~PLoSGenetics2015mutants.errrDE.s$genotype*PLoSGenetics2015mutants.errrDE.s$time  + PLoSGenetics2015mutants.errrDE.s$batch) # new model to detect genes with gt effects (100314)  
+  colnames(design.nolow.s.gt.batch3) <- gsub("PLoSGenetics2015mutants.errrDE.s$","",colnames(design.nolow.s.gt.batch3),fixed=TRUE) # nicer column names
+  colnames(design.nolow.s.gt.batch3)
+  print(design.nolow.s.gt.batch3)
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm <- estimateGLMCommonDisp(dge.PLoSGenetics2015mutants.errrDE.s,design.nolow.s.gt.batch3, verbose=TRUE)
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm <- estimateGLMTrendedDisp(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,design.nolow.s.gt.batch3, verbose=TRUE)
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm<-estimateGLMTagwiseDisp(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,design.nolow.s.gt.batch3)
+  #pdf(file=paste("BCV_MDS_with_genotype.wo16h_gt",i,".pdf",sep=""),width=11,height=8)
+  #par(mfrow=c(1,2))
+  #plotBCV(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,main=paste("genotype",i))
+  #plotMDS(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,main=paste("genotype",i))
+  #dev.off()  
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.fit <- glmFit(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,design.nolow.s.gt.batch3)
+  genotype.alltime.coef<-c(paste("genotype",i,sep=""),paste("genotype",i,":time4",sep=""),paste("genotype",i,":time25",sep=""),paste("genotype",i,":time49",sep=""))  
+  dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt <- glmLRT(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.fit,coef=genotype.alltime.coef)
+  DE.batch3.gt<-topTags(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt,n=10000)$table[topTags(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt,n=10000)$table$FDR<0.001,] # 0.05 for genotype_specific2 which gave me 5000 genes in hy5 (genotype3)
+  dim(DE.batch3.gt) #  
+  save(DE.batch3.gt,file=paste("../output/DE.genotype.batch.shade.gt.wo16h",i,".Rdata",sep="")) 
+  save(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt,file=paste("../output/dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm.lrt.shade",i,".Rdata",sep="")) # added this line (try to use this object for coef, 061715)
+}
+```
+
+
+## SOM analysis (with Yasu's help)
+```{r eval=TRUE}
+#library(ggplot2);library(class);library(MASS);library(kohonen);library(reshape2);library(plyr);
+load("../output/DGE.summary.vst.response.largeCV.Rdata")
+genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(DGE.summary.vst.response.largeCV)))))
+DGE.summary.vst.response.largeCV<-log2(DGE.summary.vst.response.largeCV) # log2 transformation of fold change
+i<-1
+temp<-DGE.summary.vst.response.largeCV[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.largeCV))==genotypes[i]]
+rownames(temp)<-paste(rownames(temp),genotypes[i],sep=".")
+colnames(temp)<-paste(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\3",colnames(temp)),"h",sep="") ### fix (070914)
+for(i in 2:length(genotypes)) {
+  #temp2<-DGE.summary.vst.response.largeCV[,grep(genotypes[i],names(DGE.summary.vst.response.largeCV))]
+  temp2<-DGE.summary.vst.response.largeCV[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.largeCV))==genotypes[i]]
+  rownames(temp2)<-paste(rownames(temp2),genotypes[i],sep=".")
+  colnames(temp2)<-paste(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\3",colnames(temp2)),"h",sep="") ### fix (070914)  
+  temp<-rbind(temp,temp2)
+}
+summary(temp)
+head(temp)
+data5<-temp
+#### no scaling
+## SOM
+# set.seed(2) # Set a random seed so that SOM results are reproducible
+# set.seed(1)
+set.seed(123)
+ssom1.7.noscaling <- som(as.matrix(data5), somgrid(1,7,"hexagonal")) 
+plot(ssom1.7.noscaling, type = "codes") #
+ssom2.4.noscaling <- som(as.matrix(data5), somgrid(2,4,"hexagonal")) 
+plot(ssom2.4.noscaling, type = "codes") #
+ssom3.3.noscaling <- som(as.matrix(data5), somgrid(3,3,"hexagonal")) 
+plot(ssom3.3.noscaling,type="codes")
+ssom2.5.noscaling <- som(as.matrix(data5), somgrid(2,5,"hexagonal")) 
+plot(ssom2.5.noscaling, type = "codes") #
+ssom3.4.noscaling <- som(as.matrix(data5), somgrid(3,4,"hexagonal")) 
+ssom3.4.noscaling <- som(as.matrix(data5), somgrid(3,4,"hexagonal")) 
+plot(ssom3.4.noscaling) 
+ssom4.4.noscaling <- som(as.matrix(data5), somgrid(4,4,"hexagonal")) 
+plot(ssom4.4.noscaling) 
+
+## Create and write-out master SOM file
+newdata.vst<-cbind(data5,ssom3.4.noscaling$unit.classif,ssom3.4.noscaling$distances)
+names(newdata.vst)[5]<-"ssom3.4.unit.classif"
+names(newdata.vst)[6]<-"ssom3.4.unit.distances"
+newdata.vst$gt<-as.factor(gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",rownames(newdata.vst)))
+newdata.vst$AGI<-as.factor(gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",rownames(newdata.vst)))
+head(newdata.vst)
+## ATHB2
+newdata.vst[rownames(newdata.vst)=="AT4G16780.1",] # cluster 3? (v4 does not match to old cluster name...)
+## needs to match cluster name into old ones
+# cluster.conversion<-data.frame(new=1:12,old=c(*,*,10,*,*,*,*,*,*,*,*,*,*,*,*))
+##
+file.name<-gsub(" ","_",gsub(":","",Sys.time()))
+save(newdata.vst,file=paste("../output/newdata.vst",file.name,".Rdata",sep=""))
+
+
+#### making complete table (for SOM data) ###
+# load("../output/newdata.vst070616.Rdata")
+# # replace gt num into gt name
+# newdata.vst$gt2<-""
+# for(i in 1:27){
+#   newdata.vst[newdata.vst$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
+# } 
+# 
+# # adding gene description
+# TAIR10_gene_descriptions<-read.csv("../input/TAIR10_functional_descriptions.csv") 
+# head(TAIR10_gene_descriptions)
+# TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+# SOMclusters.description<-merge(newdata.vst[newdata.vst$gt==levels(newdata.vst$gt)[1],],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
+# 
+# for(x in levels(newdata.vst$gt)[-1]) {
+# temp<-merge(newdata.vst[newdata.vst$gt==x,],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
+# SOMclusters.description<-rbind(SOMclusters.description,temp)
+# }
+# #write.csv(SOMclusters.description,"../output/figs_tables/TableS3_SOMclusters.description.csv")
+
+```
+## drawing bloxplot for each cluster
+```{r eval=FALSE, ggplot, fig.width=11, fig.height=8}
+# load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/newdata.vst.Rdata") # 122214
+# # boxplot
+# newdata.vstmelt<-melt(newdata.vst[,c("1h","4h","25h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
+# 
+# names(newdata.vstmelt)[3]<-"ssom3.4.unit.classif"
+# newdata.vstmelt$ssom3.4.unit.classif<-factor(newdata.vstmelt$ssom3.4.unit.classif,levels=c(10, 7,12,1,11,4,2,8,5,9,6,3)) # use this factor for all heatmap. Needs to update.
+# newdata.vstmelt$variable<-factor(newdata.vstmelt$variable,levels=c("1h","4h","25h","49h")) # order in graphs was fixed (022115)
+# p <- ggplot(newdata.vstmelt,aes(x=variable,y=value,color=value))
+# p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) + geom_boxplot(outlier.size=0,aes(fill=factor(ssom3.4.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+# p <- p + facet_grid(ssom3.4.unit.classif~gt,scale="free",space="free") #+ facet_wrap(ssom3.4unit.classif~.)
+# p <- p + theme(strip.text.x = element_text(angle=90),axis.text.x=element_text(angle=90))
+# #p
+# ggsave("boxplot.node.genotype.3.4.noscaling.pdf",width=11,height=20,unit="in", path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+# #ggsave("boxplot.node.genotype.png",width=11,height=20,unit="in",dpi=600)
+# newdata.vst[rownames(newdata.vst)=="AT4G16780.1",] # ATHB2 cluster 10 in Col
+# newdata.vst[rownames(newdata.vst)=="AT2G46970.1",] # PIL1 cluster 10 in Col
+```
+### landscape format (similar to one used in 2014 ASPB meeting)
+```{r eval=FALSE, ggplot2, fig.width=11, fig.height=8}
+# ## probably this is better (matching to PIL1 expressio patterns in all genotypes (see plot))
+# ## Also number of genes in cluster 5 and 6 are increased which is consistent with mutant phenotype
+# ## do with this. (070814)
+# load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/newdata.vst.Rdata") # 122214
+# # boxplot
+# newdata.vstmelt<-melt(newdata.vst[,c("1h","25h","4h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
+# names(newdata.vstmelt)[3]<-"ssom3.4.unit.classif"
+# newdata.vstmelt$variable<-factor(newdata.vstmelt$variable,levels=c("1h","4h","25h","49h")) # order in graphs was fixed (022115)
+# newdata.vstmelt$ssom3.4.unit.classif<-factor(newdata.vstmelt$ssom3.4.unit.classif,levels=c(10, 7,12,1,11,4,2,8,5,9,6,3)) # use this factor for all heatmap. Needs to update.
+# ### convert genotype number into actual genotype name
+# conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+# head(newdata.vstmelt)
+# for(i in 1:27){
+#   newdata.vstmelt[newdata.vstmelt$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
+# } 
+# # head(newdata.vstmelt)
+# #draw boxplot with 90 degree orientation for ppt presentation (2014 ASPB)
+# p <- ggplot(newdata.vstmelt,aes(x=variable,y=value,color=value))
+# p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0
+# p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+# p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(ssom3.4.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+# p <- p + facet_grid(gt2~ssom3.4.unit.classif,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free" 
+# p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none") #
+# p <- p + coord_flip()
+# p
+# # TO DO: draw y=0 line (thick red)
+# ggsave("boxplot.node.genotype3.4.noscaling_similarto2014ASPB.pdf",width=15,height=8,unit="in",path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+```
+### only Col and yucQ
+```{r eval=FALSE, ggplot3, fig.width=11, fig.height=4} 
+# ### plot only Col and yucQ (071214)
+# load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/newdata.vst.Rdata") # 122214
+# newdata.vst.Col.yucQ<-newdata.vst[newdata.vst$gt==1|newdata.vst$gt==9,c("1h","25h","4h","49h","ssom3.4.unit.classif","gt","AGI")]
+# newdata.vst.Col.yucQ.melt<-melt(newdata.vst.Col.yucQ,id.var=c("gt","AGI","ssom3.4.unit.classif"))
+# newdata.vst.Col.yucQ.melt$gt<-as.character(newdata.vst.Col.yucQ.melt$gt)
+# newdata.vst.Col.yucQ.melt$variable<-factor(newdata.vst.Col.yucQ.melt$variable, levels=c("1h","4h","25h","49h"))
+# conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+# head(newdata.vst.Col.yucQ.melt)
+# for(i in 1:27){
+#   newdata.vst.Col.yucQ.melt[newdata.vst.Col.yucQ.melt$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
+# } 
+# head(newdata.vst.Col.yucQ.melt)
+# newdata.vst.Col.yucQ.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.yucQ.melt$ssom3.4.unit.classif,levels=c(10, 7,12,1,11,4,2,8,5,9,6,3)) # use this factor for all heatmap
+# names(newdata.vst.Col.yucQ.melt)[3]<-"ssom3.4.unit.classif"
+# p <- ggplot(newdata.vst.Col.yucQ.melt,aes(x=variable,y=value,color=value))
+# p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0 (060515)
+# p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+# p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(ssom3.4.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+# p <- p + facet_grid(gt2~ssom3.4.unit.classif,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free"
+# p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+# p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
+# p <- p + coord_flip()
+# p
+# ggsave("boxplot.node.genotype3.4.noscaling_vst_ColyucQ.pdf",width=11,height=5,unit="in",path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+```
+### only Col (for explanation)
+```{r eval=FALSE, ggplot4, fig.width=11, fig.height=2}
+#only Col (for lab meeting, 091114 version; vst version)
+load("../output/newdata.vst2016-07-08_151328.Rdata") # 070816
+newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
+newdata.vst.Col.melt<-melt(newdata.vst.Col[,c("1h","25h","4h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
+head(newdata.vst.Col.melt)
+for(i in 1:27){
+  newdata.vst.Col.melt[newdata.vst.Col.melt$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
+} 
+head(newdata.vst.Col.melt)
+newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(10, 7,4,12,1,11,2,8,5,9,6,3)) # use this factor for all heatmap. 10,7,4 together because I grouped them as "auxin" in manuscript (092315)
+newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # use this factor for all heatmap. start from upregulated (10,7,4 together because I grouped them as "auxin" in manuscript) and then down-regulated as manuscript described (052316)
+
+
+#newdata.vst.Col.melt$variable<-factor(newdata.vst.Col.melt$variable,levels=c("1h","4h","25h","49h"))
+newdata.vst.Col.melt$variable<-factor(newdata.vst.Col.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
+names(newdata.vst.Col.melt)[3]<-"ssom3.4.unit.classif"
+p <- ggplot(newdata.vst.Col.melt,aes(x=variable,y=value,color=value))
+p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0 (060515)
+p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(ssom3.4.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+p <- p + facet_grid(gt2~ssom3.4.unit.classif,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free"
+p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
+p <- p + coord_flip()
+p
+#ggsave("boxplot.node.genotype3.4.noscaling_vst_Col.pdf",width=11,height=2,unit="in",path="../output/figs_tables")
+timestamp<-gsub(" ","_",gsub(":","",Sys.time()))
+ggsave(paste("boxplot.node.genotype3.4.noscaling_vst_Col_",timestamp,".pdf",sep=""),width=11,height=2,unit="in",path="../output/figs_tables") # gsub(" ","_",gsub(":","",Sys.time())) is used for temporal file name
+
+```
+
+# GOseq anaysis of SOM clusters (022215)
+```{r eval=FALSE}
+load("../output/newdata.vst2016-07-08_151328.Rdata") # 070816
+newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
+clusters<-levels(as.factor(newdata.vst.Col$ssom3.4.unit.classif))
+# modify GOseq.ORA if there is no enriched GO ("return" instead of "stop") (070716)
+for(x in 1:12) {  
+  temp.GOseq<-GOseq.ORA(newdata.vst.Col[newdata.vst.Col$ssom3.4.unit.classif==x,"AGI"])
+  if(temp.GOseq=="no enriched GO") {next} else {
+     temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=newdata.vst.Col[newdata.vst.Col$ssom3.4.unit.classif==x,"AGI"],category.table=Atgo.list)
+    save(temp.GOseq,temp.genes,file=paste("../output/SOM.Col.cluster.",x,".GOseq.Rdata",sep=""))
+  } 
+}
+```
+# write summary of GOseq analsyis of SOM clusters
+```{r eval=FALSE}
+rm(list=ls())
+SOM.Col.cluster.GOseq.files<-list.files(pattern="SOM.Col.cluster.",path="../output/")
+SOM.Col.cluster.GOseq.files<-grep(".GOseq.Rdata",SOM.Col.cluster.GOseq.files,value=TRUE)
+load(paste("../output/",SOM.Col.cluster.GOseq.files[1],sep=""))
+temp.GOseq$clusters<-gsub("(SOM.Col.cluster.)([[:print:]]+)(.GOseq.Rdata)","\\2",SOM.Col.cluster.GOseq.files[1])
+temp<-temp.GOseq
+ 
+for(i in SOM.Col.cluster.GOseq.files[-1]) {
+  load(paste("../output/",i,sep=""))
+  temp.GOseq$clusters<-gsub("(SOM.Col.cluster.)([[:print:]]+)(.GOseq.Rdata)","\\2",i)
+  temp<-rbind(temp,temp.GOseq)
+}
+SOM.Col.cluster.GOseq.summary<-temp
+write.csv(SOM.Col.cluster.GOseq.summary,file="../output/figs_tables/SOM.Col.cluster.GOseq.summary.csv")
+```
+
+# Overlap analysis with custome categories
+```{r eval=FALSE}
+rm(list=ls())
+source("function_RNAseq_time_course.R")
+#library(WGCNA);library(ggplot2);library(reshape2);library(scales)
+options(stringsAsFactors = FALSE);
+conversion.table
+# custom categories
+load("../input/hormone.responsiveness4.Rdata") #new version. check if new version is identical to this. copy the file to this location
+## or change list into data.frame
+hormone.responsiveness4.DF<-data.frame(t(sapply(hormone.responsiveness4,c)))
+names(hormone.responsiveness4.DF)<-attributes(hormone.responsiveness4)$category
+## convert into hormone.responsiveness3.DF (omit "PCC1") ?
+hormone.responsiveness3.DF<-hormone.responsiveness4.DF
+
+summary(hormone.responsiveness3.DF)
+hormone.responsiveness3.DF$AGI<-rownames(hormone.responsiveness3.DF)
+# SOM clusters
+load("../output/newdata.vst070716.Rdata") # 022215
+newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
+# merge with SOM clusters
+test<-merge(hormone.responsiveness3.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
+hormone.responsiveness.SOMclusters<-test
+hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"0"
+write.csv(hormone.responsiveness.SOMclusters,file="../output/figs_tables/hormone.responsiveness.SOMclusters.csv")
+hormone.responsiveness.SOMclusters<-read.csv("../output/figs_tables/hormone.responsiveness.SOMclusters.csv")
+hormone.responsiveness.SOMclusters<-hormone.responsiveness.SOMclusters[,-1]
+# addint gene description
+TAIR10_gene_descriptions<-read.csv("../input/TAIR10_functional_descriptions.csv") 
+head(TAIR10_gene_descriptions)
+TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+hormone.responsiveness.SOMclusters.description<-merge(hormone.responsiveness.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
+write.csv("../output/hormone.responsiveness.SOMclusters.description.csv")
+#test<-hormone.responsiveness.SOMclusters
+# overlap table
+# overlap table has to be against all genes? (070716)
+test<-merge(data.frame(AGI=names(bias)),hormone.responsiveness.SOMclusters[,1:30],by="AGI",all=TRUE)
+test[is.na(test)]<-"0"
+i<-2
+#overlap<-GOseq.overlapTable(test[,30],test[,i],genes=test$AGI,permutation=100) # needs to change permutaiton into 10000
+overlap<-overlapTable(test[,30],test[,i]) # needs to change permutaiton into 10000
+overlap.melt<-melt(overlap$pTable,id=1) #
+overlap.melt$count<-melt(overlap$countTable,id=1)$value
+overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="0",]
+for(i in 3:29) {
+#overlap<-GOseq.overlapTable(test[,30],test[,i],genes=test$AGI,permutation=100) # needs to change permutaiton into 10000
+overlap<-overlapTable(test[,30],test[,i]) # needs to change permutaiton into 10000
+overlap.melt<-melt(overlap$pTable,id=1) #
+overlap.melt$count<-melt(overlap$countTable,id=1)$value
+overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
+overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
+}
+overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
+overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
+overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
+save(overlap.melt.summary,file="../output/overlap.melt.summary.SOM.custom.Rdata")
+#table(overlap.melt.summary[,"value"])
+# graph
+#overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
+load("../output/overlap.melt.summary.SOM.custom.Rdata")
+overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
+overlap.melt.summary.s<-overlap.melt.summary.s[!is.na(overlap.melt.summary.s$Var1),]
+# for some reasons, there is blank in Var2
+overlap.melt.summary.s$Var2<-as.character(overlap.melt.summary.s$Var2)
+overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2 %in% c("GRF1_3target","PCC1up","PCC1down"),] # # remove "GRF1_3target","PCC1up","PCC1down" (052616)
+#overlap.melt.summary.s<-overlap.melt.summary.s[!is.na(overlap.melt.summary.s$Var2),]
+overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
+summary(overlap.melt.summary.s)
+# switching x and y axis
+overlap.melt.summary.s$Var2<-factor(as.character(overlap.melt.summary.s$Var2),levels=rev(c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","SARplus","SARminus","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down"))) # remove "GRF1_3target" (052616)
+overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # 052616
+overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # needs to chagne 070716
+summary(overlap.melt.summary.s)
+
+q4b<-ggplot(overlap.melt.summary.s,aes(y=Var2,x=Var1)) 
+q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")
+#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
+q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_blank(),
+                 axis.ticks = element_line(size=0,color="white"))
+q4b <- q4b + geom_text(aes(label=count),size=5) 
+q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title="custom category enrichment",fill="-log10\n p-value")
+#q4b
+#ggsave(q4b,file="Col.SOM.clusters.vs.my.category.table.s.2.pdf",width=13,height=6,path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.070716.pdf",width=13,height=6,path="../output/figs_tables")
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.070716.png",width=13,height=6,path="../output/figs_tables")
+
+```
+
+## overlap between Col clusters (SOM) and mutant misexpressed genes
+```{r eval=FALSE}
+rm(list=ls())
+#library(WGCNA);library(ggplot2);library(reshape2);library(scales)
+source("function_RNAseq_time_course.R")
+# sun
+setwd("../output/")
+DE.genotype.batch.sun.files<-list.files(pattern="DE.genotype.batch.sun") # needs to select "sun" object (060615)
+# DE.genotype.batch.sun.files<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% 1:19]
+load(DE.genotype.batch.sun.files[1])
+DE.genotype.batch.sun.genes<-rownames(DE.batch3.gt)
+for(xx in DE.genotype.batch.sun.files) {
+  load(xx)
+  DE.genotype.batch.sun.genes<-c(DE.genotype.batch.sun.genes,rownames(DE.batch3.gt))
+}
+# shade
+DE.genotype.batch.shade.files<-list.files(pattern="DE.genotype.batch.shade",path="../output/")
+load(DE.genotype.batch.shade.files[1])
+DE.genotype.batch.shade.genes<-rownames(DE.batch3.gt)
+for(xx in DE.genotype.batch.shade.files) {
+  load(xx)
+  DE.genotype.batch.shade.genes<-c(DE.genotype.batch.shade.genes,rownames(DE.batch3.gt))
+}
+######
+DE.genotype.batch.genes.unique<-unique(c(DE.genotype.batch.sun.genes,DE.genotype.batch.shade.genes))
+length(DE.genotype.batch.genes.unique) #1912
+# 
+DE.genotype.batch.genes.unique.DF<-data.frame(AGI=DE.genotype.batch.genes.unique)
+# formatting
+# sun
+for(x in DE.genotype.batch.sun.files) {
+setwd("../output/")
+#setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/")
+load(x)
+temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
+temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"sun",sep="."),sum(temp))
+DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
+}
+names(DE.genotype.batch.genes.unique.DF)[-1]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.sun.files)),2],"sun",sep=".")
+#head(DE.genotype.batch.genes.unique.DF)
+# shade
+for(x in DE.genotype.batch.shade.files) {
+#setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/edgeR/outlier_wo16h/genotype_specific4")  
+setwd("../output/")
+load(x)
+temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
+temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"shade",sep="."),sum(temp))
+DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
+}
+#head(DE.genotype.batch.genes.unique.DF)
+names(DE.genotype.batch.genes.unique.DF)[-(1:12)]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files)),2],"shade",sep=".")
+#head(DE.genotype.batch.genes.unique.DF)
+# remove "0"
+#DE.genotype.batch.genes.unique.DF[DE.genotype.batch.genes.unique.DF==0]<-""
+DE.genotype.batch.genes.unique.DF$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.genes.unique.DF$AGI)
+save(DE.genotype.batch.genes.unique.DF, file="../output/DE.genotype.batch.genes.unique.DF.Rdata")
+# SOM clusters
+load("../output/newdata.vst.Rdata") 
+newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
+# merge with SOM clusters
+test<-merge(DE.genotype.batch.genes.unique.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
+DE.genotype.batch.genes.SOMclusters<-test
+DE.genotype.batch.genes.SOMclusters[is.na(DE.genotype.batch.genes.SOMclusters)]<-"0"
+
+write.csv(DE.genotype.batch.genes.SOMclusters,file="../output/figs_tables/DE.genotype.batch.genes.SOMclusters.csv")
+DE.genotype.batch.genes.SOMclusters<-read.csv("../output/figs_tables/DE.genotype.batch.genes.SOMclusters.csv")
+DE.genotype.batch.genes.SOMclusters<-DE.genotype.batch.genes.SOMclusters[,-1]
+# adding gene description
+#TAIR10_gene_descriptions<-read.csv("/Volumes/Data8/NGS_related/Arabidopsis_analysis/reference/TAIR10_functional_descriptions.csv") 
+TAIR10_gene_descriptions<-read.csv("../input/TAIR10_functional_descriptions.csv") 
+head(TAIR10_gene_descriptions)
+TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+DE.genotype.batch.genes.SOMclusters.description<-merge(DE.genotype.batch.genes.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
+write.csv(DE.genotype.batch.genes.SOMclusters.description,"../output/figs_tables/DE.genotype.batch.genes.SOMclusters.description.csv")
+#test<-DE.genotype.batch.genes.SOMclusters
+# overlap table (revised to GOseq.overlapTable version; 082515)
+# overlap table has to be against all genes? (070716)
+test<-merge(data.frame(AGI=names(bias)),DE.genotype.batch.genes.SOMclusters.description[,1:26],by="AGI",all=TRUE)
+test[is.na(test)]<-"0"
+i<-2
+overlap<-overlapTable(test[,26],test[,i])
+#overlap.GOseq<-GOseq.overlapTable(test[,24],test[,i],genes=test$AGI,permutation=100) # needs to change permutaiton into 10000
+overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
+overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
+overlap.GOseq.melt.summary<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
+for(i in 3:25) {
+overlap.GOseq<-overlapTable(test[,26],test[,i]) 
+#overlap.GOseq<-GOseq.overlapTable(test[,26],test[,i],genes=test$AGI,permutation=100) # needs to change permutaiton into 10000
+overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
+overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
+overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
+overlap.GOseq.melt.summary<-rbind(overlap.GOseq.melt.summary,overlap.GOseq.melt)
+}
+overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"])
+overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10
+overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-""
+#table(overlap.melt.summary[,"value"])
+save(overlap.GOseq.melt.summary, file="../output/overlap.GOseq.melt.summary.SOM.DEgenes.070716.Rdata")
+load("../output/overlap.GOseq.melt.summary.SOM.DEgenes.070616.Rdata")
+# graph
+# overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),] # eliminate bsk5_1 (genotype15) and AT5G02540_1 (genotype 2)
+overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var1==0,]
+#overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10))
+
+# switching x and y axis
+#overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=rev(c(3,6,9,5,8,2,4,11,1,12,7,10)))
+overlap.GOseq.melt.summary.s$Var1<-factor(overlap.GOseq.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # 052516
+overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=rev(levels(overlap.GOseq.melt.summary.s$Var2))) 
+
+q4b<-ggplot(overlap.GOseq.melt.summary.s,aes(y=factor(Var2),x=factor(Var1))) 
+#q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)  #+ ,guide = guide_legend(title="-log10\n p-value")) 
+q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")  
+#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
+q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_blank(),
+                 axis.ticks = element_line(size=0,color="white"))
+q4b <- q4b + geom_text(aes(label=count),size=5)
+q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2)
+ggsave(q4b,file="Fig4_Col.SOM.clusters.vs.GenotypeSpecific.genes.table.s.2.GOseq.070716.100perm.pdf",width=13,height=6,path="../output/figs_tables")
+
+q4b # almost the same with fisher's exact test version
+```
+
+
+
+
+## co-expression analysis by WGCNA
+```{r eval=FALSE}
+library(WGCNA)
+# load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/WGCNA/SASdata_voom/WGCNA_function.R")
+# The following setting is important, do not omit.
+options(stringsAsFactors = FALSE)
+## Work in Whitney with multi-threds 
+# Allow multi-threading within WGCNA. This helps speed up certain calculations.
+# At present this call is necessary for the code to work.
+# Any error here may be ignored but you may want to update WGCNA if you see one.
+# Caution: skip this line if you run RStudio or other third-party R environments.
+# See note above.
+enableWGCNAThreads(10)
+# setwd("/Network/Servers/avalanche.plb.ucdavis.edu/Volumes/Mammoth/Users/kazu/Documents/SASmutRNAseq_whitney/WGCNA/SASdata_vst") # replace "voom" into "vst"
+## Co-expressed gene module detection by WGCNA
+load("../output/SAS.expression.vst.s.largeCV.Rdata")
+load("../output/PLoSGenetics2015mutants.errrDE.Rdata")
+Genotype<-levels(as.factor(PLoSGenetics2015mutants.errrDE$genotype))
+#for(x in Genotype[!Genotype %in% c("20","21","22","23","24","25","26","27")]) {
+for(x in Genotype) {
+  SAS.expression.vst.s.largeCV.x<-SAS.expression.vst.s.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.largeCV))==x]
+    dim(SAS.expression.vst.s.largeCV.x) #[1] 7438     21
+  datExpr <-t(SAS.expression.vst.s.largeCV.x)
+  # Choose a set of soft-thresholding powers
+  powers = c(c(1:9), seq(from = 2, to=20, by=10))
+  sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)  
+  # Plot the results:
+  #sizeGrWindow(9, 5)
+  pdf(paste("../output/all",x,".largeCV.softthresholding.pdf",sep=""),width=10,height=8)
+  par(mfrow = c(1,2));
+  cex1 = 0.9;
+  # Scale-free topology fit index as a function of the soft-thresholding power
+  plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+       main = paste("Scale independence"));
+  text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       labels=powers,cex=cex1,col="red");
+  # this line corresponds to using an R^2 cut-off of h
+  abline(h=0.90,col="red")
+  # Mean connectivity as a function of the soft-thresholding power
+  plot(sft$fitIndices[,1], sft$fitIndices[,5],
+       xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+       main = paste("Mean connectivity"))
+  text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+  dev.off()
+  # 
+  net = blockwiseModules(datExpr, power = 6,
+                         TOMType = "unsigned", minModuleSize = 20,
+                         reassignThreshold = 0, mergeCutHeight = 0.25,
+                         numericLabels = TRUE, pamRespectsDendro = FALSE,
+                         saveTOMs = TRUE,
+                         saveTOMFileBase = paste("SAS.expression.vst.s.largeCV",x,".TOM",sep=""),
+                         verbose = 3)
+  save(net,file=paste("../output/SAS.expression.vst.s.largeCV",x,".Rdata",sep=""))  
+  # how to extract module info?
+  # open a graphics window
+  pdf(file=paste("../output/all",x,".largeCV.dendrogram.pdf",sep=""),width=10,height=8)
+  # Convert labels to colors for plotting
+  mergedColors = labels2colors(net$colors)
+  # Plot the dendrogram and the module colors underneath
+  plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]],
+                      "Module colors",
+                      dendroLabels = FALSE, hang = 0.03,
+                      addGuide = TRUE, guideHang = 0.05)
+  dev.off()
+  # save parameters  
+  moduleLabels = net$colors
+  moduleColors = labels2colors(net$colors)
+  MEs = net$MEs
+  geneTree = net$dendrograms[[1]]
+  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../output/all",x,".largeCV.RData",sep=""))
+}
+```
+# drawing boxplot (WGCNA module) (061915)
+```{r eval=FALSE}
+load("../output/SAS.expression.vst.s.largeCV.modules.Rdata") 
+library(WGCNA)
+SAS.expression.vst.s.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules$AGI) 
+
+# load mean expression value 
+load("../output/summary.vst.Rdata")
+library(ggplot2)
+summary.vst<-summary.vst[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst)) %in% 1:19]
+summary.vst$AGI<-rownames(summary.vst)
+summary.vst.WGCNAmodules<-merge(summary.vst[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49","AGI")],SAS.expression.vst.s.largeCV.modules[,c("AGI","1")],by="AGI")
+# boxplot
+head(summary.vst.WGCNAmodules)
+names(summary.vst.WGCNAmodules)[names(summary.vst.WGCNAmodules)=="1"]<-"WGCNAmodule"
+summary.vst.WGCNAmodules.melt<-melt(summary.vst.WGCNAmodules,id.var=c("AGI","WGCNAmodule"))
+
+p <- ggplot(summary.vst.WGCNAmodules.melt,aes(x=variable,y=value,color=value))
+p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) + geom_boxplot(outlier.size=0,aes(fill=factor(WGCNAmodule),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+p <- p + facet_grid(WGCNAmodule~.,scale="free",space="free") #+ facet_wrap(WGCNAmodule~.)
+p <- p + theme(strip.text.x = element_text(angle=90),axis.text.x=element_text(angle=90))
+p
+## 
+summary.vst.WGCNAmodules.melt$variable<-factor(summary.vst.WGCNAmodules.melt$variable,levels=c("1H1","1H4","1H25","1H49","1L1","1L4","1L25","1L49"))
+summary.vst.WGCNAmodules.melt$light<-gsub("([[:digit:]]+)(H|L)(1|4|25|49)","\\2",summary.vst.WGCNAmodules.melt$variable)
+
+p <- ggplot(summary.vst.WGCNAmodules.melt,aes(x=variable,y=value,color=factor(light)))
+p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+p <- p + facet_grid(WGCNAmodule~.,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
+p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+p <- p + labs(x="Time (hr)", y="expression level") 
+p <- p + coord_flip()
+#p
+ggsave("boxplot.node.WGCNAmodule.pdf",width=11,height=30,unit="in",path="../output/figs_tables") # salmon module is interesting pattern
+# only salmon module
+
+p <- ggplot(summary.vst.WGCNAmodules.melt[summary.vst.WGCNAmodules.melt$WGCNAmodule=="salmon",],aes(x=variable,y=value,color=factor(light)))
+p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+p <- p + facet_grid(WGCNAmodule~.,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
+p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+p <- p + labs(x="Time (hr)", y="expression level") 
+p <- p + coord_flip()
+#p
+ggsave("boxplot.node.WGCNAmodule.salmon.pdf",width=11,height=8,unit="in",path="../output/figs_tables") # salmon module is interesting pattern
+
+# change layout of salmon module boxplot (071915)
+summary.vst.WGCNAmodules.melt.salmon<-summary.vst.WGCNAmodules.melt[summary.vst.WGCNAmodules.melt$WGCNAmodule=="salmon",]
+summary.vst.WGCNAmodules.melt.salmon$time<-factor(gsub("(1)(H|L)(1|4|25|49)","\\3",summary.vst.WGCNAmodules.melt.salmon$variable),levels=c("1","4","25","49"))
+summary.vst.WGCNAmodules.melt.salmon$light<-factor(summary.vst.WGCNAmodules.melt.salmon$light)
+levels(summary.vst.WGCNAmodules.melt.salmon$light)<-c("high R/FR","low R/FR")
+p <- ggplot(summary.vst.WGCNAmodules.melt.salmon,aes(x=time,y=value,color=factor(light)))
+p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+#p <- p + geom_boxplot(outlier.size=NULL,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)")
+p <- p + facet_grid(.~light,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
+p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+p <- p + labs(x="Time after light treatment (hr)", y="log2 expression level") 
+p
+ggsave("boxplot.node.WGCNAmodule.salmon2.png",width=4,height=3,unit="in",path="../output/figs_tables") # 
+```
+
+## overlap table between Col modules and mutant modules
+```{r eval=FALSE}
+moduleColors.files<-list.files(pattern=".largeCV.RData",path="../output/")
+setwd("../output/")
+load("all1.largeCV.RData")
+moduleColors.allCol.largeCV<-moduleColors
+temp<-moduleColors.allCol.largeCV
+for(y in moduleColors.files[-1]) {
+  load(y)
+  matched.moduleColors<-matchLabels(moduleColors,moduleColors.allCol.largeCV)
+  temp<-cbind(temp, matched.moduleColors)
+}
+length(moduleColors.files)
+temp<-as.data.frame(temp)
+names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.RData)","\\2",moduleColors.files)
+SAS.expression.vst.s.largeCV.modules<-cbind(rownames(SAS.expression.vst.s.largeCV),temp)
+names(SAS.expression.vst.s.largeCV.modules)[1]<-"AGI"
+names(SAS.expression.vst.s.largeCV.modules)
+save(SAS.expression.vst.s.largeCV.modules,file="../output/SAS.expression.vst.s.largeCV.modules.Rdata")
+```
+
+## overlap table between Col module and SOM cluster
+```{r, eval=FALSE}
+load("../output/newdata.vst070716.Rdata") # 122214
+load("../output/SAS.expression.vst.s.largeCV.modules.Rdata")
+
+#library(WGCNA)
+SAS.expression.vst.s.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules$AGI)
+WGCNA.SOMcluster.Col<-merge(SAS.expression.vst.s.largeCV.modules[,c("AGI","1")],newdata.vst[newdata.vst$gt=="1",c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE) # 
+dim(WGCNA.SOMcluster.Col) #[1] 7438    3
+#head(WGCNA.SOMcluster.Col)
+str(WGCNA.SOMcluster.Col)
+WGCNA.SOMcluster.Col$"1"<-as.factor(WGCNA.SOMcluster.Col$"1")
+WGCNA.SOMcluster.Col$ssom3.4.unit.classif<-as.factor(WGCNA.SOMcluster.Col$ssom3.4.unit.classif)
+WGCNA.SOMcluster.Col.overlap<-overlapTable(WGCNA.SOMcluster.Col$"1",WGCNA.SOMcluster.Col$ssom3.4.unit.classif)
+# heatmap
+overlap.melt<-melt(WGCNA.SOMcluster.Col.overlap$pTable,id=1) #
+overlap.melt$count<-melt(WGCNA.SOMcluster.Col.overlap$countTable,id=1)$value
+#head(overlap.melt)
+length(table(overlap.melt[,1])) #21
+names(overlap.melt)[1]<-"shade"
+names(overlap.melt)[2]<-"sun"
+overlap.melt[,"value"]<--log10(overlap.melt[,"value"])
+#overlap.melt[overlap.melt$value>10,"value"]<-10
+overlap.melt[overlap.melt$count==0,"count"]<-""
+#table(overlap.melt[,"value"])
+q4<-ggplot(overlap.melt,aes(y=factor(sun),x=factor(shade))) 
+q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
+#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
+q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_blank(),
+                 axis.ticks = element_line(size=0,color="white"))
+q4 <- q4 + geom_text(aes(label=count,size=1))
+q4 <- q4 + labs(x="WGCNA modules in Col",y="SOM cluster in Col",title="module overlap in Col")
+q4 # magenta indicates pvalue is smaller than 0.01.
+ggsave(q4,file="Col.SOMcluster.VS.Col.WGCNA.modules.table.pdf",width=8,height=6,path="../output/figs_tables")
+
+```
+## overlap between WGCNA Col modules and mutation affected genes
+```{r eval=FALSE}
+#rm(list=ls())
+# sun
+setwd("../output/")
+# DE.genotype.batch.sun.files<-list.files(pattern="DE.genotype.batch.sun") # needs to select "sun" object (060615)
+# #DE.genotype.batch.sun.files<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% 1:19]
+# 
+# load(DE.genotype.batch.sun.files[1])
+# DE.genotype.batch.sun.genes<-rownames(DE.batch3.gt)
+# for(xx in DE.genotype.batch.sun.files) {
+#   load(xx)
+#   DE.genotype.batch.sun.genes<-c(DE.genotype.batch.sun.genes,rownames(DE.batch3.gt))
+# }
+# # shade
+# #setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h/genotype_specific5")
+# DE.genotype.batch.shade.files<-list.files(pattern="DE.genotype.batch.shade",path="../output/")
+# #DE.genotype.batch.shade.files<-DE.genotype.batch.shade.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.shade.files) %in% 1:19]
+# load(DE.genotype.batch.shade.files[1])
+# DE.genotype.batch.shade.genes<-rownames(DE.batch3.gt)
+# for(xx in DE.genotype.batch.shade.files) {
+#   load(xx)
+#   DE.genotype.batch.shade.genes<-c(DE.genotype.batch.shade.genes,rownames(DE.batch3.gt))
+# }
+# ######
+# DE.genotype.batch.genes.unique<-unique(c(DE.genotype.batch.sun.genes,DE.genotype.batch.shade.genes))
+# length(DE.genotype.batch.genes.unique) #3356
+# # 
+# DE.genotype.batch.genes.unique.DF<-data.frame(AGI=DE.genotype.batch.genes.unique)
+# # sun
+# for(x in DE.genotype.batch.sun.files) {
+# setwd("../output/")
+# load(x)
+# temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
+# temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"sun",sep="."),sum(temp))
+# DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
+# }
+# names(DE.genotype.batch.genes.unique.DF)[-1]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.sun.files)),2],"sun",sep=".")
+# #head(DE.genotype.batch.genes.unique.DF)
+# # shade
+# for(x in DE.genotype.batch.shade.files) {
+# setwd("../output/")  
+# load(x)
+# temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
+# temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"shade",sep="."),sum(temp))
+# DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
+# }
+# #head(DE.genotype.batch.genes.unique.DF)
+# names(DE.genotype.batch.genes.unique.DF)[-(1:15)]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files)),2],"shade",sep=".")
+# #head(DE.genotype.batch.genes.unique.DF)
+# # remove "0"
+# #DE.genotype.batch.genes.unique.DF[DE.genotype.batch.genes.unique.DF==0]<-""
+# DE.genotype.batch.genes.unique.DF$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.genes.unique.DF$AGI)
+
+load("../output/DE.genotype.batch.genes.unique.DF.Rdata")
+# 
+load("../output/SAS.expression.vst.s.largeCV.modules.Rdata")
+#library(WGCNA)
+SAS.expression.vst.s.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules$AGI)
+# merge with WGCNA modules
+test<-merge(DE.genotype.batch.genes.unique.DF,SAS.expression.vst.s.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
+DE.genotype.batch.genes.WGCNAmodules<-test
+DE.genotype.batch.genes.WGCNAmodules[is.na(DE.genotype.batch.genes.WGCNAmodules)]<-"0"
+write.csv(DE.genotype.batch.genes.WGCNAmodules,file="../output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
+DE.genotype.batch.genes.WGCNAmodules<-read.csv("../output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
+DE.genotype.batch.genes.WGCNAmodules<-DE.genotype.batch.genes.WGCNAmodules[,-1]
+# adding gene description
+TAIR10_gene_descriptions<-read.csv("../input/TAIR10_functional_descriptions.csv") 
+TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
+dim(DE.genotype.batch.genes.WGCNAmodules.description) # [1] 9005   26
+write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../output/figs_tables/TableS4_DE.genotype.batch.genes.WGCNAmodules.description.csv") #Table S6 in manuscript
+# should use all genes for overlapTable? (070716)
+test<-merge(data.frame(AGI=names(bias)),DE.genotype.batch.genes.WGCNAmodules,by="AGI",all=TRUE)
+test[is.na(test)]<-"0"
+#######
+# overlap table (revsised into GOseq.overlapTable; 052616)
+i<-2
+overlap<-GOseq.overlapTable(test[,24],test[,i],genes=test$AGI,permutation=100)
+overlap.melt<-melt(overlap$pTable,id=1) #
+overlap.melt$count<-melt(overlap$countTable,id=1)$value
+overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="0",]
+for(i in 3:23) {
+overlap<-GOseq.overlapTable(test[,24],test[,i],genes=test$AGI,permutation=100)
+overlap.melt<-melt(overlap$pTable,id=1) #
+overlap.melt$count<-melt(overlap$countTable,id=1)$value
+overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
+overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
+}
+overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
+overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
+overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
+#table(overlap.melt.summary[,"value"])
+# graph
+#overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
+save(overlap.melt.summary,file="../output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata")
+
+# reading and cleaning overlap table
+#load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/overlap.melt.summary.s.Rdata")
+load("../output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") # 
+overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1=="0",]
+
+q4<-ggplot(overlap.melt.summary.s,aes(y=factor(Var1),x=factor(Var2))) 
+#q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2) # this color coding is not good (061716)
+q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta") # Is this better? (061716)
+
+#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
+#q4 <- q4 +theme(legend.position="none") # this removed all legend
+q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 axis.ticks = element_line(size=0,color="white"))
+q4 <- q4 + geom_text(aes(label=count),size=5)
+q4 <- q4 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modules affected in SAS mutants",fill="-log10\n pvalue")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq070716.100perm.pdf",width=11,height=8,path="../output/figs_tables")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq070716.100perm.png",width=11,height=8,path="../output/figs_tables")
+q4 # magenta indicates pvalue is smaller than 0.01.
+
+#### only "salmon","pink" (=JA),"purple" (=auxin) for job application 2015 - 2016 ###
+overlap.melt.summary.ss.selected<-overlap.melt.summary.ss[overlap.melt.summary.ss$Var1 %in% c("salmon","purple","pink"),]
+
+q5<-ggplot(overlap.melt.summary.ss.selected,aes(y=factor(Var1),x=factor(Var2))) 
+q5 <- q5 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
+q5 <- q5 + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_blank(),
+                 axis.ticks = element_line(size=0,color="white"))
+q5 <- q5 + geom_text(aes(label=count),size=5,show_guide = FALSE)
+
+q5 <- q5 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modules affected in SAS mutants",fill="-log10\n p-value")
+q5 <- q5 + theme(legend.title=element_blank())
+#ggsave(q5,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.selected.pdf",width=11,height=4,path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+ggsave(q5,file="Fig6_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.selected.GOseq.pdf",width=11,height=4,path="../SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+
+
+```
+------------
+Number of Col genes in each module are: 
+```{r eval=FALSE} 
+table(SAS.expression.vst.s.largeCV.modules$"1") 
+```
+The next question is what are these modules? 
+To answer this question 
+
+## GOseq analysis of each cluster
+```{r eval=FALSE}
+# reading necessary funcitons and libraries
+source("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/function_RNAseq_time_course.R")
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/SAS.expression.vst.s.largeCV.modules.Rdata")
+#library(WGCNA)
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
+SAS.expression.vst.s.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules$AGI)
+# prep for GO category
+  ###Read in AtGO
+  Atgo <- toTable(org.At.tairGO)
+  #head(Atgo)
+  BP <- TRUE #only keep BP go TERMS
+  if (BP) Atgo <- Atgo[Atgo$Ontology=="BP",]
+  #convert to list
+  Atgo.list <- tapply(Atgo$go_id,Atgo$gene_id,c)
+# 
+modules<-levels(as.factor(SAS.expression.vst.s.largeCV.modules$"1"))
+# no enriched GO; "grey60","lightyellow","magenta"
+# Warning messages:1: In pcls(G) : initial point very close to some inequality constraints in "yellow"
+for(x in modules[!modules %in% c("grey60","lightyellow","magenta")]) {
+  temp.GOseq<-GOseq.ORA(SAS.expression.vst.s.largeCV.modules[SAS.expression.vst.s.largeCV.modules$"1"==x,"AGI"])
+  temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=SAS.expression.vst.s.largeCV.modules[SAS.expression.vst.s.largeCV.modules$"1"==x,"AGI"],category.table=Atgo.list)
+  save(temp.GOseq,temp.genes,file=paste("WGCNA.Col.module.",x,".GOseq.Rdata",sep=""))
+}
+```
+## write summary of WGCNA.Col.module.GOseq 
+```{r eval=FALSE}
+rm(list=ls())
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/")
+WGCNA.Col.module.GOseq.files<-list.files(pattern="^WGCNA.Col.module.")
+WGCNA.Col.module.GOseq.files<-grep(".GOseq.Rdata",WGCNA.Col.module.GOseq.files,value=TRUE)
+load(WGCNA.Col.module.GOseq.files[1])
+temp.GOseq$modules<-gsub("(WGCNA.Col.module.)([[:print:]]+)(.GOseq.Rdata)","\\2",WGCNA.Col.module.GOseq.files[1])
+temp<-temp.GOseq
+ 
+for(i in WGCNA.Col.module.GOseq.files[-1]) {
+  load(i)
+  temp.GOseq$modules<-gsub("(WGCNA.Col.module.)([[:print:]]+)(.GOseq.Rdata)","\\2",i)
+  temp<-rbind(temp,temp.GOseq)
+}
+WGCNA.Col.module.GOseq.summary<-temp
+write.csv(WGCNA.Col.module.GOseq.summary,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/WGCNA.Col.module.GOseq.summary.csv")
+
+```
+## What genes are found in given module with given GO category?
+```{r eval=FALSE}
+# "GO:0007623"" in "yellow"
+load("WGCNA.Col.module.yellow.GOseq.Rdata")
+TAIR10_gene_descriptions<-read.csv("/Volumes/Data8/NGS_related/Arabidopsis_analysis/reference/TAIR10_functional_descriptions.csv") 
+head(TAIR10_gene_descriptions)
+TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+
+temp.genes.wdescrition<-merge(temp.genes,TAIR10_gene_descriptions,by="AGI")
+dim(temp.genes)
+temp.genes.wdescrition<-temp.genes.wdescrition[!duplicated(temp.genes.wdescrition$AGI),]
+#temp.genes.wdescrition[temp.genes.wdescrition$"GO:0007623"==1,c("AGI","Short_description","colE...col.F")]
+temp.genes.wdescrition[temp.genes.wdescrition$"GO:0007623"==1,c("AGI","Short_description")]
+# GO:0009697, "salmon"
+load("WGCNA.Col.module.salmon.GOseq.Rdata")
+temp.genes.wdescrition<-merge(temp.genes,TAIR10_gene_descriptions,by="AGI")
+temp.genes.wdescrition<-temp.genes.wdescrition[!duplicated(temp.genes.wdescrition$AGI),]
+#temp.genes.wdescrition[temp.genes.wdescrition$"GO:0009697"==1,c("AGI","Short_description")]
+temp.genes.wdescrition[temp.genes.wdescrition$"GO:0009697"==1,c("AGI","Short_description","colE...col.F")]
+# GO:0009825, "royalblue"
+load("WGCNA.Col.module.royalblue.GOseq.Rdata")
+temp.genes.wdescrition<-merge(temp.genes,TAIR10_gene_descriptions,by="AGI")
+temp.genes.wdescrition<-temp.genes.wdescrition[!duplicated(temp.genes.wdescrition$AGI),]
+temp.genes.wdescrition[temp.genes.wdescrition$"GO:0009825"==1,c("AGI","Short_description","colE...col.F")]
+#          AGI                                   Short_description
+# 4  AT1G23080                 Auxin efflux carrier family protein
+# 13 AT1G75780                                tubulin beta-1 chain
+# 14 AT2G06850         xyloglucan endotransglucosylase/hydrolase 4
+# 19 AT2G38120 Transmembrane amino acid transporter family protein
+# 23 AT3G23050                              indole-3-acetic acid 7
+# 41 AT5G15580                                         longifolia1
+temp.genes.wdescrition[temp.genes.wdescrition$"GO:0000271"==1,c("AGI","Short_description","colE...col.F")]
+# the same list
+
+```
+
+## GOseq analysis of each cluster (cellular component)
+```{r eval=FALSE}
+# reading necessary funcitons and libraries
+source("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/function_RNAseq_time_course.R")
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/SAS.expression.vst.s.largeCV.modules.Rdata")
+#library(WGCNA)
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
+SAS.expression.vst.s.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules$AGI)
+# prep for GO category
+  ###Read in AtGO
+  Atgo <- toTable(org.At.tairGO)
+  #head(Atgo)
+  CC <- TRUE #only keep CC go TERMS
+  if (CC) Atgo <- Atgo[Atgo$Ontology=="CC",] # cellular component
+  #convert to list
+  Atgo.list <- tapply(Atgo$go_id,Atgo$gene_id,c)
+# 
+modules<-levels(as.factor(SAS.expression.vst.s.largeCV.modules$"1"))
+# no enriched GO; 
+for(x in modules[!modules %in% c("darkred","greenyellow","grey","grey60","lightcyan","purple","salmon","yellow")]) { # 
+  temp.GOseq<-GOseq.CC.ORA(SAS.expression.vst.s.largeCV.modules[SAS.expression.vst.s.largeCV.modules$"1"==x,"AGI"])
+  temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=SAS.expression.vst.s.largeCV.modules[SAS.expression.vst.s.largeCV.modules$"1"==x,"AGI"],category.table=Atgo.list)
+  save(temp.GOseq,temp.genes,file=paste("GOCC.WGCNA.Col.module.",x,".GOseq.Rdata",sep=""))
+}
+```
+## write summary of WGCNA.Col.module.GOseq.CC 
+```{r eval=FALSE}
+rm(list=ls())
+GOCC.WGCNA.Col.module.GOseq.files<-list.files(pattern="GOCC.WGCNA.Col.module.")
+GOCC.WGCNA.Col.module.GOseq.files<-grep(".GOseq.Rdata",GOCC.WGCNA.Col.module.GOseq.files,value=TRUE)
+load(GOCC.WGCNA.Col.module.GOseq.files[1])
+temp.GOseq$modules<-gsub("(WGCNA.Col.module.)([[:print:]]+)(.GOseq.Rdata)","\\2",GOCC.WGCNA.Col.module.GOseq.files[1])
+temp<-temp.GOseq
+ 
+for(i in GOCC.WGCNA.Col.module.GOseq.files[-1]) {
+  load(i)
+  temp.GOseq$modules<-gsub("(WGCNA.Col.module.)([[:print:]]+)(.GOseq.Rdata)","\\2",i)
+  temp<-rbind(temp,temp.GOseq)
+}
+WGCNA.Col.module.GOseq.CC.summary<-temp
+write.csv(WGCNA.Col.module.GOseq.CC.summary,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/WGCNA.Col.module.GOseq.CC.summary.csv")
+```
+
+### differential expression analysis with npr1-1
+### http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE51626
+###  The RNA of col-0 and npr1-1 mutant were isolated after 24hr water and SA treatment.The ATH1 gene chip was used for expression analysis.
+###  GSM1249675  Col-0 water, biological replicate 1
+###  GSM1249676  Col-0 water, biological replicate 2
+###  GSM1249677	Col-0 SA, biological replicate 1
+###  GSM1249678	Col-0 SA, biological replicate 2
+###  GSM1249679	npr1-1 water, biological replicate 1
+###  GSM1249680	npr1-1 water, biological replicate 2
+###  GSM1249681	npr1-1 SA, biological replicate 1
+###  GSM1249682	npr1-1 SA, biological replicate 2
+```{r eval=FALSE}
+setwd("/Volumes/Data8/GSE51626_RAW")
+library(affy)
+#Data <- ReadAffy(widget=T) # error
+CEL.filename<-list.files(pattern=".CEL$")
+CEL.filename
+Data <- ReadAffy(filenames=CEL.filename)
+Data
+eset <- rma(Data) # normalize chips (by J.)
+affyData <- read.csv("/Volumes/Data6/bioconductor_R/affy_ATH1_array_elements-2010-12-20.csv") #read TAIR annotation data from file (TAIR10)
+affyData2<-affyData[,c("array_element_name","is_control","locus","description","chromosome","start","stop")]
+names(affyData2) <- c("element","is.control","locus","description","chromosome","start","stop")#get rid of underlines
+head(affyData2)
+genes <- data.frame(element=featureNames(eset)) #get affy gene names from dataset
+affyMatch <- merge(affyData2,genes,by.x="element",by.y=1)# reorder the annotation data to match chip data
+exp.values <- data.frame(exprs(eset)) #put normalized intensities in a data frame
+head(exp.values)
+exp.values <- cbind(affyMatch,exp.values) #add annotation to same frame as expression values
+head(exp.values)
+
+write.csv(exp.values,file="/Volumes/Data8/GSE51626_RAW/exp.values.csv")
+######## RP analysis
+library(RankProd)
+exp.values<-read.csv("/Volumes/Data8/GSE51626_RAW/exp.values.csv")
+names(exp.values)
+names(exp.values)[c(9:10,13:14)]
+RP.GSE51626.npr1 <- RP(exp.values[,c(9:10,13:14)], rep(1:0,each=2), num.perm=100) # water control, 0 (class 1) = Col, 1 (class 2)= npr1-1 
+topgene.RP.GSE51626.npr1<-topGene(RP.GSE51626.npr1,cutoff=0.01,gene.names=exp.values$element,logged=TRUE,logbase=2)
+#  induced genes in npr1-1
+topgene.RP.GSE51626.npr1.T2<-as.data.frame(topgene.RP.GSE51626.npr1$Table2)
+topgene.RP.GSE51626.npr1.T2$element<-rownames(topgene.RP.GSE51626.npr1.T2)
+topgene.RP.GSE51626.npr1.T2.m<-merge(topgene.RP.GSE51626.npr1.T2, affyData2,by="element")
+head(topgene.RP.GSE51626.npr1.T2.m)
+topgene.RP.GSE51626.npr1.T2.m.exp.value<-merge(topgene.RP.GSE51626.npr1.T2.m, exp.values[,c(2,9:10,13:14)],by="element")
+topgene.RP.GSE51626.npr1.T2.m.exp.value<=topgene.RP.GSE51626.npr1.T2.m.exp.value[order(topgene.RP.GSE51626.npr1.T2.m.exp.value$pfp),]
+
+#  repressed genes in npr1-1
+topgene.RP.GSE51626.npr1.T1<-as.data.frame(topgene.RP.GSE51626.npr1$Table1)
+topgene.RP.GSE51626.npr1.T1$element<-rownames(topgene.RP.GSE51626.npr1.T1)
+topgene.RP.GSE51626.npr1.T1.m<-merge(topgene.RP.GSE51626.npr1.T1, affyData2,by="element")
+head(topgene.RP.GSE51626.npr1.T1.m)
+topgene.RP.GSE51626.npr1.T1.m.exp.value<-merge(topgene.RP.GSE51626.npr1.T1.m, exp.values[,c(2,9:10,13:14)],by="element")
+topgene.RP.GSE51626.npr1.T1.m.exp.value<-topgene.RP.GSE51626.npr1.T1.m.exp.value[order(topgene.RP.GSE51626.npr1.T1.m.exp.value$pfp),]
+
+# summary
+topgene.RP.GSE51626.npr1.summary<-rbind(topgene.RP.GSE51626.npr1.T1.m.exp.value,topgene.RP.GSE51626.npr1.T2.m.exp.value)
+write.csv(topgene.RP.GSE51626.npr1.summary,file="/Volumes/Data8/GSE51626_RAW/topgene.RP.GSE51626.npr1.summary.csv")
+```
+
+# overlap analysis with custome categories (WGCNA modules)
+```{r eval=FALSE}
+rm(list=ls())
+library(WGCNA);library(ggplot2);library(reshape2);library(scales)
+conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+# custom categories
+#load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/hormone.responsiveness3.Rdata") #new version. check if new version is identical to this
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/hormone.responsiveness3.Rdata")
+## or change list into data.frame
+hormone.responsiveness3.DF<-data.frame(t(sapply(hormone.responsiveness3,c)))
+summary(hormone.responsiveness3.DF)
+names(hormone.responsiveness3.DF)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down")
+
+head(hormone.responsiveness3.DF)
+hormone.responsiveness3.DF$AGI<-rownames(hormone.responsiveness3.DF)
+#library(WGCNA)
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/SAS.expression.vst.s.largeCV.modules.Rdata")
+SAS.expression.vst.s.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules$AGI)
+# merge with WGCNA modules
+test<-merge(hormone.responsiveness3.DF,SAS.expression.vst.s.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
+#names(test)<-gsub("1","WGCNAmodules",names(test))
+names(test)[names(test)=="1"]<-"WGCNAmodules"
+i <- sapply(test, is.factor)
+test[i]<-lapply(test[i], as.character)
+class(test[,2])
+  
+hormone.responsiveness.WGCNAmodules<-test
+hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules==""]<-"0"
+hormone.responsiveness.WGCNAmodules[is.na(hormone.responsiveness.WGCNAmodules)]<-"0"
+head(hormone.responsiveness.WGCNAmodules)
+
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/")
+write.csv(hormone.responsiveness.WGCNAmodules,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/hormone.responsiveness.WGCNAmodules.csv")
+hormone.responsiveness.WGCNAmodules<-read.csv("../SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/hormone.responsiveness.WGCNAmodules.csv")
+hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,-1]
+# remove GRF1_3target (052616)
+hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,!names(hormone.responsiveness.WGCNAmodules)=="GRF1_3target"]
+test<-hormone.responsiveness.WGCNAmodules
+# overlap table (revised to GOseq.overlapTable model, 052616, but scripts stoped. I am trying method="Simulation" in dgoseq, though it takes time).
+# Error in pWNCHypergeo(num_de_incat, num_incat, num_genes - num_incat,  : 
+#   Inconsistency. mean = 280, lower limit = 264, upper limit = 279 
+i<-2
+overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
+overlap.melt<-melt(overlap$pTable,id=1) #
+overlap.melt$count<-melt(overlap$countTable,id=1)$value
+overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="",]
+for(i in 3:27) {
+overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
+overlap.melt<-melt(overlap$pTable,id=1) #
+overlap.melt$count<-melt(overlap$countTable,id=1)$value
+overlap.melt<-overlap.melt[!overlap.melt$Var2=="",]
+overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
+}
+overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
+overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
+overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
+
+#table(overlap.melt.summary[,"value"])
+# graph
+custom.category.overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
+overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1=="0",]
+overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="0",]
+
+save(custom.category.overlap.melt.summary.s,file="../SAS_muts_time_course_RNAseq2_mycomp_output/custom.category.overlap.overlap.melt.summary.s.GOseq.Rdata")
+q4<-ggplot(custom.category.overlap.melt.summary.s,aes(y=factor(Var1),x=factor(Var2))) 
+q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
+#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
+q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_blank(),
+                 axis.ticks = element_line(size=0,color="white"))
+q4 <- q4 + geom_text(aes(label=count,size=1))
+q4 <- q4 + labs(x="custom category",y="WGCNA modules in Col",title="custom category enrichment")
+#ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
+ggsave(q4,file="Col.WGCNA.modules.vs.my.category.table.s.052616.pdf",width=11,height=8,path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+ggsave(q4,file="Col.WGCNA.modules.vs.my.category.table.s.052616.png",width=11,height=8,path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+
+
+q4 # magenta indicates pvalue is smaller than 0.01.
+```
+
+### plot expression data of genes in "Salmon" (x, time;y, expression level;Col vs mutant) to see if mutated genes cause up or down regulation of target genes
+```{r eval=FALSE}
+TAIR10_gene_descriptions<-read.csv("/Volumes/Data8/NGS_related/Arabidopsis_analysis/reference/TAIR10_functional_descriptions.csv") 
+head(TAIR10_gene_descriptions)
+TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/SAS.expression.vst.s.largeCV.modules.Rdata")
+
+# genes in "salmon"
+modules<-levels(as.factor(SAS.expression.vst.s.largeCV.modules$"1"))
+salmon.AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules[SAS.expression.vst.s.largeCV.modules$"1"=="salmon","AGI"])
+# "salmon" and "NPR1down"
+salmon.AGI[salmon.AGI %in% group_comparison2014v1.selected$"NPR1down"]
+# "AT1G02450" "AT1G19960" "AT1G21250" "AT2G14560" "AT2G32160" "AT3G22231" "AT3G45860" "AT4G14400" "AT5G03350" "AT5G10760" "AT5G54610"
+salmon.NPR1down.AGI<-TAIR10_gene_descriptions[TAIR10_gene_descriptions$AGI %in% salmon.AGI[salmon.AGI %in% group_comparison2014v1.selected$"NPR1down"],]
+salmon.NPR1down.AGI<-salmon.NPR1down.AGI[!duplicated(salmon.NPR1down.AGI$AGI),c("AGI","Short_description","colE...col.F")]
+
+# "salmon" and "WRKY33up"
+salmon.AGI[salmon.AGI %in% group_comparison2014v1.selected$"WRKY33up"]
+#  [1] "AT1G19960" "AT1G74440" "AT2G14560" "AT2G17040" "AT2G32680" "AT2G40750" "AT2G46400" "AT3G22231" "AT3G45860"
+# [10] "AT3G56400" "AT3G57260" "AT4G14365" "AT5G10760" "AT5G20230" "AT5G24530" "AT5G26920" "AT5G44820" "AT5G45380"
+# [19] "AT5G52750" "AT5G52760" "AT5G54610"
+TAIR10_gene_descriptions[TAIR10_gene_descriptions$AGI %in% salmon.AGI[salmon.AGI %in% group_comparison2014v1.selected$"WRKY33up"],]
+# "salmon" genes
+salmon.AGI.description<-TAIR10_gene_descriptions[TAIR10_gene_descriptions$AGI %in% unique(salmon.AGI),]
+salmon.AGI.description<-salmon.AGI.description[!duplicated(salmon.AGI.description$AGI),]
+#write.csv(salmon.AGI.description,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/salmon.AGI.description.csv")
+# load mean expression value 
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/summary.vst.Rdata")
+library(ggplot2)
+summary.vst<-summary.vst[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst)) %in% 1:19]
+# better to have significance indicated onto value (from edgeR glm results)
+
+# what are genes overlapped between MYC2/3/4 regulated genes and enriched modules?
+# target categories
+categories<-c("IAAup","IAAdown","BLup","BLdown","GAinga1.3UP","GAinga1.3DOWN","BLup","BLdown","MJup","MJdown","CKup","CKdown","SA_UP","SA_DOWN",
+                "SARplus","SARminus","GRF1_3target","PIFtarget","MYC234_up","MYC234_down","NPR1_up","NPR1_down")
+# rename categories
+group_comparison2014v1.selected<-group_comparison2014v1[,names(group_comparison2014v1[-c(1:3),]) %in% categories]
+names(group_comparison2014v1.selected)<-c("BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown",
+                                          "SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down")
+
+# "cyan" and "MYC234 upregulated"
+cyan.AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules[SAS.expression.vst.s.largeCV.modules$"1"=="cyan","AGI"])
+cyan.MYC234up.AGI<-cyan.AGI[cyan.AGI %in% toupper(group_comparison2014v1.selected$"MYC234up")]
+cyan.MYC234up.description<-TAIR10_gene_descriptions[TAIR10_gene_descriptions$AGI %in% cyan.MYC234up.AGI,c("AGI","Short_description")]
+cyan.MYC234up.description<-cyan.MYC234up.description[!duplicated(cyan.MYC234up.description$AGI),]
+# "pink" and "MYC234 upregulated"
+pink.AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules[SAS.expression.vst.s.largeCV.modules$"1"=="pink","AGI"])
+pink.MYC234up.AGI<-pink.AGI[cyan.AGI %in% toupper(group_comparison2014v1.selected$"MYC234up")]
+pink.MYC234up.description<-TAIR10_gene_descriptions[TAIR10_gene_descriptions$AGI %in% pink.MYC234up.AGI,c("AGI","Short_description")]
+pink.MYC234up.description<-pink.MYC234up.description[!duplicated(pink.MYC234up.description$AGI),]
+
+# what are genes overlapped between NPR1 regulated genes and enriched modules ("salmon")?
+salmon.AGI[salmon.AGI %in% group_comparison2014v1.selected$"NPR1down"]
+expression.plot<-expression.pattern.graph3(summary.vst,salmon.AGI[salmon.AGI %in% group_comparison2014v1.selected$"NPR1down"])
+ggsave(expression.plot,file="expression.plot.salmon.NPR1.pdf",width=11,height=8) 
+
+# phytochrome genes in phyB transcriptomes
+phys<-c("AT1G09570","AT2G18790","AT5G35840","AT4G16250","AT4G18130") # phyA, B, C, D, E
+phy.expression.plot<-expression.pattern.graph3(summary.vst[,names(summary.vst) %in% c("1H1","1H4","1H25","1H49","1L1","1L4","1L25","1L49","6H1","6H4","6H25","6H49","6L1","6L4","6L25","6L49")],phys)
+conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","AT5G02760_2","AT5G59010_2","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+# phyB is genotype 6
+ggsave(phy.expression.plot,file="expression.plot.phys.phyBmutant.pdf",width=11,height=8,path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/") 
+#### end (110515 for Amanda)
+
+# reconstruct logFC (Col vs mutant at each timepoint) data from edgeR glm results (needs to fix this to get correct logFC at 4,25, 49 h; 060515)
+DE.genotype.batch.sun.files<-list.files(pattern="DE.genotype.batch.sun",path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h/genotype_specific5")
+DE.genotype.batch.sun.files<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% 1:19]
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h/genotype_specific5")
+load(DE.genotype.batch.sun.files[1])
+head(DE.batch3.gt) #
+temp<-DE.batch3.gt[,1:4]
+names(temp)<-paste(gsub("(DE.genotype.batch.)(sun|shade)(.gt.wo16h)([[:digit:]]+)(.Rdata)","\\4\\2",DE.genotype.batch.sun.files[1]),c("1","4","25","49"),sep="")
+names(temp)<-gsub("sun","H",names(temp))
+names(temp)<-gsub("shade","L",names(temp))
+temp$AGI<-rownames(temp)
+
+for(xx in DE.genotype.batch.sun.files[-1]) {
+  load(xx)
+temp2<-DE.batch3.gt[,1:4]
+names(temp2)<-paste(gsub("(DE.genotype.batch.)(sun|shade)(.gt.wo16h)([[:digit:]]+)(.Rdata)","\\4\\2",xx),c("1","4","25","49"),sep="")
+names(temp2)<-gsub("sun","H",names(temp2))
+names(temp2)<-gsub("shade","L",names(temp2))  
+temp2$AGI<-rownames(temp2)
+  temp<-merge(temp,temp2,by="AGI",all=TRUE)
+}
+names(temp)<-gsub(".y","",names(temp))
+names(temp)<-gsub(".x","",names(temp))
+names(temp)
+DE.genotype.batch.sun.logFC<-temp
+# shade
+DE.genotype.batch.shade.files<-list.files(pattern="DE.genotype.batch.shade",path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h/genotype_specific5")
+
+DE.genotype.batch.shade.files<-DE.genotype.batch.shade.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.shade.files) %in% 1:19]
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/edgeR/outlier_wo16h/genotype_specific4")
+load(DE.genotype.batch.shade.files[1])
+head(DE.batch3.gt) #
+temp<-DE.batch3.gt[,1:4]
+names(temp)<-paste(gsub("(DE.genotype.batch.)(shade|shade)(.gt.wo16h)([[:digit:]]+)(.Rdata)","\\4\\2",DE.genotype.batch.shade.files[1]),c("1","4","25","49"),sep="")
+names(temp)<-gsub("sun","H",names(temp))
+names(temp)<-gsub("shade","L",names(temp))
+temp$AGI<-rownames(temp)
+
+for(xx in DE.genotype.batch.shade.files[-1]) {
+  load(xx)
+temp2<-DE.batch3.gt[,1:4]
+names(temp2)<-paste(gsub("(DE.genotype.batch.)(sun|shade)(.gt.wo16h)([[:digit:]]+)(.Rdata)","\\4\\2",xx),c("1","4","25","49"),sep="")
+names(temp2)<-gsub("sun","H",names(temp2))
+names(temp2)<-gsub("shade","L",names(temp2))  
+temp2$AGI<-rownames(temp2)
+  temp<-merge(temp,temp2,by="AGI",all=TRUE)
+}
+names(temp)<-gsub(".y","",names(temp))
+names(temp)<-gsub(".x","",names(temp))
+names(temp)
+DE.genotype.batch.shade.logFC<-temp
+
+## merge sun and shade (logFC)
+DE.genotype.batch.logFC<-merge(DE.genotype.batch.sun.logFC,DE.genotype.batch.shade.logFC,by="AGI",all=TRUE)
+names(DE.genotype.batch.logFC)
+rownames(DE.genotype.batch.logFC)<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.logFC$AGI)
+DE.genotype.batch.logFC<-DE.genotype.batch.logFC[,-1]
+
+q.salmon.NPR1down<-expression.pattern.logFC.graph4(summary.vst,salmon.AGI[salmon.AGI %in% group_comparison2014v1.selected$"NPR1down"],DE.genotype.batch.logFC)
+ggsave("q.salmon.NPR1down.pdf",q.salmon.NPR1down,width=8,height=11)
+
+q.salmon<-expression.pattern.logFC.graph4(summary.vst,salmon.AGI[1:30],DE.genotype.batch.logFC)
+ggsave("q.salmon.1.30.pdf",q.salmon,width=8,height=11)
+q.salmon<-expression.pattern.logFC.graph4(summary.vst,salmon.AGI[31:60],DE.genotype.batch.logFC)
+ggsave("q.salmon.31.60.pdf",q.salmon,width=8,height=11)
+q.salmon<-expression.pattern.logFC.graph4(summary.vst,salmon.AGI[61:90],DE.genotype.batch.logFC)
+ggsave("q.salmon.61.90.pdf",q.salmon,width=8,height=11)
+q.salmon<-expression.pattern.logFC.graph4(summary.vst,salmon.AGI[91:112],DE.genotype.batch.logFC)
+ggsave("q.salmon.91.112.pdf",q.salmon,width=8,height=11)
+
+# logFC
+q.salmon<-expression.pattern.logFC.graph4(summary.vst,salmon.AGI[1:30],DE.genotype.batch.logFC)
+ggsave("q.salmon.1.30.pdf",q.salmon,width=8,height=11)
+
+
+
+### how to print graph into multiple pages with ggsave?
+### A: p=qplot(1:10,1:10) (https://groups.google.com/forum/#!topic/ggplot2/l6Im1jpNavI)
+# l = structure(list(p, p), class=c("gglist", "ggplot"))
+# print.gglist = function(x, ...) l_ply(x, print.ggplot, ...)
+# ggsave(l, file='main.pdf')
+# this did not work
+```
+
+
+## combine DE.genotype.batch.genes.WGCNAmodules and hormone.responsiveness for 2015IOS fig
+```{r eval=FALSE}
+#
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/overlap.melt.summary.s.Rdata")
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/custom.category.overlap.melt.summary.s")
+merge.melt<-rbind(overlap.melt.summary.s,custom.category.overlap.melt.summary.s)
+# selected modules,"Salmon", "pink","purple","cyan" 
+merge.melt.s1<-merge.melt[merge.melt$Var1 %in% c("salmon","pink","purple","cyan"),]
+merge.melt.s1$Var1<-as.character(merge.melt.s1$Var1)
+ftable(merge.melt.s1[,c("Var1","Var2")])
+
+# eliminate "co_9"
+merge.melt.s2<-merge.melt.s1[grep("co_9",merge.melt.s1$Var2,invert=T),]
+summary(merge.melt.s2)
+# select "MJup", "MJdown","SAplus","SAminus","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down"
+merge.melt.s3<-merge.melt.s2[c(grep(".sun",merge.melt.s2$Var2),grep(".shade",merge.melt.s2$Var2)),]
+merge.melt.s4<-merge.melt.s2[merge.melt.s2$Var2 %in% c("MJup", "MJdown","SAplus","SAminus","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down"),]
+merge.melt.s5<-rbind(merge.melt.s3,merge.melt.s4)
+merge.melt.s6<-merge.melt.s5[!merge.melt.s5$Var2=="0",]
+merge.melt.s6<-merge.melt.s6[!is.na(merge.melt.s6$Var2),]
+
+merge.melt.s6$Var1<-as.factor(as.character(merge.melt.s6$Var1))
+merge.melt.s6$Var2<-factor(as.character(merge.melt.s6$Var2),levels=c("phyB.sun","hy5.sun","yuc2589.sun","aos.sun","jar1.sun","kat1_2.sun","mida9_4.sun","pif3.sun","pif45.sun","spt11.sun","phyB.shade","hy5.shade","yuc2589.shade","aos.shade","jar1.shade","kat1_2.shade","mida9_4.shade","pif3.shade","pif45.shade","spt11.shade","MJup", "MJdown","SAplus","SAminus","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down"))
+
+summary(merge.melt.s6)
+#merge.melt.s6<-merge.melt.s6[!is.na(merge.melt.s6$Var2),]
+q5<-ggplot(merge.melt.s6,aes(y=Var1,x=Var2)) 
+q5 <- q5 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
+#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
+q5 <- q5 + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_blank(),
+                 axis.ticks = element_line(size=0,color="white"))
+q5 <- q5 + geom_text(aes(label=count,size=1))
+q5 <- q5 + labs(x="",y="WGCNA modules in Col",title="")
+ggsave(q5,file="Col.WGCNA.modules.vs.my.category.table.2015NSFISO.pdf",width=8,height=4)
+
+q5 # magenta indicates pvalue is smaller than 0.01.
+
+```
+
+# Checking expression pattern of gene of interests (absolute and shade responsiveness) (060515)
+```{r}
+rm(list=ls())
+# absolute value
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/summary.vst.Rdata")
+summary.vst<-summary.vst[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst)) %in% 1:19] 
+# plot
+p<-expression.pattern.graph3(summary.vst,"AT2G46970") # PIL1
+p
+# fold chagne (shade responsiveness)
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/summary.vst.response.Rdata") # response. needs to fix colnames (060515)
+summary.vst.response<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
+dim(summary.vst.response)
+head(summary.vst.response)
+q<-expression.pattern.graph2b(summary.vst.response,"AT2G46970") # PIL1
+q
+
+```
+# GOseq analysis of misexpressed geens in phyB (sun) and public available phytochrome mutnats (exposed to long light condition) (060815) 
+```{r eval=FALSE}
+# my timecourse RNAseq data
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
+load("./edgeR/outlier_wo16h/genotype_specific5/DE.genotype.batch.sun.gt.wo16h6.Rdata") # sun, phyB vs Col any timepoints
+# load functions for GOseq
+source("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/function_RNAseq_time_course.R")
+# ###Read in AtGO
+#   Atgo <- toTable(org.At.tairGO)
+#   #head(Atgo)
+#   BP <- TRUE #only keep BP go TERMS
+#   if (BP) Atgo <- Atgo[Atgo$Ontology=="BP",]
+#   #convert to list
+#   Atgo.list <- tapply(Atgo$go_id,Atgo$gene_id,c)
+#
+temp.GOseq<-GOseq.ORA(gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(DE.batch3.gt))) # JA and SA pathways enriched, no auxin?! as I expected.
+write.csv(temp.GOseq,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/GOseq.phyB.sun.csv")
+temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(DE.batch3.gt)),category.table=Atgo.list) 
+
+# predFC (061015)
+predFC.phyB<-predFC(dge.PLoSGenetics2015mutants.errrDE.s.batch3.glm,design.nolow.s.gt.batch3,prior.count=1,dispersion=0.05)
+head(predFC.phyB[rownames(predFC.phyB) %in% rownames(DE.batch3.gt),]) #
+tail(predFC.phyB[rownames(predFC.phyB) %in% rownames(DE.batch3.gt),]) #
+hist(predFC.phyB[,1]) # I do not understand whye thye are -15.... 
+
+# plot 
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/summary.vst.Rdata")
+summary.vst<-summary.vst[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst)) %in% 1:19]
+# larger gene sets
+SAS.expression.vst.large<-read.csv("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/kazu.SAS.expression.VST.112614.csv") # new transformed data by DEseq2 (done by J, see VST.R)
+rownames(SAS.expression.vst.large)<-SAS.expression.vst.large$X
+# calculate mean value among replicates
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h/PLoSGenetics2015mutants.errrDE.Rdata")
+PLoSGenetics2015mutants.errrDE$sample<-with(PLoSGenetics2015mutants.errrDE,paste(genotype,trt,time,sep=""))
+PLoSGenetics2015mutants.errrDE$sample<-factor(PLoSGenetics2015mutants.errrDE$sample) #where this is used? (122214)
+SAS.expression.vst.large.s<-SAS.expression.vst.large[,names(SAS.expression.vst.large) %in% PLoSGenetics2015mutants.errrDE$file]
+Genotype<-levels(as.factor(PLoSGenetics2015mutants.errrDE$genotype))
+Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
+temp<-SAS.expression.vst.large.s[,names(SAS.expression.vst.large.s) %in% PLoSGenetics2015mutants.errrDE[PLoSGenetics2015mutants.errrDE$genotype==1,"file"]]
+summary.vst.large<-expression.mean(temp)　# custom function
+for(i in Genotype[-1]) {
+  temp<-SAS.expression.vst.large.s[,names(SAS.expression.vst.large.s) %in% PLoSGenetics2015mutants.errrDE[PLoSGenetics2015mutants.errrDE$genotype==i,"file"]]
+	temp<-as.data.frame(temp)
+	temp2<-expression.mean(temp)
+	summary.vst.large<-cbind(summary.vst.large,temp2)
+}
+#head(summary.vst,3)
+rownames(summary.vst.large)<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.large$X)
+save(summary.vst.large,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/summary.vst.large.Rdata") #
+###
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/summary.vst.large.Rdata")
+summary.vst.large<-summary.vst.large[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst.large)) %in% 1:19]
+
+p<-expression.pattern.graph3(summary.vst.large,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt)[1:10]))
+p
+# downregulated in phyB
+p<-expression.pattern.graph3(summary.vst.large,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[order(DE.batch3.gt[,1]),][1:20,]))) # downregulated in phyB at time=1h (logFC.genotype6<0)
+p<-p + labs(title="phyB logFC.genotype6 <0 top 20")
+ggsave("phyB_down_expression_pattern.pdf",height=20,width=8,path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables")
+# GOseq with down regulated in phyB
+phyBdown.GOseq<-GOseq.ORA(gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,1]>1,]))) # JA and SA pathways enriched, no auxin?! as I expected.
+write.csv(phyBdown.GOseq,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/phyBdown.GOseq.csv")
+# upregulated in phyB
+q<-expression.pattern.graph3(summary.vst.large,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[order(DE.batch3.gt[,1],decreasing=TRUE),][1:20,])) # upregulated in phyB at time=1h
+q
+# GOseq up in phyB
+phyBup.GOseq<-GOseq.ORA(gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,1]< -0.5,]))) # JA and SA pathways enriched, no auxin?! as I expected.
+write.csv(phyBup.GOseq,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/phyBup.GOseq.csv")
+#
+p<-expression.pattern.graph3(summary.vst.large,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,"logCPM"]< -1,]))) # logCPM is "average log2-counts per million, the average taken over all libraries in y." (help file of glmLRT)
+
+# download some cel file from E-GEOD-31587 - Expression data of Arabidopsis thaliana (Ler accession) phytochrome phyABCDE quintuple mutant and phyABDE quadruple mutant in response to red light, and their comparison to WT expression data (http://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-31587/samples/?query=phytochrome&sortby=organism&sortorder=ascending)
+# under construction #
+setwd("/Volumes/Data8/E-GEOD-31587_RAW")
+library(affy)
+#Data <- ReadAffy(widget=T) # error
+CEL.filename<-list.files(pattern=".CEL$")
+CEL.filename
+Data <- ReadAffy(filenames=CEL.filename)
+Data
+eset <- rma(Data) # normalize chips 
+affyData <- read.csv("/Volumes/Data6/bioconductor_R/affy_ATH1_array_elements-2010-12-20.csv") #read TAIR annotation data from file (TAIR10)
+affyData2<-affyData[,c("array_element_name","is_control","locus","description","chromosome","start","stop")]
+names(affyData2) <- c("element","is.control","locus","description","chromosome","start","stop")#get rid of underlines
+head(affyData2)
+genes <- data.frame(element=featureNames(eset)) #get affy gene names from dataset
+affyMatch <- merge(affyData2,genes,by.x="element",by.y=1)# reorder the annotation data to match chip data
+exp.values <- data.frame(exprs(eset)) #put normalized intensities in a data frame
+head(exp.values)
+exp.values <- cbind(affyMatch,exp.values) #add annotation to same frame as expression values
+head(exp.values)
+
+write.csv(exp.values,file="/Volumes/Data8/E-GEOD-31587_RAW/exp.values.csv")
+######## RP analysis
+library(RankProd)
+#exp.values<-read.csv("/Volumes/Data8/GSE51626_RAW/exp.values.csv")
+exp.values<-exp.values[,-1]
+names(exp.values)
+names(exp.values)[c(8:12)]
+RP.E_GEOD_31587.phyABDE <- RP(exp.values[,c(8:12)], rep(c(1,0),c(3,2)), num.perm=100) #  0 (class 1) = Col, 1 (class 2)= phyABDE
+topgene.RP.E_GEOD_31587.phyABDE<-topGene(RP.E_GEOD_31587.phyABDE,cutoff=0.01,gene.names=exp.values$element,logged=TRUE,logbase=2)
+#  repressed genes in phyABDE
+topgene.RP.E_GEOD_31587.phyABDE.T2<-as.data.frame(topgene.RP.E_GEOD_31587.phyABDE$Table2)
+topgene.RP.E_GEOD_31587.phyABDE.T2$element<-rownames(topgene.RP.E_GEOD_31587.phyABDE.T2)
+topgene.RP.E_GEOD_31587.phyABDE.T2.m<-merge(topgene.RP.E_GEOD_31587.phyABDE.T2, affyData2,by="element")
+head(topgene.RP.E_GEOD_31587.phyABDE.T2.m)
+topgene.RP.E_GEOD_31587.phyABDE.T2.m.exp.value<-merge(topgene.RP.E_GEOD_31587.phyABDE.T2.m, exp.values[,c(1,8:12)],by="element")
+topgene.RP.E_GEOD_31587.phyABDE.T2.m.exp.value<=topgene.RP.E_GEOD_31587.phyABDE.T2.m.exp.value[order(topgene.RP.E_GEOD_31587.phyABDE.T2.m.exp.value$pfp),]
+
+#  induced genes in phyABDE
+topgene.RP.E_GEOD_31587.phyABDE.T1<-as.data.frame(topgene.RP.E_GEOD_31587.phyABDE$Table1)
+topgene.RP.E_GEOD_31587.phyABDE.T1$element<-rownames(topgene.RP.E_GEOD_31587.phyABDE.T1)
+topgene.RP.E_GEOD_31587.phyABDE.T1.m<-merge(topgene.RP.E_GEOD_31587.phyABDE.T1, affyData2,by="element")
+head(topgene.RP.E_GEOD_31587.phyABDE.T1.m)
+topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value<-merge(topgene.RP.E_GEOD_31587.phyABDE.T1.m, exp.values[,c(1,8:12)],by="element")
+topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value<-topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value[order(topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value$pfp),]
+
+# summary
+topgene.RP.RP.E_GEOD_31587.phyABDE.summary<-rbind(topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value,topgene.RP.E_GEOD_31587.phyABDE.T2.m.exp.value)
+write.csv(topgene.RP.RP.E_GEOD_31587.phyABDE.summary,file="/Volumes/Data8/E-GEOD-31587_RAW/topgene.RP.RP.E_GEOD_31587.phyABDE.summary.csv")
+# GOseq
+topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus<-topgene.RP.RP.E_GEOD_31587.phyABDE.summary[nchar(topgene.RP.RP.E_GEOD_31587.phyABDE.summary$locus)==9,"locus"]
+phyABDE.seedlings.GOseq<-GOseq.ORA(topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus)
+phyABDE.seedlings.GOseq.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus],category.table=Atgo.list) #  no auxin?! as I expected.
+```
+
+# co-expression analysis with all libraries to find submodules within each module (06**15) (rather smaller number of modules...)
+## Co-expressed gene module detection by WGCNA
+```{r eval=FALSE}
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/SAS.expression.vst.s.largeCV.Rdata")
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp")
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h/PLoSGenetics2015mutants.errrDE.Rdata")
+Genotype<-levels(as.factor(PLoSGenetics2015mutants.errrDE$genotype))
+# use libraries that were used for DE analysis
+
+# in whitney
+enableWGCNAThreads(10)
+#for(x in Genotype[!Genotype %in% c("20","21","22","23","24","25","26","27","11","12","18","16")]) { # elmininate non kazu or genotype not used in DE
+  SAS.expression.vst.s.largeCV.x<-SAS.expression.vst.s.largeCV[,!gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.largeCV)) %in% c("20","21","22","23","24","25","26","27","11","12","18","16")]
+    dim(SAS.expression.vst.s.largeCV.x) # 7438 335
+  datExpr <-t(SAS.expression.vst.s.largeCV.x)
+  # Choose a set of soft-thresholding powers
+  powers = c(c(1:9), seq(from = 2, to=20, by=10))
+  sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)  
+  # Plot the results:
+  #sizeGrWindow(9, 5)
+  pdf("all.largeCV.softthresholding.pdf",width=10,height=8)
+  par(mfrow = c(1,2));
+  cex1 = 0.9;
+  # Scale-free topology fit index as a function of the soft-thresholding power
+  plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+       main = paste("Scale independence"));
+  text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       labels=powers,cex=cex1,col="red");
+  # this line corresponds to using an R^2 cut-off of h
+  abline(h=0.90,col="red")
+  # Mean connectivity as a function of the soft-thresholding power
+  plot(sft$fitIndices[,1], sft$fitIndices[,5],
+       xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+       main = paste("Mean connectivity"))
+  text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+  dev.off()
+  # 
+  net = blockwiseModules(datExpr, power = 6,
+                         TOMType = "unsigned", minModuleSize = 20,
+                         reassignThreshold = 0, mergeCutHeight = 0.25,
+                         numericLabels = TRUE, pamRespectsDendro = FALSE,
+                         saveTOMs = TRUE,
+                         saveTOMFileBase = "SAS.expression.vst.s.largeCV.TOM",
+                         verbose = 3)
+  save(net,file="SAS.expression.vst.s.largeCV.net.Rdata")  
+  # how to extract module info?
+  # open a graphics window
+  pdf(file="all.largeCV.dendrogram.pdf",width=10,height=8)
+  # Convert labels to colors for plotting
+  mergedColors = labels2colors(net$colors)
+  # Plot the dendrogram and the module colors underneath
+  plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]],
+                      "Module colors",
+                      dendroLabels = FALSE, hang = 0.03,
+                      addGuide = TRUE, guideHang = 0.05)
+  dev.off()
+  # save parameters  
+  moduleLabels = net$colors
+  moduleColors = labels2colors(net$colors)
+  MEs = net$MEs
+  geneTree = net$dendrograms[[1]]
+  save(MEs, moduleLabels, moduleColors, geneTree,file = "all.largeCV.RData")
+table(moduleLabels) # 21 modules... why less number of modules than Col modules?
+#overlap table with Col WGCNA modules and all WGCNA modules (stop)
+             
+# barcoding genes with WGCNA modules in mutants and clustering genes within modules by barcode (061915)
+conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/SAS.expression.vst.s.largeCV.modules.Rdata") 
+library(WGCNA)
+SAS.expression.vst.s.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.largeCV.modules$AGI)
+# select salmon and misexpresed geens
+DE.genotype.batch.genes.WGCNAmodules<-read.csv("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
+salmon<-DE.genotype.batch.genes.WGCNAmodules[DE.genotype.batch.genes.WGCNAmodules$X1=="salmon",]
+salmon.disc<-salmon
+salmon.disc[,4:31]<-as.numeric(!salmon[,4:31]==0)
+salmon.disc.s<-salmon.disc[rowSums(salmon.disc[,4:31])>0,]
+salmon.mut.transition<-SAS.expression.vst.s.largeCV.modules[SAS.expression.vst.s.largeCV.modules$AGI %in% salmon.disc.s$AGI, ]
+# eliminate genotype "11","12","18","16"
+salmon.mut.transition.s<-salmon.mut.transition[,!names(salmon.mut.transition) %in% c("11","12","18","16")]
+dim(salmon.mut.transition.s)
+# heatmap andclustering genes (make WGCNA.clusteirng1 function)
+mod.to.apha.data<-data.frame(module=unique(DE.genotype.batch.genes.WGCNAmodules$X1)[!unique(DE.genotype.batch.genes.WGCNAmodules$X1)=="0"],alpha=LETTERS[1:23])
+# there are new modules in some mutant
+SAS.expression.vst.s.largeCV.modules.melt<-melt(SAS.expression.vst.s.largeCV.modules,id="AGI")
+all.module<-unique(SAS.expression.vst.s.largeCV.modules.melt$value)
+all.module<-all.module[!all.module=="0"]
+mod.to.apha.data<-data.frame(module=all.module,alpha=c(LETTERS[1:23],letters[1:22]))
+
+salmon.mut.transition.ss<-salmon.mut.transition.s[,-1]
+rownames(salmon.mut.transition.ss)<-salmon.mut.transition.s$AGI
+head(salmon.mut.transition.ss)
+test<-vector()
+for(i in 1:15) {
+test[i]<-as.character(conversion.table[conversion.table[,1]==names(salmon.mut.transition.ss)[i],2])
+}
+names(salmon.mut.transition.ss)<-test
+# eliminate bsk5_1, AT5G02540_1
+salmon.mut.transition.sss<-salmon.mut.transition.ss[,!names(salmon.mut.transition.ss) %in% c("bsk5_1","AT5G02540_1")]
+mut.WGCNA.module.clustering.heatmap.ggplot(salmon.mut.transition.sss,"needs to adjust dendrogram") # interesting? (061915)
+# instead of module name, add significanty misexpressed genes ("*") 
+salmon.mut.transition.sss
+
+
+salmon.disc.s<-salmon.disc.s[,-(1:2)]
+salmon.disc.s<-salmon.disc.s[,!names(salmon.disc.s) %in% c("X1","bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade")]
+
+mut.WGCNA.module.clustering.heatmap.ggplot2(salmon.mut.transition.sss,salmon.disc.s,"misexpressed genes are shown") # inconsistent between misexpressed genes and module transition (062415)
+# riverplot is useful?
+install.packages("riverplot")
+
+```
+# misc
+```{r}
+# SA related genes are shade-responsive? (071115)
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/newdata.vst.Rdata") 
+conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","AT5G02760_2","AT5G59010_2","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+newdata.vst$gt2<-""
+
+for(i in 1:27){
+  newdata.vst[newdata.vst$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])  
+}
+newdata.vst[newdata.vst$AGI %in% c("AT3G48090","AT4G35580","AT1G74710","AT5G08330","AT3G52430","AT3G26830","AT5G26920","AT2G46970"),c("1h","4h","25h","49h","ssom3.4.unit.classif","gt2","AGI")] 
+# NTL9 (AT4G35580), CHE (AT5G08330), ICS1(AT1G74710, SID2), PAD4 (AT3G52430), PAD3 (AT3G26830), CBP60g (AT5G26920), PIL1 (AT2G46970) as a positive control for this script. 
+
+```
+
+
+## To Do List
+### Z summary + transition graph (Col vs a mutant)
+### genes moving modules
+### change of module size
+### Z summary tells us how much. Also I want to know how (look time-course expression pattern comparison brtween Col and mutnats)
+### Where other "SA" related genes belong to? other than "salmon"? > disagreement between module and misexpressed genes (062115)
+### WGCNA with AGI.genotype (like SOM clustering)
+
+```{r}
+sessionInfo()
+```
+
+# do not use following scripts
+
+## Co-expressed gene module detection by WGCNA (all genes, not largeCV; 082515) in whitney
+### "Should I filter probesets or genes?
+*Probesets or genes may be filtered by mean expression or variance (or their robust analogs such as median and median absolute deviation, MAD) since low-expressed or non-varying genes usually represent noise. Whether it is better to filter by mean expression or variance is a matter of debate; both have advantages and disadvantages, but more importantly, they tend to filter out similar sets of genes since mean and variance are usually related.
+*We do not recommend filtering genes by differential expression. WGCNA is designed to be an unsupervised analysis method that clusters genes based on their expression profiles. Filtering genes by differential expression will lead to a set of correlated genes that will essentially form a single (or a few highly correlated) modules. It also completely invalidates the scale-free topology assumption, so choosing soft thresholding power by scale-free topology fit will fail. "
+### http://labs.genetics.ucla.edu/horvath/CoexpressionNetwork/Rpackages/WGCNA/faq.html
+#### it is OK to filter genes by variance (= largeCV genes in my scripts)
+```{r eval=FALSE}
+# load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/SAS.expression.vst.s.largeCV.Rdata")
+SAS.expression.vst<-read.csv("kazu.SAS.expression.VST.SMALL.112614.csv") # new transformed data by DEseq2 (done by J, see VST.R)
+rownames(SAS.expression.vst)<-SAS.expression.vst$X
+# calculate mean value among replicates
+load("PLoSGenetics2015mutants.errrDE.Rdata")
+PLoSGenetics2015mutants.errrDE$sample<-with(PLoSGenetics2015mutants.errrDE,paste(genotype,trt,time,sep=""))
+PLoSGenetics2015mutants.errrDE$sample<-factor(PLoSGenetics2015mutants.errrDE$sample) #where this is used? (122214)
+SAS.expression.vst.s<-SAS.expression.vst[,names(SAS.expression.vst) %in% PLoSGenetics2015mutants.errrDE$file]
+dim(SAS.expression.vst.s)
+########
+Genotype<-levels(as.factor(PLoSGenetics2015mutants.errrDE$genotype))
+for(x in Genotype[!Genotype %in% c("20","21","22","23","24","25","26","27")]) {
+  SAS.expression.vst.s.x<-SAS.expression.vst.s[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s))==x]
+    dim(SAS.expression.vst.s.x) #[1] 7438     21
+  datExpr <-t(SAS.expression.vst.s.x)
+  # Choose a set of soft-thresholding powers
+  powers = c(c(1:9), seq(from = 2, to=20, by=10))
+  sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)  
+  # Plot the results:
+  #sizeGrWindow(9, 5)
+  pdf(paste("all",x,".softthresholding.pdf",sep=""),width=10,height=8)
+  par(mfrow = c(1,2));
+  cex1 = 0.9;
+  # Scale-free topology fit index as a function of the soft-thresholding power
+  plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+       main = paste("Scale independence"));
+  text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       labels=powers,cex=cex1,col="red");
+  # this line corresponds to using an R^2 cut-off of h
+  abline(h=0.90,col="red")
+  # Mean connectivity as a function of the soft-thresholding power
+  plot(sft$fitIndices[,1], sft$fitIndices[,5],
+       xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+       main = paste("Mean connectivity"))
+  text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+  dev.off()
+  # 
+  net = blockwiseModules(datExpr, power = 6,
+                         TOMType = "unsigned", minModuleSize = 20,
+                         reassignThreshold = 0, mergeCutHeight = 0.25,
+                         numericLabels = TRUE, pamRespectsDendro = FALSE,
+                         saveTOMs = TRUE,
+                         saveTOMFileBase = paste("SAS.expression.vst.s",x,".TOM",sep=""),
+                         verbose = 3,
+                         maxBlockSize = 2000) # added 082615
+  save(net,file=paste("SAS.expression.vst.s",x,".Rdata",sep=""))  
+  # how to extract module info?
+  # open a graphics window
+  pdf(file=paste("all",x,".dendrogram.pdf",sep=""),width=10,height=8)
+  # Convert labels to colors for plotting
+  mergedColors = labels2colors(net$colors)
+  # Plot the dendrogram and the module colors underneath (this is block 1?, 082615)
+  plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]],
+                      "Module colors",
+                      dendroLabels = FALSE, hang = 0.03,
+                      addGuide = TRUE, guideHang = 0.05)
+  dev.off()
+  # save parameters  
+  moduleLabels = net$colors
+  moduleColors = labels2colors(net$colors)
+  MEs = net$MEs
+  geneTree = net$dendrograms[[1]]
+  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("all",x,".RData",sep=""))
+  # recutBlockwiseTres
+  #net.recut<-recutBlockwiseTrees(datExpr,goodSamples=net$goodSamples,goodGenes=net$goodGenes,blocks=net$blocks, TOMFiles=net$TOMFiles)
+  
+  }
+
+```
+
+
+## overlap table between Col modules and mutant modules (all genes version, 082615) in whitney
+```{r eval=FALSE}
+moduleColors.files<-list.files(pattern="all[[:digit:]]+.RData")
+load("all1.RData")
+moduleColors.allCol<-moduleColors
+temp<-moduleColors.allCol
+for(y in moduleColors.files[-1]) {
+  load(y)
+  matched.moduleColors<-matchLabels(moduleColors,moduleColors.allCol)
+  temp<-cbind(temp, matched.moduleColors)
+}
+length(moduleColors.files)
+temp<-as.data.frame(temp)
+names(temp)<-gsub("(all)([[:digit:]]+)(.RData)","\\2",moduleColors.files)
+SAS.expression.vst.s.allgenes.modules<-cbind(rownames(SAS.expression.vst),temp)
+names(SAS.expression.vst.s.allgenes.modules)[1]<-"AGI"
+names(SAS.expression.vst.s.allgenes.modules)
+save(SAS.expression.vst.s.allgenes.modules,file="SAS.expression.vst.s.allgenes.modules.Rdata")
+
+```
+# appendix 1: differentially expressed geens used for ORA
+```{r eval=FALSE}
+# differential expression analysis with npr1-1
+# http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE51626
+# Singh M, Bag SK, Bhardwaj A, Ranjan A et al. Global nucleosome positioning 
+# regulates salicylic acid mediated transcription in Arabidopsis thaliana. BMC Plant # Biol 2015 Jan 21;15:13. PMID: 25604550
+###  The RNA of col-0 and npr1-1 mutant were isolated after 24hr water and SA treatment.The ATH1 gene chip was used for expression analysis.
+###  GSM1249675  Col-0 water, biological replicate 1
+###  GSM1249676  Col-0 water, biological replicate 2
+###  GSM1249677  Col-0 SA, biological replicate 1
+###  GSM1249678	Col-0 SA, biological replicate 2
+###  GSM1249679	npr1-1 water, biological replicate 1
+###  GSM1249680	npr1-1 water, biological replicate 2
+###  GSM1249681	npr1-1 SA, biological replicate 1
+###  GSM1249682	npr1-1 SA, biological replicate 2
+setwd("/Volumes/Data8/GSE51626_RAW")
+library(affy)
+#Data <- ReadAffy(widget=T) # error
+CEL.filename<-list.files(pattern=".CEL$")
+CEL.filename
+Data <- ReadAffy(filenames=CEL.filename)
+Data
+eset <- rma(Data) # normalize chips 
+affyData <- read.csv("/Volumes/Data6/bioconductor_R/affy_ATH1_array_elements-2010-12-20.csv") #read TAIR annotation data from file (TAIR10)
+affyData2<-affyData[,c("array_element_name","is_control","locus","description","chromosome","start","stop")]
+names(affyData2) <- c("element","is.control","locus","description","chromosome","start","stop")#get rid of underlines
+head(affyData2)
+genes <- data.frame(element=featureNames(eset)) #get affy gene names from dataset
+affyMatch <- merge(affyData2,genes,by.x="element",by.y=1)# reorder the annotation data to match chip data
+exp.values <- data.frame(exprs(eset)) #put normalized intensities in a data frame
+head(exp.values)
+exp.values <- cbind(affyMatch,exp.values) #add annotation to same frame as expression values
+head(exp.values)
+
+write.csv(exp.values,file="/Volumes/Data8/GSE51626_RAW/exp.values.csv")
+######## RP analysis
+library(RankProd)
+exp.values<-read.csv("/Volumes/Data8/GSE51626_RAW/exp.values.csv")
+names(exp.values)
+names(exp.values)[c(9:10,13:14)]
+RP.GSE51626.npr1 <- RP(exp.values[,c(9:10,13:14)], rep(1:0,each=2), num.perm=100) # water control, 0 (class 1) = Col, 1 (class 2)= npr1-1 
+topgene.RP.GSE51626.npr1<-topGene(RP.GSE51626.npr1,cutoff=0.01,gene.names=exp.values$element,logged=TRUE,logbase=2)
+#  induced genes in npr1-1
+topgene.RP.GSE51626.npr1.T2<-as.data.frame(topgene.RP.GSE51626.npr1$Table2)
+topgene.RP.GSE51626.npr1.T2$element<-rownames(topgene.RP.GSE51626.npr1.T2)
+topgene.RP.GSE51626.npr1.T2.m<-merge(topgene.RP.GSE51626.npr1.T2, affyData2,by="element")
+head(topgene.RP.GSE51626.npr1.T2.m)
+topgene.RP.GSE51626.npr1.T2.m.exp.value<-merge(topgene.RP.GSE51626.npr1.T2.m, exp.values[,c(2,9:10,13:14)],by="element")
+topgene.RP.GSE51626.npr1.T2.m.exp.value<=topgene.RP.GSE51626.npr1.T2.m.exp.value[order(topgene.RP.GSE51626.npr1.T2.m.exp.value$pfp),]
+
+#  repressed genes in npr1-1
+topgene.RP.GSE51626.npr1.T1<-as.data.frame(topgene.RP.GSE51626.npr1$Table1)
+topgene.RP.GSE51626.npr1.T1$element<-rownames(topgene.RP.GSE51626.npr1.T1)
+topgene.RP.GSE51626.npr1.T1.m<-merge(topgene.RP.GSE51626.npr1.T1, affyData2,by="element")
+head(topgene.RP.GSE51626.npr1.T1.m)
+topgene.RP.GSE51626.npr1.T1.m.exp.value<-merge(topgene.RP.GSE51626.npr1.T1.m, exp.values[,c(2,9:10,13:14)],by="element")
+topgene.RP.GSE51626.npr1.T1.m.exp.value<-topgene.RP.GSE51626.npr1.T1.m.exp.value[order(topgene.RP.GSE51626.npr1.T1.m.exp.value$pfp),]
+
+# summary
+topgene.RP.GSE51626.npr1.summary<-rbind(topgene.RP.GSE51626.npr1.T1.m.exp.value,topgene.RP.GSE51626.npr1.T2.m.exp.value)
+write.csv(topgene.RP.GSE51626.npr1.summary,file="/Volumes/Data8/GSE51626_RAW/topgene.RP.GSE51626.npr1.summary.csv")
+# WARKY33 regulated genes
+# ### other SA microarray
+# http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE3984
+# 3w to 4w old plants were sprayed with mock or SA with 0.01% Silwet. Leaves were collected 2h after treatment.
+# Supplementary data files not provided
+# use SOFT file (http://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/r/geo/)
+source("http://www.bioconductor.org/biocLite.R")
+setwd("/Volumes/Data8/")
+biocLite("GEOquery")
+library(Biobase)
+library(GEOquery)
+#Download GDS file, put it in the current directory, and load it:
+#gds3984 <- getGEO('GSE3984', destdir=".")
+
+#Or, open an existing GDS file (even if its compressed):
+gse3984 <- getGEO(filename='GSE3984_family.soft.gz')
+Meta(gds3984)
+eset <- GDS2eSet(gds3984, do.log2=TRUE)
+# error
+# see  "4.4  Converting GSE to an ExpressionSet" in vignet of GEOquery
+gsmplatforms <- lapply(GSMList(gse3984),function(x) {Meta(x)$platform})
+Table(GSMList(gse3984)[[1]])[1:5,]
+probesets <- Table(GPLList(gse3984)[[1]])$ID
+data.matrix <- do.call('cbind',lapply(GSMList(gse3984),function(x) 
+{tab <- Table(x) 
+ mymatch <- match(probesets,tab$ID_REF) 
+ return(tab$VALUE[mymatch])
+}))
+data.matrix <- apply(data.matrix,2,function(x) {as.numeric(as.character(x))})
+hist(data.matrix) # log2 transformed data
+#data.matrix <- log2(data.matrix) # is this already transformed?
+data.matrix[1:5,]
+rownames(data.matrix) <- probesets
+colnames(data.matrix) <- names(GSMList(gse3984))
+pdata <- data.frame(samples=names(GSMList(gse3984)))
+rownames(pdata) <- names(GSMList(gse3984))
+pheno <- as(pdata,"AnnotatedDataFrame")
+eset2 <- new('ExpressionSet',exprs=data.matrix,phenoData=pheno)
+eset2
+genes <- data.frame(element=featureNames(eset2)) #get affy gene names from dataset
+affyMatch <- merge(affyData2,genes,by.x="element",by.y=1)# reorder the annotation data to match chip data
+exp.values <- data.frame(exprs(eset2)) #put normalized intensities in a data frame
+head(exp.values)
+exp.values <- cbind(affyMatch,exp.values) #add annotation to same frame as expression values
+head(exp.values)
+# GSM90867  2-hour mock-treated leaf material biological replicate 1
+# GSM90868  2-hour mock-treated leaf material biological replicate 2
+# GSM90869	2-hour mock-treated leaf material biological replicate 3
+# GSM90870	leaf material harvested 2 hours after spraying of 1 mM salicylic acid biological replicate 1
+# GSM90871	leaf material harvested 2 hours after spraying of 1 mM salicylic acid biological replicate 2
+# GSM90872	leaf material harvested 2 hours after spraying of 1 mM salicylic acid biological replicate 3
+# RP
+library(RankProd)
+RP.ThibaudNissen.SA <- RP(exp.values[,c(8:13)], rep(1:0,each=3), num.perm=100) # 0 (class 1) = mock, 1 (class 2)= SA
+#  induced genes
+topgene.RP.ThibaudNissen.SA<-topGene(RP.ThibaudNissen.SA,cutoff=0.01,gene.names=rownames(exp.values),logged=TRUE,logbase=2)
+topgene.RP.ThibaudNissen.SA.T2<-as.data.frame(topgene.RP.ThibaudNissen.SA$Table2)
+topgene.RP.ThibaudNissen.SA.T2$element<-rownames(topgene.RP.ThibaudNissen.SA.T2)
+topgene.RP.ThibaudNissen.SA.T2.m<-merge(topgene.RP.ThibaudNissen.SA.T2, affyData2,by="element")
+head(topgene.RP.ThibaudNissen.SA.T2.m)
+#  repressed genes
+topgene.RP.ThibaudNissen.SA.T1<-as.data.frame(topgene.RP.ThibaudNissen.SA$Table1)
+topgene.RP.ThibaudNissen.SA.T1$element<-rownames(topgene.RP.ThibaudNissen.SA.T1)
+topgene.RP.ThibaudNissen.SA.T1.m<-merge(topgene.RP.ThibaudNissen.SA.T1, affyData2,by="element")
+head(topgene.RP.ThibaudNissen.SA.T1.m)
+
+## limma (see limmar user guide, 091114)
+design <- cbind(mock=c(1,1,1,0,0,0),SA=c(0,0,0,1,1,1))
+# or
+Group <- factor(c("mock","mock","mock","SA","SA","SA"), levels=c("mock","SA"))
+design <- model.matrix(~0+Group)                
+colnames(design) <- c("mock","SA")
+
+fit <- lmFit(exp.values[,c(8:13)], design)
+cont.matrix <- makeContrasts(mockvsSA=SA-mock, levels=design)
+fit2 <- contrasts.fit(fit, cont.matrix)
+fit2 <- eBayes(fit2,0.01) # 0.01 is used in GEO2R (http://www.ncbi.nlm.nih.gov/geo/geo2r/?acc=GSE3984)
+topgene.limma.ThibaudNissen.SA<-topTable(fit2, adjust="fdr",sort.by="B",number=500) # this is different from GEO2R output ...
+topgene.limma.ThibaudNissen.SA<-topgene.limma.ThibaudNissen.SA[topgene.limma.ThibaudNissen.SA$adj.P.Val<0.05,]
+
+# overlap between RP and limma
+topgene.RP.ThibaudNissen.SA.T1.m.limma<-topgene.RP.ThibaudNissen.SA.T1.m[topgene.RP.ThibaudNissen.SA.T1.m$element %in% rownames(topgene.limma.ThibaudNissen.SA),]
+topgene.RP.ThibaudNissen.SA.T2.m.limma<-topgene.RP.ThibaudNissen.SA.T2.m[topgene.RP.ThibaudNissen.SA.T2.m$element %in% rownames(topgene.limma.ThibaudNissen.SA),]
+setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis")
+write.csv(topgene.RP.ThibaudNissen.SA.T1.m.limma,file="topgene.RP.ThibaudNissen.SA.T1.m.limma.csv")
+write.csv(topgene.RP.ThibaudNissen.SA.T2.m.limma,file="topgene.RP.ThibaudNissen.SA.T2.m.limma.csv")
+
+
+```
+# visualize hormone pathway related genes (1213-1214,2015). Updated (052616)
+```{r eval=FALSE}
+# fold chagne (shade responsiveness)
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/summary.vst.response.Rdata") # response. needs to fix colnames (060515)
+summary.vst.response<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
+dim(summary.vst.response)
+head(summary.vst.response)
+
+# find overlap between shade responsive (in Col) and hormone responsive
+test<-read.csv("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/hormone.responsiveness.SOMclusters.csv")
+test<-test[,-1]
+## start from this line ## 052616
+load("../SAS_muts_time_course_RNAseq2_mycomp_output/overlap.melt.summary.SOM.custom.Rdata")
+overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
+#overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10)) #
+overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) #
+overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","SARplus","SARminus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down"))
+# select log10>3 & !Var1==0 
+overlap.melt.summary.significant<-overlap.melt.summary[overlap.melt.summary$value>3,] 
+overlap.melt.summary.significant$category.cluster<-with(overlap.melt.summary.significant,paste(Var2,Var1,sep="_"))
+# 
+names(test)[2:27]<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down")
+
+test.wozero<-test[!test$ssom3.4.unit.classif=="0",]
+head(test.wozero)
+test.wozero.melt<-melt(test.wozero,id.var=c("AGI","ssom3.4.unit.classif"))
+test.wozero.melt$category.cluster<-with(test.wozero.melt,paste(value,ssom3.4.unit.classif,sep="_"))
+
+test.wozero.melt.hormone.signifiant<-test.wozero.melt[test.wozero.melt$category.cluster %in% overlap.melt.summary.significant$category.cluster,]
+
+head(test.wozero.melt.hormone.signifiant)
+test.wozero.melt.hormone.signifiant.s<-test.wozero.melt.hormone.signifiant[,c("AGI","value")]
+names(test.wozero.melt.hormone.signifiant.s)<-c("AGI","my.category")
+test.wozero.melt.hormone.signifiant.s$my.category<-factor(test.wozero.melt.hormone.signifiant.s$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # remove GAdown (052616)
+
+for(i in c(2:10,13:15,17,19)) {
+  my.category.heatmap4(summary3.response=summary.vst.response,gt.num=conversion.table[i,1],gt2=conversion.table[i,2],newdata.Col.wGO.selected=test.wozero.melt.hormone.signifiant.s,plotname="my.category.expression.pattern.v9.png",w=5,h=5*4/3, path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/")
+}
+i<-1
+sumamry.table.melt<-my.category.heatmap4(summary3.response=summary.vst.response,gt.num=conversion.table[i,1],gt2=conversion.table[i,2],newdata.Col.wGO.selected=test.wozero.melt.hormone.signifiant.s,plotname="my.category.expression.pattern.v8.png",w=5,h=5*4/3, path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/",save.plot=F)
+
+  sumamry.table.melt$variable<-factor(sumamry.table.melt$variable,levels=c("49","25","4","1"))
+sumamry.table.melt$my.category<-factor(sumamry.table.melt$my.category,levels=rev(levels(sumamry.table.melt$my.category)))
+
+p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3,colour="black") 
+   library(scales) # for muted
+  p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
+  p.selected <- p.selected  + 
+    theme(axis.text.x=element_text(size=10,angle=90),
+          axis.ticks = element_blank(),
+          panel.background = element_rect(fill = "white"))
+  #,strip.background=element_rect(fill=c("red","blue")))
+   p.selected <- p.selected + labs(x="Time (hr)",y="",fill="log2\n fold change")
+p.selected<-p.selected + labs(x="Time (hr)")
+# flip xy
+p.selected<-p.selected + coord_flip() 
+# change category label orientaiton
+plotname="my.category.expression.pattern.v9.png"
+w=8
+h=4
+path="../SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/"
+ggsave(file="my.category.expression.pattern.v9.png",p.selected,height=h,width=w,path=path)
+## new version ##### 052616
+my.category.heatmap.graph<-list()
+for(i in c(17,19,11,3,4,5,14,10,12,6,13,7,8,16,9,1)) { # c("aos","co_9","coi1_16","hy5","jar1","kat1_2","mida9_4","PAR1","phyAB","phyb","pif3","pif45","spt_11","sto","yucQ","Col")
+my.category.heatmap.graph[[i]]<-my.category.heatmap5(summary3.response=summary.vst.response,gt.num=conversion.table[i,1],gt2=conversion.table[i,2],newdata.Col.wGO.selected=test.wozero.melt.hormone.signifiant.s,plotname="my.category.expression.pattern.v8.png",w=5,h=5*4/3, path="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/",save.plot=F)
+}
+# combine all graphs with cowplot
+library(cowplot) 
+my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],my.category.heatmap.graph[[3]],my.category.heatmap.graph[[4]],my.category.heatmap.graph[[5]],my.category.heatmap.graph[[6]],my.category.heatmap.graph[[7]],my.category.heatmap.graph[[8]],my.category.heatmap.graph[[9]],my.category.heatmap.graph[[10]],my.category.heatmap.graph[[13]],my.category.heatmap.graph[[14]],my.category.heatmap.graph[[15]],my.category.heatmap.graph[[17]],my.category.heatmap.graph[[19]],
+                      vjust = 1.25,
+                      ncol=3,nrow=5)
+setwd("../SAS_muts_time_course_RNAseq2_mycomp_output/figs_tables/")
+save_plot("all.my.category.expression.pattern.v9.png", my.category.heatmap.all,
+          ncol = 3, # we're saving a grid plot of 2 columns
+          nrow = 5, # and 2 rows
+          base_aspect_ratio = 2.5,
+          base_height=6,
+          limitsize = FALSE
+)
+setwd("../../SAS_muts_time_course_RNAseq2_mycomp/")
+
+```
+# Does each WGCNA module contain shade-responsive genes? (011216)
+```{r}
+SAS.expression.vst.s.largeCV.modules
+# shade responsive genes 
+load("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/edgeR/outlier_wo16h/DGEsummary.edgeR.response.Rdata")
+head(DGEsummary.edgeR.response)
+Col.DGE<-DGEsummary.edgeR.response[1:80,]
+Col.DGE$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)(.[[:digit:]]+)","\\1",rownames(Col.DGE))
+# mark Col.DGE genes in SAS.expression.vst.s.largeCV.modules
+SAS.expression.vst.s.largeCV.modules$ColDGE<-(SAS.expression.vst.s.largeCV.modules$AGI %in% Col.DGE$AGI)*1
+# 
+overlap.WGCNAmodule.ColDGE<-overlapTable(SAS.expression.vst.s.largeCV.modules$"1",SAS.expression.vst.s.largeCV.modules$ColDGE)
+save(overlap.WGCNAmodule.ColDGE,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/overlap.WGCNAmodule.ColDGE.Rdata")
+temp<-merge(Col.DGE,TAIR10_gene_descriptions[,c("AGI","colE...col.F")],by="AGI")
+Col.DGE.descripiton<-temp[!duplicated(temp$AGI),]
+write.csv(Col.DGE.descripiton,file="/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output/Col.DGE.descripiton.csv")
+
+```
+
