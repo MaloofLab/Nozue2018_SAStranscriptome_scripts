@@ -52,7 +52,7 @@ source("function_RNAseq_time_course.R")
 
 ## eliminating libraries with wrong genotypes
 ```{r eval=FALSE}
-counts<-read.table("../input/SAS_counts_merged_updated_final.bam.tsv",header=TRUE) # use SAS_counts_merged_updated.bam.tsv (081514)
+counts<-read.table("../../Nozue2016_SAStranscriptome_data/input/SAS_counts_merged_updated_final.bam.tsv",header=TRUE) # use SAS_counts_merged_updated.bam.tsv (081514)
 # remove * row and move gene column into rowname
 rownames(counts)<-counts$gene
 counts<-counts[!counts$gene=="*",-1] 
@@ -142,14 +142,14 @@ for(i in 1:27){
 } 
 names(counts.nolow)
 counts.nolow[is.na(counts.nolow)]<-0
-save(counts.nolow,file="../output/counts.nolow.Rdata")
+save(counts.nolow,file="../../Nozue2016_SAStranscriptome_output/output/counts.nolow.Rdata")
 
 ```
 
 * eliminating outlier libraries
 ```{r, eval=FALSE}
 # in whitney
-load("../output/counts.nolow.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/counts.nolow.Rdata")
 samples.nolow <- data.frame(file=colnames(counts.nolow),
                             batch=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\1",colnames(counts.nolow))),
                             trt=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\3",colnames(counts.nolow))),
@@ -182,7 +182,7 @@ for(i in Genotype) { # error in i=11,16
   dge.nolow.s.batch.glm <- estimateGLMCommonDisp(dge.nolow.s,design.nolow.s.batch, verbose=TRUE) 
   dge.nolow.s.batch.glm <- estimateGLMTrendedDisp(dge.nolow.s.batch.glm,design.nolow.s.batch, verbose=TRUE)
   dge.nolow.s.batch.glm <- estimateGLMTagwiseDisp(dge.nolow.s.batch.glm,design.nolow.s.batch) # why this is not included in original Julin's script?
-  pdf(file=paste("../output/BCV_MDS_with_genotype",i,".pdf",sep=""),width=11,height=8)
+  pdf(file=paste("../../Nozue2016_SAStranscriptome_output/output/BCV_MDS_with_genotype",i,".pdf",sep=""),width=11,height=8)
   par(mfrow=c(1,2))
   plotBCV(dge.nolow.s.batch.glm,main=paste("genotype",i))
   plotMDS(dge.nolow.s.batch.glm,main=paste("genotype",i))
@@ -192,7 +192,7 @@ for(i in Genotype) { # error in i=11,16
   dge.nolow.s.batch.glm.lrt <- glmLRT(dge.nolow.s.batch.glm.fit,coef=c("trtL","time4:trtL","time16:trtL","time25:trtL","time49:trtL"))
   DE.batch.anytime<-topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table[topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table$FDR<0.05,]
   dim(DE.batch.anytime) # 416 (Col, w/o eliminating low expressed genes). 518 (Col, after eliminating low expressed genes)
-  save(DE.batch.anytime,file=paste("../output/DE.batch.anytime_genotype",i,".Rdata",sep=""))  	
+  save(DE.batch.anytime,file=paste("../../Nozue2016_SAStranscriptome_output/output/DE.batch.anytime_genotype",i,".Rdata",sep=""))  	
 }
 # eliminate 16h and find outlier
 dge.nolow4<-dge.nolow[,!samples.nolow$time==16]
@@ -215,7 +215,7 @@ for(i in Genotype) { # error in i=11,16 (they has been eliminated in Genotype)
   dge.nolow.s.batch.glm <- estimateGLMCommonDisp(dge.nolow.s,design.nolow.s.batch, verbose=TRUE) 
   dge.nolow.s.batch.glm <- estimateGLMTrendedDisp(dge.nolow.s.batch.glm,design.nolow.s.batch, verbose=TRUE)
   dge.nolow.s.batch.glm <- estimateGLMTagwiseDisp(dge.nolow.s.batch.glm,design.nolow.s.batch) # why this is not included in original Julin's script?
-  pdf(file=paste("../output/BCV_MDS_with_genotype",i,".pdf",sep=""),width=11,height=8)
+  pdf(file=paste("../../Nozue2016_SAStranscriptome_output/output/BCV_MDS_with_genotype",i,".pdf",sep=""),width=11,height=8)
   par(mfrow=c(1,2))
   plotBCV(dge.nolow.s.batch.glm,main=paste("genotype",i))
   plotMDS(dge.nolow.s.batch.glm,main=paste("genotype",i))
@@ -226,7 +226,7 @@ for(i in Genotype) { # error in i=11,16 (they has been eliminated in Genotype)
   
   DE.batch.anytime<-topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table[topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table$FDR<0.05,]
   dim(DE.batch.anytime) # 416 (Col, w/o eliminating low expressed genes). 518 (Col, after eliminating low expressed genes)
-  save(DE.batch.anytime,file=paste("../output/DE.batch.anytime_genotype_wo16h",i,".Rdata",sep=""))  	
+  save(DE.batch.anytime,file=paste("../../Nozue2016_SAStranscriptome_output/output/DE.batch.anytime_genotype_wo16h",i,".Rdata",sep=""))  	
 }
 
 ## check MDS plot and find outliner libraries (081514)
@@ -286,8 +286,8 @@ samples.nolow5<-samples.nolow4[!samples.nolow4$file %in% outlier,]
 dge.nolow5<-dge.nolow4[,!samples.nolow4$file %in% outlier]
 Genotype<-levels(as.factor(samples.nolow5$genotype))
 Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
-save(dge.nolow5,file="../output/dge.nolow5.Rdata") # dge list object used for DE analysis
-save(samples.nolow5,file="../output/samples.nolow5.Rdata") # libraries used for DE analysis
+save(dge.nolow5,file="../../Nozue2016_SAStranscriptome_output/output/dge.nolow5.Rdata") # dge list object used for DE analysis
+save(samples.nolow5,file="../../Nozue2016_SAStranscriptome_output/output/samples.nolow5.Rdata") # libraries used for DE analysis
 ```
 
 ## differentially expressed gene analysis
