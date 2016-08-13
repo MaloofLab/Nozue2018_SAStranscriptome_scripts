@@ -881,3 +881,5 @@ vlookup <- function(ref, #the value or values that you want to look for
     output[!ref %in% table[,1]] <- NA #not needed?
   }
   dim(output) <- dim(ref)
+  output
+}
