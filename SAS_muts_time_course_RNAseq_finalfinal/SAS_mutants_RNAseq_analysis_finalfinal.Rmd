@@ -19,6 +19,9 @@ output: html_document
 * needs to eliminate eliminate bsk5_1 (genotype15) and AT5G02540_1 (genotype 2) from the beggining?
 * creating "SAS_mutants_RNAseq_analysis_document_v3.Rmd" (052616)
 * replace "toc" in to "counts" (070516)
+## To do
+* remove all NAM parents informaiton (eg. conversion table, DGE, etc)
+* 
 ## outline of this scripts
 * eliminating libraries with wrong genotypes
 * eliminating outlier libraries
@@ -34,16 +37,24 @@ output: html_document
 
 ## preparation
 ```{r load-data}
+# if(Sys.info()["user"]=="nozue") {
+#   setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal")
+# }
 if(Sys.info()["user"]=="nozue") {
-  setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal")
-}
+homedir<-"/Volumes/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
+} # customize homedir
+setwd(homedir)
+# reading necessary funcitons and libraries
+source("function_RNAseq_time_course.R")
+# download "Nozue2016_SAStranscriptome_data" at the same level of "Nozue2016_SAStranscriptome_scripts"
 # Atmosphere (Cyverse)
 if(Sys.info()["user"]=="kazu") { 
   setwd("/vol1/kazu/home/****/")
 }
 # Whitney
 if(Sys.info()["nodename"]=="whitney") {
-  setwd("~/NGS/SAS_muts_time_course_RNAseq4/")
+  homedir<-"~/NGS/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
+  setwd(homedir)
 } # use git repository
 
 # reading necessary funcitons and libraries
@@ -116,11 +127,7 @@ eliminated.libraries<-c(
   "C16H49A.merged.bam", # sto
   "C16L49A.merged.bam", # sto
   "D16L49A.merged.bam") # sto
-# eliminate 55 libraries within my genotypes (081514)
-# conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","AT5G02760_2","AT5G59010_2","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0")) # 
-#
-#save(counts,file="../SAS_muts_time_course_RNAseq2_mycomp_output/counts.Rdata")
-#load("../SAS_muts_time_course_RNAseq2_mycomp_output/counts.Rdata")
+# eliminate 55 libraries (081514)
 counts<-counts[,!names(counts) %in% eliminated.libraries]
 #head(counts) 
 dim(counts) #[1] 30533   749
@@ -293,8 +300,8 @@ save(samples.nolow5,file="../../Nozue2016_SAStranscriptome_output/output/samples
 ## differentially expressed gene analysis
 1.DE (treatment, ie, shade responsiveness) at any time point within given genotype
 ```{r eval=FALSE}
-load("../output/samples.nolow5.Rdata")
-load("../output/dge.nolow5.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/samples.nolow5.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/dge.nolow5.Rdata")
 Genotype<-levels(as.factor(samples.nolow5$genotype))
 Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
 for(i in Genotype) { # why I eliminate genotype 1 and 10???
@@ -303,7 +310,7 @@ for(i in Genotype) { # why I eliminate genotype 1 and 10???
   dge.nolow.s<-dge.nolow5[,samples.nolow5$genotype==i]
   # calculating cpm
   temp<-cpm(dge.nolow.s)
-  save(temp,file=paste("../output/genotype",i,"cpm.Rdata",sep=".")) # better to have mean value at each time point  
+  save(temp,file=paste("../../Nozue2016_SAStranscriptome_output/output/genotype",i,"cpm.Rdata",sep=".")) # better to have mean value at each time point  
   # eliminating low expressed genes in dge.nolow.s
   dge.nolow.s<-dge.nolow.s[rowSums(dge.nolow.s$counts > 5) >= 3,]  
   design.nolow.s.batch<- model.matrix(~samples.nolow.s$time*samples.nolow.s$trt + samples.nolow.s$batch)
@@ -314,7 +321,7 @@ for(i in Genotype) { # why I eliminate genotype 1 and 10???
   dge.nolow.s.batch.glm <- estimateGLMTrendedDisp(dge.nolow.s.batch.glm,design.nolow.s.batch, verbose=TRUE)
   dge.nolow.s.batch.glm <- estimateGLMTagwiseDisp(dge.nolow.s.batch.glm,design.nolow.s.batch) # why this is not included in original Julin's script?
   #pdf(file=paste("BCV_MDS_with_genotype_w_outlier_wo16h",i,".pdf",sep=""),width=11,height=8)
-  pdf(file=paste("../output/BCV_MDS_with_genotype_wo_outlier_wo16h",i,".pdf",sep=""),width=11,height=8) # fine name fixed (122214)
+  pdf(file=paste("../../Nozue2016_SAStranscriptome_output/output/BCV_MDS_with_genotype_wo_outlier_wo16h",i,".pdf",sep=""),width=11,height=8) # fine name fixed (122214)
   par(mfrow=c(1,2))
   plotBCV(dge.nolow.s.batch.glm,main=paste("genotype",i))
   plotMDS(dge.nolow.s.batch.glm,main=paste("genotype",i))
@@ -324,16 +331,16 @@ for(i in Genotype) { # why I eliminate genotype 1 and 10???
   DE.batch.anytime<-topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table[topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table$FDR<0.05,]
   dim(DE.batch.anytime) # 
   #save(DE.batch.anytime,file=paste("DE.batch.anytime_genotype_w_outlier_wo16h",i,".Rdata",sep=""))  
-  save(DE.batch.anytime,file=paste("../output/DE.batch.anytime_genotype_wo_outlier_wo16h",i,".Rdata",sep="")) # file name fixed (122114)    
+  save(DE.batch.anytime,file=paste("../../Nozue2016_SAStranscriptome_output/output/DE.batch.anytime_genotype_wo_outlier_wo16h",i,".Rdata",sep="")) # file name fixed (122114)    
 }
 ```
 
 # summary of DE genes 
 * (053014 - 053114): revised version (081514 - );more revision (060415 - )
 ```{r eval=FALSE}
-DEfiles<-list.files(path="../output/",pattern="DE.batch.anytime")
+DEfiles<-list.files(path="../../Nozue2016_SAStranscriptome_output/output/",pattern="DE.batch.anytime")
 DEfiles<-grep("DE.batch.anytime_genotype_wo_outlier_wo16h",DEfiles,value=TRUE)
-setwd("../output/")
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
 load(DEfiles[1]) 
 rownames(DE.batch.anytime)<-paste(rownames(DE.batch.anytime),gsub("(DE.batch.anytime_genotype_wo_outlier_wo16h)([[:print:]]+)(.Rdata)","\\2",DEfiles[1]),sep=".")
 temp<-DE.batch.anytime
@@ -351,7 +358,7 @@ dim(DGEsummary.edgeR.response) #755   8 for final sequence data with normalizati
 
 save(DGEsummary.edgeR.response,file="../output/DGEsummary.edgeR.response.Rdata")
 # # genotype conversion 
-load("../output/samples.nolow5.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/samples.nolow5.Rdata")
 samples.nolow5
 samples.nolow5$genotype2<-""
 for(i in 1:27){
@@ -368,7 +375,7 @@ DEgenes.summary$genotype2<-""
 for(i in 1:27) {
   DEgenes.summary[DEgenes.summary$genotype==i,"genotype2"]<-as.character(conversion.table[i,2])
 }
-# DEgenes.summary
+DEgenes.summary
 #    genotype DEgenes_num   genotype2
 # 1        10           6 PAR1_RNAi09
 # 2        13          73        pif3
@@ -394,16 +401,16 @@ for(i in 1:27) {
 # 22        8          81      spt_11
 # 23        9           6     yuc2589
 
-setwd("../sas_timecourse_v4_scripts/")
+setwd(homedir)
 ```
 ## select genes with largeCV and calculate responsiveness for SOM analysis
 ```{r eval=FALSE}
 # read vst transformed data
 # SAS.expression.vst<-read.csv("kazu.SAS.expression.vst.csv")
-SAS.expression.vst<-read.csv("../input/kazu.SAS.expression.VST.070516.csv") # new transformed data by DEseq2 (done by J, see VST.R). Updated by Kazu (070516)
+SAS.expression.vst<-read.csv("../../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.070516.csv") # new transformed data by DEseq2 (done by J, see VST.R). Updated by Kazu (070516)
 rownames(SAS.expression.vst)<-SAS.expression.vst$X
 # calculate mean value among replicates
-load("../output/PLoSGenetics2015mutants.errrDE.Rdata") # from VST.R
+load("../../Nozue2016_SAStranscriptome_output/output/PLoSGenetics2015mutants.errrDE.Rdata") # from VST.R
 PLoSGenetics2015mutants.errrDE$sample<-with(PLoSGenetics2015mutants.errrDE,paste(genotype,trt,time,sep=""))
 PLoSGenetics2015mutants.errrDE$sample<-factor(PLoSGenetics2015mutants.errrDE$sample) 
 SAS.expression.vst.s<-SAS.expression.vst[,names(SAS.expression.vst) %in% PLoSGenetics2015mutants.errrDE$file]
@@ -411,6 +418,10 @@ Genotype<-levels(as.factor(PLoSGenetics2015mutants.errrDE$genotype))
 Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
 
 temp<-SAS.expression.vst.s[,names(SAS.expression.vst.s) %in% PLoSGenetics2015mutants.errrDE[PLoSGenetics2015mutants.errrDE$genotype==1,"file"]] # genotype 1 data
+# making samples.nolow5$sample (necessary for expression.mean function)
+samples.nolow5$sample<-with(samples.nolow5,paste(genotype,trt,time,sep=""))
+samples.nolow5$sample<-factor(samples.nolow5$sample) #where this is used? (122214)
+
 summary.vst<-expression.mean(temp)　# custom function
 for(i in Genotype[-1]) {
 	temp<-SAS.expression.vst.s[,names(SAS.expression.vst.s) %in% PLoSGenetics2015mutants.errrDE[PLoSGenetics2015mutants.errrDE$genotype==i,"file"]]
@@ -420,14 +431,14 @@ for(i in Genotype[-1]) {
 }
 #head(summary.vst,3)
 rownames(summary.vst)<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst$X)
-save(summary.vst,file="../output/summary.vst.Rdata") #
+save(summary.vst,file="../../Nozue2016_SAStranscriptome_output/output/summary.vst.Rdata") #
 # relative value 
-load("../output/summary.vst.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.Rdata")
 # note that summary.vst is log2 transformed
 summary.vst.response<-as.data.frame((2^summary.vst[,gsub("(.+)(H|L)(1|4|16|25|49)","\\2",names(summary.vst))=="L"])/(2^summary.vst[,gsub("(.+)(H|L)(1|4|16|25|49)","\\2",names(summary.vst))=="H"])) # shade/sun 
 rownames(summary.vst.response)<-rownames(summary.vst)
 names(summary.vst.response)<-paste(gsub("(.+)(H|L)(1|4|16|25|49)","\\1_\\3",names(summary.vst.response)),"hrA",sep="") #
-save(summary.vst.response,file="../output/summary.vst.response.Rdata")
+save(summary.vst.response,file="../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata")
 # select genes with higher CV
 co.var.df <- function(x) ( 100*apply(x,1,sd)/rowMeans(x) )
 SAS.expression.vst.s$cv <- co.var.df(SAS.expression.vst.s[,-1])
@@ -435,14 +446,14 @@ hist(SAS.expression.vst.s$cv)
 sum(as.integer(SAS.expression.vst.s$cv>5))/dim(SAS.expression.vst.s)[1] #[1] 0.249566
 SAS.expression.vst.s.largeCV<-SAS.expression.vst.s[SAS.expression.vst.s$cv>5,]
 dim(SAS.expression.vst.s.largeCV) #[1] 7620  288
-save(SAS.expression.vst.s.largeCV,file="../output/SAS.expression.vst.s.largeCV.Rdata") # 
+save(SAS.expression.vst.s.largeCV,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.largeCV.Rdata") # 
 
 # response value of genes with largeCV 
 # summary.vst.response<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
 dim(summary.vst.response)
 summary.vst.response.largeCV<-summary.vst.response[rownames(summary.vst.response) %in% gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(SAS.expression.vst.s.largeCV)),]
 dim(summary.vst.response.largeCV) # 7620    48
-save(summary.vst.response.largeCV,file="../output/summary.vst.response.largeCV.Rdata")
+save(summary.vst.response.largeCV,file="../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.largeCV.Rdata")
 ```
 ## select only DE genes
 ```{r eval=TRUE}
@@ -467,8 +478,10 @@ DGE.summary.vst.response.largeCV[rownames(DGE.summary.vst.response.largeCV)=="AT
 ```{r eval=FALSE}
 rm(list=ls())
 source("function_RNAseq_time_course.R")
-load("../output/PLoSGenetics2015mutants.errrDE.Rdata")
-load("../output/dge.nolow5.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/PLoSGenetics2015mutants.errrDE.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/dge.nolow5.Rdata")
+samples.nolow5$sample<-with(samples.nolow5,paste(genotype,trt,time,sep=""))
+samples.nolow5$sample<-factor(samples.nolow5$sample) #where this is used? (122214)
 dge.PLoSGenetics2015mutants.errrDE<-dge.nolow5[,colnames(dge.nolow5$counts) %in% PLoSGenetics2015mutants.errrDE$file] 
 
 Genotype<-levels(as.factor(PLoSGenetics2015mutants.errrDE$genotype))
@@ -582,7 +595,7 @@ newdata.vst[rownames(newdata.vst)=="AT4G16780.1",] # cluster 3? (v4 does not mat
 # cluster.conversion<-data.frame(new=1:12,old=c(*,*,10,*,*,*,*,*,*,*,*,*,*,*,*))
 ##
 file.name<-gsub(" ","_",gsub(":","",Sys.time()))
-save(newdata.vst,file=paste("../output/newdata.vst",file.name,".Rdata",sep=""))
+save(newdata.vst,file=paste("../../Nozue2016_SAStranscriptome_output/output/newdata.vst",file.name,".Rdata",sep=""))
 
 
 #### making complete table (for SOM data) ###
