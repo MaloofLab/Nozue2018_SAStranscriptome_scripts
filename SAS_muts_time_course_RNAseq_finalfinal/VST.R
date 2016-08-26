@@ -1,6 +1,6 @@
 #setwd("~/Dropbox/Kazu's SAS timecourse data/")
 
-setwd("../input/")
+setwd("../../Nozue2016_SAStranscriptome_data/input/")
 data <- read.delim("SAS_counts_merged_updated_final.bam.tsv",sep="\t",row.names=2)
 
 data[1:10,1:10]
@@ -97,7 +97,7 @@ data[is.na(data)] <- 0
 # ftable(sample.info,row.vars=c(2:3),col.vars=c(4:5)) # gt=1 is strange only 16h samples, why?
 
 ### new version (070516) ##
-load("../output/samples.nolow5.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/samples.nolow5.Rdata")
 samples.nolow5$genotype2<-""
 for(i in 1:27){
   samples.nolow5[samples.nolow5$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])  
@@ -106,20 +106,20 @@ PLoSGenetics2015mutants<-samples.nolow5[samples.nolow5$genotype2 %in% c("Col","a
 # genotypes not working in edgeR 
 errorDE<-c("coi1-16","phyAB","sto")
 PLoSGenetics2015mutants.errrDE<-PLoSGenetics2015mutants[!PLoSGenetics2015mutants$genotype2 %in% errorDE,]
-save(PLoSGenetics2015mutants.errrDE,file="../output/PLoSGenetics2015mutants.errrDE.Rdata")
+save(PLoSGenetics2015mutants.errrDE,file="../../Nozue2016_SAStranscriptome_output/output/PLoSGenetics2015mutants.errrDE.Rdata")
 data<-data[,colnames(data) %in% PLoSGenetics2015mutants.errrDE$file]
 
 library(DESeq2)
 PLoSGenetics2015mutants.errrDE$batch
 
 dds <- DESeqDataSetFromMatrix(countData = data, colData = PLoSGenetics2015mutants.errrDE, design = ~ batch + genotype*trt*time) # modified (070616)
-
 vsd <- varianceStabilizingTransformation(dds)
 
 vstMat <- assay(vsd)
 colnames(vstMat) <- colnames(data)
 vstMat[1:10,1:10]
-write.csv(vstMat,file="../input/kazu.SAS.expression.VST.070516.csv")
+#write.csv(vstMat,file="../input/kazu.SAS.expression.VST.070516.csv")
+write.csv(vstMat,file="../input/kazu.SAS.expression.VST.082016.csv")
 
 log2(data[1:10,1:10]+1)
 # reality check: highest correlations should be of the sample to itself

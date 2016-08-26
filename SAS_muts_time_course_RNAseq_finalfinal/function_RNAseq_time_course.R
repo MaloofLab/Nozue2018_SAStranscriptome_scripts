@@ -9,7 +9,9 @@ library(scales) # for muted
 library(WGCNA);library(ShortRead);library(goseq);library(GO.db); library("org.At.tair.db");library("annotate")
 # see http://www.bioconductor.org/install/ for installation of these packages 
 library(lmerTest) # for significant analysis
-
+TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
+TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+# 
 conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
 
 expression.pattern.graph<-function(data.cpm,target.genes,samples){# require ggplot2, reshape2 packages, this is only for SAS timecourse data
@@ -238,9 +240,7 @@ SOM.clustering4<-function(data,gt=1,cluster) { # "Col","YuQ","Coi","Jar","Pi3","
 # prerequisit
 library(ShortRead);library(goseq);library(GO.db);library("org.At.tair.db");library("annotate")
 
-TIR10_cdna_rep_model<-readDNAStringSet("/Volumes/Data8/NGS_related/Arabidopsis_analysis/reference/TAIR10_cdna_20110103_representative_gene_model") 
-#TIR10_cdna_rep_model<-readDNAStringSet("/Network/Servers/avalanche.plb.ucdavis.edu/Volumes/Mammoth/Users/kazu/Documents/SASmutRNAseq_whitney/TAIR10_cdna_20110103_representative_gene_model") 
-#TIR10_cdna_rep_model<-readDNAStringSet("/mydata/kazu_data/SASmutRNAseq2/TAIR10_cdna_20110103_representative_gene_model") 
+TIR10_cdna_rep_model<-readDNAStringSet("../../Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") 
 
 head(TIR10_cdna_rep_model)
 bias<-nchar(TIR10_cdna_rep_model)
@@ -272,7 +272,9 @@ GOseq.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, padju
   GO.pval <- goseq(pwf,gene2cat=Atgo.list,use_genes_without_cat=TRUE) # format became different in new goseq version (021111)
   #head(GO.pval) 
   GO.pval$over_represented_padjust<-p.adjust(GO.pval$over_represented_pvalue,method="BH")
-  if(GO.pval$over_represented_padjust[1]>padjust) stop("no enriched GO")
+  #if(GO.pval$over_represented_padjust[1]>padjust) stop("no enriched GO")
+  if(GO.pval$over_represented_padjust[1]>padjust) return("no enriched GO")
+  
   else {
     enriched.GO<-GO.pval[GO.pval$over_represented_padjust<padjust,] 
     print("enriched.GO is")
