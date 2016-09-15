@@ -12,8 +12,9 @@ library(lmerTest) # for significant analysis
 TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
 TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 # 
-conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
-
+#conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+conversion.table<-data.frame(num=c(1,10,13,14,17,19,3,4,5,6,7,8,9), genotype=c("Col","PAR1_RNAi09","pif3","mida9_4","aos","co_9","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589"))
+#all.equal(as.character(conversion.table[c(1,10,13,14,17,19,4,5,6,7,8,9),"genotype"]),conversion.table2[,"genotype"])
 expression.pattern.graph<-function(data.cpm,target.genes,samples){# require ggplot2, reshape2 packages, this is only for SAS timecourse data
   temp.data<-as.data.frame(t(data.cpm[rownames(data.cpm) %in% target.genes,]))
   temp.data$file<-rownames(temp.data)

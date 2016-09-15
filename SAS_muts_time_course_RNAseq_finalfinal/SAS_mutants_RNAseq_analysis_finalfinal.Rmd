@@ -20,7 +20,7 @@ output: html_document
 * creating "SAS_mutants_RNAseq_analysis_document_v3.Rmd" (052616)
 * replace "toc" in to "counts" (070516)
 ## To do
-* remove all NAM parents informaiton (eg. conversion table, DGE, etc)
+* remove all unused genoytpe (eg. NAM parents) informaiton (eg. conversion table (083016), DGE, etc)
 * 
 ## outline of this scripts
 * eliminating libraries with wrong genotypes
@@ -304,8 +304,13 @@ save(samples.nolow5,file="../../Nozue2016_SAStranscriptome_output/output/edgeR/o
 ```{r eval=FALSE}
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/dge.nolow5.Rdata")
-Genotype<-levels(as.factor(samples.nolow5$genotype))
-Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
+# needs to fix Genotype part (083016)
+# Genotype<-levels(as.factor(samples.nolow5$genotype))
+# Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
+SAS.expression.vst<-read.csv("../../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (082016)
+rownames(SAS.expression.vst)<-SAS.expression.vst$X
+Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)[-1])))
+#
 for(i in Genotype) { # why I eliminate genotype 1 and 10???
   print(paste("Genotype is ",i))
   samples.nolow.s<-samples.nolow5[samples.nolow5$genotype==i,]
@@ -358,15 +363,15 @@ DGEsummary.edgeR.response<-temp
 tail(DGEsummary.edgeR.response)
 dim(DGEsummary.edgeR.response) #755   8 for final sequence data with normalization (081514); 669 8 , why??? in edgeR DE loop I used "for(i in Genotype[-(1:2)]) {", but this should be "for(i in Genotype) {". After fixing this I got "755 8" . oK. (060515)
 
-save(DGEsummary.edgeR.response,file="../output/DGEsummary.edgeR.response.Rdata")
+save(DGEsummary.edgeR.response,file="../../Nozue2016_SAStranscriptome_output/output/DGEsummary.edgeR.response.Rdata")
 # # genotype conversion 
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
 samples.nolow5
 samples.nolow5$genotype2<-""
-for(i in 1:27){
+for(i in 1:13){ # only for Genotype
   samples.nolow5[samples.nolow5$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])	
 } 
-## summary of DE gene numers
+## summary of DE gene numbers
 load(DEfiles[1]) #"DE.batch.anytime_genotype_wo_outlier_wo16h1.Rdata"
 DEgenes.summary<-data.frame(genotype=gsub("(DE.batch.anytime_genotype_wo_outlier_wo16h)([[:digit:]]+)(.Rdata)","\\2",DEfiles))
 for(i in 1:length(DEfiles)) {
@@ -374,34 +379,11 @@ for(i in 1:length(DEfiles)) {
   DEgenes.summary$DEgenes_num[i]<-dim(DE.batch.anytime)[1]
 }
 DEgenes.summary$genotype2<-""
-for(i in 1:27) {
-  DEgenes.summary[DEgenes.summary$genotype==i,"genotype2"]<-as.character(conversion.table[i,2])
+for(i in 1:13) {
+  DEgenes.summary[DEgenes.summary$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])
 }
-DEgenes.summary
-#    genotype DEgenes_num   genotype2
-# 1        10           6 PAR1_RNAi09
-# 2        13          73        pif3
-# 3        14          10     mida9_4
-# 4        15          46      bsk5_1
-# 5        17          52         aos
-# 6        19          20        co_9
-# 7         1          80         Col
-# 8        20           4       Blh_1
-# 9        21          20         Jea
-# 10       22           3    Shahdara
-# 11       23          58       Col_0
-# 12       24          42       Cvi_0
-# 13       25          47       Bur_0
-# 14       26           3        Oy_0
-# 15       27           3       Ita_0
-# 16        2          23 AT5G02540_1
-# 17        3           0         hy5
-# 18        4          30        jar1
-# 19        5         117      kat1_2
-# 20        6          25        phyB
-# 21        7           6       pif45
-# 22        8          81      spt_11
-# 23        9           6     yuc2589
+DEgenes.summary<-DEgenes.summary[!DEgenes.summary$genotype2==""|!is.na(DEgenes.summary$genotype2==""),]
+DEgenes.summary # summary
 
 setwd(homedir)
 ```
@@ -481,7 +463,9 @@ DGE.summary.vst.response.kazu.largeCV[rownames(DGE.summary.vst.response.kazu.lar
 ```{r eval=TRUE}
 library(ggplot2);library(class);library(MASS);library(kohonen);library(reshape2);library(plyr);
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/DGE.summary.vst.response.kazu.largeCV.Rdata") # this was updated... (052916; 082016)
-genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(DGE.summary.vst.response.kazu.largeCV)))))
+genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(DGE.summary.vst.response.kazu.largeCV))))) # 12? why not 13?? "3" is missing. fixed. (090116)
+
+
 DGE.summary.vst.response.kazu.largeCV<-log2(DGE.summary.vst.response.kazu.largeCV) # log2 transformation of fold change
 i<-1
 temp<-DGE.summary.vst.response.kazu.largeCV[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.kazu.largeCV))==genotypes[i]]
@@ -530,9 +514,8 @@ load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata")
 
 # replace gt num into gt name
 ### convert genotype number into actual genotype name
-# conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
 newdata.vst$gt2<-""
-for(i in 1:27){
+for(i in 1:13){ # new conversion table
   newdata.vst[newdata.vst$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
 } 
 
@@ -546,12 +529,12 @@ for(x in levels(newdata.vst$gt)[-1]) {
 temp<-merge(newdata.vst[newdata.vst$gt==x,],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 SOMclusters.description<-rbind(SOMclusters.description,temp)
 }
-write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3_SOMclusters.description.csv")
+write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3_SOMclusters.description.csv") #090116
 
 ```
 ## drawing bloxplot for each cluster
 ```{r eval=FALSE, ggplot, fig.width=11, fig.height=8}
-load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 122214
+load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 122214, 090116
 length(unique(newdata.vst$AGI)) # 261 genes
 # boxplot
 newdata.vstmelt<-melt(newdata.vst[,c("1h","4h","25h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
@@ -634,7 +617,7 @@ newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
 newdata.vst.Col.melt<-melt(newdata.vst.Col[,c("1h","25h","4h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
 conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
 head(newdata.vst.Col.melt)
-for(i in 1:27){
+for(i in 1:13){ # new conversion.table (090116)
   newdata.vst.Col.melt[newdata.vst.Col.melt$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
 } 
 head(newdata.vst.Col.melt)
@@ -654,6 +637,8 @@ p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(an
 p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
 p <- p + coord_flip()
 p 
+ggsave("Fig2_Coexpression_clusters_of_shade-responsive_genes_090116.pdf",width=11,height=5,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # needs to change order of cluster (090116). Change file name (091016)
+
 ```
 
 # GOseq anaysis of SOM clusters (022215)
@@ -684,7 +669,9 @@ for(i in SOM.Col.cluster.GOseq.files[-1]) {
   temp<-rbind(temp,temp.GOseq)
 }
 SOM.Col.cluster.GOseq.summary<-temp
-write.csv(SOM.Col.cluster.GOseq.summary,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3_SOM.Col.cluster.GOseq.summary.csv")
+write.csv(SOM.Col.cluster.GOseq.summary,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS2_GO_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv") # 091016
+
+
 ```
 
 
@@ -809,9 +796,12 @@ setwd(homedir)
 
 ```
 
+
+
+
 ## overlap between Col modules and mutation affected genes
 ```{r eval=FALSE}
-rm(list=ls())
+#rm(list=ls())
 library(WGCNA);library(ggplot2);library(reshape2);library(scales)
 conversion.table # has to be made in function_
 # sun
@@ -819,7 +809,7 @@ setwd(homedir)
 DE.genotype.batch.sun.files<-list.files(pattern="DE.genotype.batch.sun",path="../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5/") # needs to select "sun" object (060615)
 setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
 DE.genotype.batch.sun.files.kazu<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% 1:19]
-setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
+#setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
 
 load(DE.genotype.batch.sun.files.kazu[1])
 DE.genotype.batch.sun.genes<-rownames(DE.batch3.gt)
@@ -864,16 +854,23 @@ temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt))
 temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"shade",sep="."),sum(temp))
 DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
 }
-#head(DE.genotype.batch.genes.unique.DF)
-names(DE.genotype.batch.genes.unique.DF)[-(1:15)]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files.kazu)),2],"shade",sep=".")
-#head(DE.genotype.batch.genes.unique.DF)
+head(DE.genotype.batch.genes.unique.DF)
+dim(DE.genotype.batch.genes.unique.DF)
+#### error #####
+# names(DE.genotype.batch.genes.unique.DF)[-(1:15)]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files.kazu)),2],"shade",sep=".")
+# ## 
+names(DE.genotype.batch.genes.unique.DF)
+# 091016
+DE.genotype<-as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files.kazu))
+names(DE.genotype.batch.genes.unique.DF)[-1]<-c(paste(vlookup(DE.genotype,conversion.table,2),"sun",sep="."),paste(vlookup(DE.genotype,conversion.table,2),"shade",sep=".")) # the first column is "AGI"
+# the end of 091016 version
 # remove "0"
 #DE.genotype.batch.genes.unique.DF[DE.genotype.batch.genes.unique.DF==0]<-""
 DE.genotype.batch.genes.unique.DF$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.genes.unique.DF$AGI)
 
 # SOM clusters
 setwd(homedir)
-load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 022215 # this is wrong. cluster10 has only 1 gene? (060716)
+load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 
 newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
 # merge with SOM clusters
 test<-merge(DE.genotype.batch.genes.unique.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
@@ -894,13 +891,13 @@ test<-DE.genotype.batch.genes.SOMclusters
 # overlap table (revised to GOseq.overlapTable version; 082515)
 i<-2
 #overlap<-overlapTable(test[,30],test[,i])
-overlap.GOseq<-GOseq.overlapTable(test[,30],test[,i],genes=test$AGI,permutation=100)
+overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI,permutation=100)
 
 overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
 overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
 overlap.GOseq.melt.summary<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
-for(i in 3:29) {
-overlap.GOseq<-GOseq.overlapTable(test[,30],test[,i],genes=test$AGI,permutation=100)
+for(i in 3:dim(test)[2]) {
+overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI,permutation=100)
 overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
 overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
 overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
@@ -910,14 +907,14 @@ overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-""
 #table(overlap.melt.summary[,"value"])
-save(overlap.GOseq.melt.summary, file="../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.08171616.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.08171616.Rdata")
+save(overlap.GOseq.melt.summary, file="../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.091016.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.091016.Rdata")
 # # graph
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),] # eliminate bsk5_1 (genotype15) and AT5G02540_1 (genotype 2)
+# overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),] # eliminate bsk5_1 (genotype15) and AT5G02540_1 (genotype 2)
+overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!is.na(overlap.GOseq.melt.summary$Var2),]
 overlap.GOseq.melt.summary.ss<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var1==0,]
-#overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10))
 overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # 052516
-# needs to change Var1 levels (081716)
+# needs to change Var1 levels (091016)
 
 # 
 # q4<-ggplot(overlap.GOseq.melt.summary.ss,aes(y=factor(Var1),x=factor(Var2))) 
@@ -951,8 +948,10 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2)
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-ggsave(q4b,file="Fig4_Col.SOM.clusters.vs.GenotypeSpecific.genes.table.s.2.GOseq.081716.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_091016.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 q4b # almost the same with fisher's exact test version
+# needs to remove Var2="0" (091016)
+
 setwd(homedir)
 ```
 # Overlap analysis with custome categories
@@ -963,46 +962,44 @@ library(WGCNA);library(ggplot2);library(reshape2);library(scales)
 options(stringsAsFactors = FALSE);
 conversion.table
 # custom categories
-load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness3.Rdata") #new version. check if new version is identical to this. copy the file to this location
 load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness4.Rdata") #new version. check if new version is identical to this. copy the file to this location
 
 ## or change list into data.frame
 attributes(hormone.responsiveness4)
 hormone.responsiveness4.DF<-data.frame(t(sapply(hormone.responsiveness4,c)))
-## convert into hormone.responsiveness3.DF (omit "PCC1") ?
-hormone.responsiveness3.DF<-hormone.responsiveness4.DF
+names(hormone.responsiveness4.DF)<-attributes(hormone.responsiveness4)$category
+## convert into hormone.responsiveness3.DF (omit "PCC1", "GRF1_3")
+hormone.responsiveness3.DF<-hormone.responsiveness4.DF[,!names(hormone.responsiveness4.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
 summary(hormone.responsiveness3.DF)
 hormone.responsiveness3.DF$AGI<-rownames(hormone.responsiveness3.DF)
 # SOM clusters
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 022215
 
-newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,] # this is wrong... . Replaced with old one from "SAS_mutants_time_course_RNAseq2_mycomp_bk" (060716)
+newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,] 
 # merge with SOM clusters
 test<-merge(hormone.responsiveness3.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
 hormone.responsiveness.SOMclusters<-test
 hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"0"
-write.csv(hormone.responsiveness.SOMclusters,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
-hormone.responsiveness.SOMclusters<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
-hormone.responsiveness.SOMclusters<-hormone.responsiveness.SOMclusters[,-1]
+# write.csv(hormone.responsiveness.SOMclusters,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
+# hormone.responsiveness.SOMclusters<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
+#hormone.responsiveness.SOMclusters<-hormone.responsiveness.SOMclusters[,-1]
 # addint gene description
 # TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
 # head(TAIR10_gene_descriptions)
 # TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 hormone.responsiveness.SOMclusters.description<-merge(hormone.responsiveness.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-write.csv("../../Nozue2016_SAStranscriptome_output/output/TableS4_hormone.responsiveness.SOMclusters.description.csv")
-# in whitney (060616)
-test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
+write.csv(hormone.responsiveness.SOMclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables//Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv")
+# in whitney (****16) for ORA
+test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables//Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv") # 
 test<-test[,-1]
-#
-#test<-hormone.responsiveness.SOMclusters
-# overlap table
-i<-2
-overlap<-GOseq.overlapTable(test[,28],test[,i],genes=test$AGI,permutation=100)
+# overlap table 
+i<-2 
+overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI,permutation=100)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="0",]
-for(i in 3:27) {
-overlap<-GOseq.overlapTable(test[,28],test[,i],genes=test$AGI,permutation=100)
+for(i in 3:26) {
+overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI,permutation=100)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
@@ -1011,11 +1008,12 @@ overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
 overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
 overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
 overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
-save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.060616.Rdata") # whitney. redoing with correct new table. (060716)
+save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.091216.Rdata") # whitney. 
 ####### under construction #########
-setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
-load("overlap.melt.summary.SOM.custom.GOseq.060616.Rdata")
-
+setwd(homedir)
+setwd("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.091216.Rdata")
+load("overlap.melt.summary.SOM.custom.GOseq.091216.Rdata")
+setwd(homedir)
 #table(overlap.melt.summary[,"value"])
 # graph
 #overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
@@ -1752,7 +1750,7 @@ phyABDE.seedlings.GOseq.genes<-genes.in.enriched.category(enrich.result=temp.GOs
 ```{r}
 # SA related genes are shade-responsive? (071115)
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") 
-conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","AT5G02760_2","AT5G59010_2","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+# conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","AT5G02760_2","AT5G59010_2","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
 newdata.vst$gt2<-""
 
 for(i in 1:27){
@@ -1861,7 +1859,7 @@ save_plot("Fig_S2_all.my.category.expression.pattern.v10.png", my.category.heatm
 ```{r}
 SAS.expression.vst.s.kazu.largeCV.modules
 # shade responsive genes 
-load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/DGEsummary.edgeR.response.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/DGEsummary.edgeR.response.Rdata") # this has all genotypes
 head(DGEsummary.edgeR.response)
 Col.DGE<-DGEsummary.edgeR.response[1:80,]
 Col.DGE$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)(.[[:digit:]]+)","\\1",rownames(Col.DGE))
