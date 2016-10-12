@@ -28,7 +28,7 @@ output: html_document
 + Use samples.nolow5.Rdata object for select libraries
 * differentially expressed gene analysis
 + 1. DE (treatment, ie, shade responsiveness) at any time point within given genotype
-+ 2. DE at any time point (shade) (pending)
++ 2. DE at any time point (shade)
 * VST 
 * SOM analysis with DE(1) genes (using shade-responsiveness (shade/sun))
 * GOseq analysis of SOM clusters
@@ -43,9 +43,6 @@ output: html_document
 if(Sys.info()["user"]=="nozue") {
 homedir<-"/Volumes/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
 } # customize homedir
-setwd(homedir)
-# reading necessary funcitons and libraries
-source("function_RNAseq_time_course.R")
 # download "Nozue2016_SAStranscriptome_data" at the same level of "Nozue2016_SAStranscriptome_scripts"
 # Atmosphere (Cyverse)
 if(Sys.info()["user"]=="kazu") { 
@@ -54,9 +51,8 @@ if(Sys.info()["user"]=="kazu") {
 # Whitney
 if(Sys.info()["nodename"]=="whitney") {
   homedir<-"~/NGS/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
-  setwd(homedir)
 } # use git repository
-
+setwd(homedir)
 # reading necessary funcitons and libraries
 source("function_RNAseq_time_course.R")
 ```
@@ -210,6 +206,10 @@ for(i in Genotype) { # error in i=11,16
 dge.nolow4<-dge.nolow[,!samples.nolow$time==16]
 samples.nolow4<-samples.nolow[!samples.nolow$time==16,]
 samples.nolow4$time<-as.character(samples.nolow4$time)
+# starting finalfinal scripts from samples.nolow4? (092116)
+save(samples.nolow4,file="../../Nozue2016_SAStranscriptome_output/output/samples.nolow4.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/samples.nolow4.Rdata")
+
 for(i in Genotype) { # error in i=11,16 (they has been eliminated in Genotype)
   print(paste("Genotype is ",i))
   # subset genotype of interests from DGEList (with normalized) ?? see ablove (081214)
@@ -399,7 +399,8 @@ rownames(SAS.expression.vst)<-SAS.expression.vst$X
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
 samples.nolow5$sample<-with(samples.nolow5,paste(genotype,trt,time,sep=""))
 samples.nolow5$sample<-factor(samples.nolow5$sample) #where this is used? (122214)
-SAS.expression.vst.s<-SAS.expression.vst[,names(SAS.expression.vst) %in% samples.nolow5$file]
+SAS.expression.vst.s<-SAS.expression.vst[,names(SAS.expression.vst) %in% samples.nolow5$file] 
+
 Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)[-1])))
 
 temp<-SAS.expression.vst.s[,names(SAS.expression.vst.s) %in% samples.nolow5[samples.nolow5$genotype==1,"file"]]
@@ -637,7 +638,7 @@ p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(an
 p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
 p <- p + coord_flip()
 p 
-ggsave("Fig2_Coexpression_clusters_of_shade-responsive_genes_090116.pdf",width=11,height=5,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # needs to change order of cluster (090116). Change file name (091016)
+ggsave("Fig2_Coexpression_clusters_of_shade-responsive_genes_090116.pdf",width=11,height=5,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # needs to change order of cluster (090116). File name changed (091016)
 
 ```
 
@@ -856,6 +857,7 @@ DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)
 }
 head(DE.genotype.batch.genes.unique.DF)
 dim(DE.genotype.batch.genes.unique.DF)
+
 #### error #####
 # names(DE.genotype.batch.genes.unique.DF)[-(1:15)]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files.kazu)),2],"shade",sep=".")
 # ## 
@@ -864,9 +866,13 @@ names(DE.genotype.batch.genes.unique.DF)
 DE.genotype<-as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files.kazu))
 names(DE.genotype.batch.genes.unique.DF)[-1]<-c(paste(vlookup(DE.genotype,conversion.table,2),"sun",sep="."),paste(vlookup(DE.genotype,conversion.table,2),"shade",sep=".")) # the first column is "AGI"
 # the end of 091016 version
+
 # remove "0"
 #DE.genotype.batch.genes.unique.DF[DE.genotype.batch.genes.unique.DF==0]<-""
 DE.genotype.batch.genes.unique.DF$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.genes.unique.DF$AGI)
+setwd(homedir)
+save(DE.genotype.batch.genes.unique.DF,file="../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
+
 
 # SOM clusters
 setwd(homedir)
@@ -885,19 +891,19 @@ DE.genotype.batch.genes.SOMclusters[is.na(DE.genotype.batch.genes.SOMclusters)]<
 # head(TAIR10_gene_descriptions)
 # TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 DE.genotype.batch.genes.SOMclusters.description<-merge(DE.genotype.batch.genes.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-write.csv(DE.genotype.batch.genes.SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS6_DE.genotype.batch.genes.SOMclusters.description.csv")
+write.csv(DE.genotype.batch.genes.SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset3_Complete_list_of_shade-responsive_genes_and_SOM_gene_clusters_and_misexpressed_genes.csv")
 test<-DE.genotype.batch.genes.SOMclusters
 # overlap table has to be against all genes? (071716)
 # overlap table (revised to GOseq.overlapTable version; 082515)
 i<-2
 #overlap<-overlapTable(test[,30],test[,i])
-overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI,permutation=100)
+overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
 
 overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
 overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
 overlap.GOseq.melt.summary<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
 for(i in 3:dim(test)[2]) {
-overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI,permutation=100)
+overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
 overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
 overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
 overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
@@ -907,7 +913,7 @@ overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-""
 #table(overlap.melt.summary[,"value"])
-save(overlap.GOseq.melt.summary, file="../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.091016.Rdata")
+save(overlap.GOseq.melt.summary, file="../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.091016.Rdata") # 091516
 load("../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.091016.Rdata")
 # # graph
 # overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),] # eliminate bsk5_1 (genotype15) and AT5G02540_1 (genotype 2)
@@ -948,7 +954,7 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2)
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_091016.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_091616.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 q4b # almost the same with fisher's exact test version
 # needs to remove Var2="0" (091016)
 
@@ -1042,7 +1048,7 @@ q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title="custom ca
 #q4b
 #ggsave(q4b,file="Col.SOM.clusters.vs.my.category.table.s.2.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.061816.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.061816.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.061816.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # testing this with Whitney (091616)
 
 ```
 
@@ -1065,19 +1071,21 @@ enableWGCNAThreads(10) # in Whitney (Maloof lab server)
 ```
 ## Co-expressed gene module detection by WGCNA
 ```{r eval=FALSE}
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata") #  where this come from?
 #setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp")
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
 # Genotype<-levels(as.factor(samples.nolow5$genotype))
-SAS.expression.vst<-read.csv("../../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (070416), fixed (082016)
-rownames(SAS.expression.vst)<-SAS.expression.vst$X
+#SAS.expression.vst<-read.csv("../../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (070416), fixed (082016)
+#rownames(SAS.expression.vst)<-SAS.expression.vst$X
 # # calculate mean value among replicates?
 # load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
 # samples.nolow5$sample<-with(samples.nolow5,paste(genotype,trt,time,sep=""))
 # samples.nolow5$sample<-factor(samples.nolow5$sample) #where this is used? (122214)
 # Genotype used in SAS.expression.vst 
-Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)[-1])))
-for(x in Genotype) {
+#Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)[-1])))
+Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst.s.kazu.largeCV)[-c(1,288)])))
+# why 56 modules? (091716)
+for(x in Genotype[-1]) {
   SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
     dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 7438     21
   datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
@@ -1129,71 +1137,71 @@ for(x in Genotype) {
   MEs = net$MEs
   geneTree = net$dendrograms[[1]]
   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.RData",sep=""))
-} # recalculating 082016
+} # recalculating 082016. Recalculating genotype "3" due to "3" was missing (091616)
 ```
 
 # drawing boxplot (WGCNA module) (061915)
-```{r eval=FALSE}
-# load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.Col.absolute.SOM.Rdata") # 022115
+# ```{r eval=FALSE}
+# # load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.Col.absolute.SOM.Rdata") # 022115
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata") 
-#library(WGCNA)
-SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) 
-
-# load mean expression value 
-load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.Rdata")
-summary.vst.kazu<-summary.vst[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst)) %in% 1:19]
-summary.vst.kazu$AGI<-rownames(summary.vst.kazu)
-summary.vst.kazu.WGCNAmodules<-merge(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49","AGI")],SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI")
-# boxplot
-head(summary.vst.kazu.WGCNAmodules)
-names(summary.vst.kazu.WGCNAmodules)[names(summary.vst.kazu.WGCNAmodules)=="1"]<-"WGCNAmodule"
-summary.vst.kazu.WGCNAmodules.melt<-melt(summary.vst.kazu.WGCNAmodules,id.var=c("AGI","WGCNAmodule"))
-
-p <- ggplot(summary.vst.kazu.WGCNAmodules.melt,aes(x=variable,y=value,color=value))
-p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) + geom_boxplot(outlier.size=0,aes(fill=factor(WGCNAmodule),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + facet_grid(WGCNAmodule~.,scale="free",space="free") #+ facet_wrap(WGCNAmodule~.)
-p <- p + theme(strip.text.x = element_text(angle=90),axis.text.x=element_text(angle=90))
-p
-## 
-summary.vst.kazu.WGCNAmodules.melt$variable<-factor(summary.vst.kazu.WGCNAmodules.melt$variable,levels=c("1H1","1H4","1H25","1H49","1L1","1L4","1L25","1L49"))
-summary.vst.kazu.WGCNAmodules.melt$light<-gsub("([[:digit:]]+)(H|L)(1|4|25|49)","\\2",summary.vst.kazu.WGCNAmodules.melt$variable)
-
-p <- ggplot(summary.vst.kazu.WGCNAmodules.melt,aes(x=variable,y=value,color=factor(light)))
-p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
-p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + facet_grid(WGCNAmodule~.,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
-p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
-p <- p + labs(x="Time (hr)", y="expression level") 
-p <- p + coord_flip()
-#p
-ggsave("boxplot.node.WGCNAmodule.pdf",width=11,height=30,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-# salmon module is interesting pattern
-# only salmon module
-
-p <- ggplot(summary.vst.kazu.WGCNAmodules.melt[summary.vst.kazu.WGCNAmodules.melt$WGCNAmodule=="salmon",],aes(x=variable,y=value,color=factor(light)))
-p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
-p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + facet_grid(WGCNAmodule~.,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
-p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
-p <- p + labs(x="Time (hr)", y="expression level") 
-p <- p + coord_flip()
-#p
-ggsave("boxplot.node.WGCNAmodule.salmon.pdf",width=11,height=8,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # salmon module is interesting pattern
-
-# change layout of salmon module boxplot (071915)
-summary.vst.kazu.WGCNAmodules.melt.salmon<-summary.vst.kazu.WGCNAmodules.melt[summary.vst.kazu.WGCNAmodules.melt$WGCNAmodule=="salmon",]
-summary.vst.kazu.WGCNAmodules.melt.salmon$time<-factor(gsub("(1)(H|L)(1|4|25|49)","\\3",summary.vst.kazu.WGCNAmodules.melt.salmon$variable),levels=c("1","4","25","49"))
-summary.vst.kazu.WGCNAmodules.melt.salmon$light<-factor(summary.vst.kazu.WGCNAmodules.melt.salmon$light)
-levels(summary.vst.kazu.WGCNAmodules.melt.salmon$light)<-c("high R/FR","low R/FR")
-p <- ggplot(summary.vst.kazu.WGCNAmodules.melt.salmon,aes(x=time,y=value,color=factor(light)))
-p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
-#p <- p + geom_boxplot(outlier.size=NULL,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)")
-p <- p + facet_grid(.~light,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
-p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
-p <- p + labs(x="Time after light treatment (hr)", y="log2 expression level") 
-p
-ggsave("boxplot.node.WGCNAmodule.salmon2.png",width=4,height=3,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # 
+# #library(WGCNA)
+# SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) 
+# 
+# # load mean expression value 
+# load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.Rdata")
+# summary.vst.kazu<-summary.vst[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst)) %in% 1:19]
+# summary.vst.kazu$AGI<-rownames(summary.vst.kazu)
+# summary.vst.kazu.WGCNAmodules<-merge(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49","AGI")],SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI")
+# # boxplot
+# head(summary.vst.kazu.WGCNAmodules)
+# names(summary.vst.kazu.WGCNAmodules)[names(summary.vst.kazu.WGCNAmodules)=="1"]<-"WGCNAmodule"
+# summary.vst.kazu.WGCNAmodules.melt<-melt(summary.vst.kazu.WGCNAmodules,id.var=c("AGI","WGCNAmodule"))
+# 
+# p <- ggplot(summary.vst.kazu.WGCNAmodules.melt,aes(x=variable,y=value,color=value))
+# p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) + geom_boxplot(outlier.size=0,aes(fill=factor(WGCNAmodule),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+# p <- p + facet_grid(WGCNAmodule~.,scale="free",space="free") #+ facet_wrap(WGCNAmodule~.)
+# p <- p + theme(strip.text.x = element_text(angle=90),axis.text.x=element_text(angle=90))
+# p
+# ## 
+# summary.vst.kazu.WGCNAmodules.melt$variable<-factor(summary.vst.kazu.WGCNAmodules.melt$variable,levels=c("1H1","1H4","1H25","1H49","1L1","1L4","1L25","1L49"))
+# summary.vst.kazu.WGCNAmodules.melt$light<-gsub("([[:digit:]]+)(H|L)(1|4|25|49)","\\2",summary.vst.kazu.WGCNAmodules.melt$variable)
+# 
+# p <- ggplot(summary.vst.kazu.WGCNAmodules.melt,aes(x=variable,y=value,color=factor(light)))
+# p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+# p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+# p <- p + facet_grid(WGCNAmodule~.,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
+# p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+# p <- p + labs(x="Time (hr)", y="expression level") 
+# p <- p + coord_flip()
+# #p
+# ggsave("boxplot.node.WGCNAmodule.pdf",width=11,height=30,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+# # salmon module is interesting pattern
+# # only salmon module
+# 
+# p <- ggplot(summary.vst.kazu.WGCNAmodules.melt[summary.vst.kazu.WGCNAmodules.melt$WGCNAmodule=="salmon",],aes(x=variable,y=value,color=factor(light)))
+# p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+# p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+# p <- p + facet_grid(WGCNAmodule~.,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
+# p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+# p <- p + labs(x="Time (hr)", y="expression level") 
+# p <- p + coord_flip()
+# #p
+# ggsave("boxplot.node.WGCNAmodule.salmon.pdf",width=11,height=8,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # salmon module is interesting pattern
+# 
+# # change layout of salmon module boxplot (071915)
+# summary.vst.kazu.WGCNAmodules.melt.salmon<-summary.vst.kazu.WGCNAmodules.melt[summary.vst.kazu.WGCNAmodules.melt$WGCNAmodule=="salmon",]
+# summary.vst.kazu.WGCNAmodules.melt.salmon$time<-factor(gsub("(1)(H|L)(1|4|25|49)","\\3",summary.vst.kazu.WGCNAmodules.melt.salmon$variable),levels=c("1","4","25","49"))
+# summary.vst.kazu.WGCNAmodules.melt.salmon$light<-factor(summary.vst.kazu.WGCNAmodules.melt.salmon$light)
+# levels(summary.vst.kazu.WGCNAmodules.melt.salmon$light)<-c("high R/FR","low R/FR")
+# p <- ggplot(summary.vst.kazu.WGCNAmodules.melt.salmon,aes(x=time,y=value,color=factor(light)))
+# p <- p + geom_boxplot(outlier.size=0,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)") #+ scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+# p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+# #p <- p + geom_boxplot(outlier.size=NULL,alpha=0.8) + theme_bw() +xlab("sun/shade treatment (hr)")
+# p <- p + facet_grid(.~light,space="free",scale="free") #+ facet_wrap(WGCNAmodule~.)  
+# p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+# p <- p + labs(x="Time after light treatment (hr)", y="log2 expression level") 
+# p
+# ggsave("boxplot.node.WGCNAmodule.salmon2.png",width=4,height=3,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # salmon should be changed into another module (091616)
 
 ```
 
@@ -1202,61 +1210,24 @@ ggsave("boxplot.node.WGCNAmodule.salmon2.png",width=4,height=3,unit="in",path=".
 setwd(homedir)
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 moduleColors.files<-list.files(pattern=".largeCV.RData")
-load("all1.largeCV.Rdata")
+load("all1.largeCV.RData")
 moduleColors.allCol.largeCV<-moduleColors
 temp<-moduleColors.allCol.largeCV
-for(y in moduleColors.files[-1]) {
+for(y in moduleColors.files[-7]) {
   load(y)
+  print(length(moduleColors)) # [1] 18379??? why?
   matched.moduleColors<-matchLabels(moduleColors,moduleColors.allCol.largeCV)
   temp<-cbind(temp, matched.moduleColors)
-}
+}   
 length(moduleColors.files)
 temp<-as.data.frame(temp)
 names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.RData)","\\2",moduleColors.files)
 SAS.expression.vst.s.kazu.largeCV.modules<-cbind(rownames(SAS.expression.vst.s.kazu.largeCV),temp)
 names(SAS.expression.vst.s.kazu.largeCV.modules)[1]<-"AGI"
 names(SAS.expression.vst.s.kazu.largeCV.modules)
-setwd(homrdir)
-save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata") 
+setwd(homedir)
+save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata") #091616
 ```
-# # overlap table between Col WGCNA module and SOM cluster
-# ```{r, eval=FALSE}
-# setwd(homedir)
-# load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 122214
-# load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
-# SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) 
-# 
-# WGCNA.SOMcluster.Col<-merge(SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],newdata.vst[newdata.vst$gt=="1",c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE) # 
-# dim(WGCNA.SOMcluster.Col) #[1] 7438    3
-# #head(WGCNA.SOMcluster.Col)
-# str(WGCNA.SOMcluster.Col)
-# WGCNA.SOMcluster.Col$"1"<-as.factor(WGCNA.SOMcluster.Col$"1")
-# WGCNA.SOMcluster.Col$ssom3.4.unit.classif<-as.factor(WGCNA.SOMcluster.Col$ssom3.4.unit.classif)
-# WGCNA.SOMcluster.Col.overlap<-overlapTable(WGCNA.SOMcluster.Col$"1",WGCNA.SOMcluster.Col$ssom3.4.unit.classif)
-# # heatmap
-# overlap.melt<-melt(WGCNA.SOMcluster.Col.overlap$pTable,id=1) #
-# overlap.melt$count<-melt(WGCNA.SOMcluster.Col.overlap$countTable,id=1)$value
-# #head(overlap.melt)
-# length(table(overlap.melt[,1])) #21
-# names(overlap.melt)[1]<-"shade"
-# names(overlap.melt)[2]<-"sun"
-# overlap.melt[,"value"]<--log10(overlap.melt[,"value"])
-# #overlap.melt[overlap.melt$value>10,"value"]<-10
-# overlap.melt[overlap.melt$count==0,"count"]<-""
-# #table(overlap.melt[,"value"])
-# q4<-ggplot(overlap.melt,aes(y=factor(sun),x=factor(shade))) 
-# q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
-# #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
-# q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
-#                  panel.grid.major = element_blank(),
-#                  panel.grid.minor = element_blank(),
-#                  panel.background = element_blank(),
-#                  axis.ticks = element_line(size=0,color="white"))
-# q4 <- q4 + geom_text(aes(label=count,size=1))
-# q4 <- q4 + labs(x="WGCNA modules in Col",y="SOM cluster in Col",title="module overlap in Col")
-# q4 # magenta indicates pvalue is smaller than 0.01.
-# ggsave(q4,file="Col.SOMcluster.VS.Col.WGCNA.modules.table.pdf",width=8,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-# ```
 
 # overlap between WGCNA Col modules and mutation affected genes
 ```{r,eval=FALSE}
@@ -1264,60 +1235,64 @@ setwd(homedir)
 #rm(list=ls())
 # under construction to eliminate "bsk5_1" (081816)
 
-# sun
-setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
-DE.genotype.batch.sun.files<-list.files(pattern="DE.genotype.batch.sun") # needs to select "sun" object (060615)
-#DE.genotype.batch.sun.files.kazu<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% 1:19]
-DE.genotype.batch.sun.files.kazu<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% Genotype]
-
-load(DE.genotype.batch.sun.files.kazu[1])
-DE.genotype.batch.sun.genes<-rownames(DE.batch3.gt)
-for(xx in DE.genotype.batch.sun.files.kazu) {
-  load(xx)
-  DE.genotype.batch.sun.genes<-c(DE.genotype.batch.sun.genes,rownames(DE.batch3.gt))
-}
-# shade
-#setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
-DE.genotype.batch.shade.files<-list.files(pattern="DE.genotype.batch.shade")
-
-#DE.genotype.batch.shade.files.kazu<-DE.genotype.batch.shade.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.shade.files) %in% 1:19]
-DE.genotype.batch.shade.files.kazu<-DE.genotype.batch.shade.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.shade.files) %in% Genotype]
-load(DE.genotype.batch.shade.files.kazu[1])
-DE.genotype.batch.shade.genes<-rownames(DE.batch3.gt)
-for(xx in DE.genotype.batch.shade.files.kazu) {
-  load(xx)
-  DE.genotype.batch.shade.genes<-c(DE.genotype.batch.shade.genes,rownames(DE.batch3.gt))
-}
-######
-DE.genotype.batch.genes.unique<-unique(c(DE.genotype.batch.sun.genes,DE.genotype.batch.shade.genes))
-length(DE.genotype.batch.genes.unique) #3356 > 1912 (only Genotype in new vst)
+# # sun
+# setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
+# DE.genotype.batch.sun.files<-list.files(pattern="DE.genotype.batch.sun") # needs to select "sun" object (060615)
+# #DE.genotype.batch.sun.files.kazu<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% 1:19]
+# DE.genotype.batch.sun.files.kazu<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% Genotype]
 # 
-DE.genotype.batch.genes.unique.DF<-data.frame(AGI=DE.genotype.batch.genes.unique)
-# sun
-for(x in DE.genotype.batch.sun.files.kazu) {
-load(x)
-temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
-temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"sun",sep="."),sum(temp))
-DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
-}
-names(DE.genotype.batch.genes.unique.DF)[-1]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.sun.files.kazu)),2],"sun",sep=".")
-#head(DE.genotype.batch.genes.unique.DF)
-# shade
-for(x in DE.genotype.batch.shade.files.kazu) {
-# setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")  
-load(x)
-temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
-temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"shade",sep="."),sum(temp))
-DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
-}
-#head(DE.genotype.batch.genes.unique.DF)
-names(DE.genotype.batch.genes.unique.DF)[-(1:15)]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files.kazu)),2],"shade",sep=".")
-#head(DE.genotype.batch.genes.unique.DF)
-# remove "0"
-#DE.genotype.batch.genes.unique.DF[DE.genotype.batch.genes.unique.DF==0]<-""
-DE.genotype.batch.genes.unique.DF$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.genes.unique.DF$AGI)
+# load(DE.genotype.batch.sun.files.kazu[1])
+# DE.genotype.batch.sun.genes<-rownames(DE.batch3.gt)
+# for(xx in DE.genotype.batch.sun.files.kazu) {
+#   load(xx)
+#   DE.genotype.batch.sun.genes<-c(DE.genotype.batch.sun.genes,rownames(DE.batch3.gt))
+# }
+# # shade
+# #setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
+# DE.genotype.batch.shade.files<-list.files(pattern="DE.genotype.batch.shade")
 # 
+# #DE.genotype.batch.shade.files.kazu<-DE.genotype.batch.shade.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.shade.files) %in% 1:19]
+# DE.genotype.batch.shade.files.kazu<-DE.genotype.batch.shade.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.shade.files) %in% Genotype]
+# load(DE.genotype.batch.shade.files.kazu[1])
+# DE.genotype.batch.shade.genes<-rownames(DE.batch3.gt)
+# for(xx in DE.genotype.batch.shade.files.kazu) {
+#   load(xx)
+#   DE.genotype.batch.shade.genes<-c(DE.genotype.batch.shade.genes,rownames(DE.batch3.gt))
+# }
+# ######
+# DE.genotype.batch.genes.unique<-unique(c(DE.genotype.batch.sun.genes,DE.genotype.batch.shade.genes))
+# length(DE.genotype.batch.genes.unique) #3356 > 1912 (only Genotype in new vst)
+# # 
+# DE.genotype.batch.genes.unique.DF<-data.frame(AGI=DE.genotype.batch.genes.unique)
+# # sun
+# for(x in DE.genotype.batch.sun.files.kazu) {
+# load(x)
+# temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
+# temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"sun",sep="."),sum(temp))
+# DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
+# }
+# names(DE.genotype.batch.genes.unique.DF)[-1]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.sun.files.kazu)),2],"sun",sep=".")
+# #head(DE.genotype.batch.genes.unique.DF)
+# # shade
+# for(x in DE.genotype.batch.shade.files.kazu) {
+# # setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")  
+# load(x)
+# temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
+# temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"shade",sep="."),sum(temp))
+# DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
+# }
+# #head(DE.genotype.batch.genes.unique.DF)
+# names(DE.genotype.batch.genes.unique.DF)[-(1:15)]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files.kazu)),2],"shade",sep=".")
+# #head(DE.genotype.batch.genes.unique.DF)
+# # remove "0"
+# #DE.genotype.batch.genes.unique.DF[DE.genotype.batch.genes.unique.DF==0]<-""
+# DE.genotype.batch.genes.unique.DF$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.genes.unique.DF$AGI)
+
+### I did the same calculation above? (091616)
 setwd(homedir)
+load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
+# 
+#setwd(homedir)
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
 #library(WGCNA)
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
@@ -1325,28 +1300,32 @@ SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]
 test<-merge(DE.genotype.batch.genes.unique.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
 DE.genotype.batch.genes.WGCNAmodules<-test
 DE.genotype.batch.genes.WGCNAmodules[is.na(DE.genotype.batch.genes.WGCNAmodules)]<-"0"
+names(DE.genotype.batch.genes.WGCNAmodules)<-sub("X1","WGCNAmodules",names(DE.genotype.batch.genes.WGCNAmodules))
+
 write.csv(DE.genotype.batch.genes.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
 DE.genotype.batch.genes.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
 DE.genotype.batch.genes.WGCNAmodules<-DE.genotype.batch.genes.WGCNAmodules[,-1]
+length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) $ 59 modules
 # adding gene description
 # TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
 # TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS10_DE.genotype.batch.genes.WGCNAmodules.description.csv") #Table S6 in manuscript
+names(DE.genotype.batch.genes.WGCNAmodules.description)<-sub("X1","WGCNAmodules",names(test))
+write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv") #091616
 # in whitney
-test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS10_DE.genotype.batch.genes.WGCNAmodules.description.csv")
+test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv")
 test<-test[,-1]
-dim(test) # 8683   32
-test<-DE.genotype.batch.genes.WGCNAmodules
+dim(test) # 17985   28
+#test<-DE.genotype.batch.genes.WGCNAmodules
 # overlap table (revsised into GOseq.overlapTable; 052616)
 # with ,permutation=100 (060316)
 i<-2
-overlap<-GOseq.overlapTable(test[,30],test[,i],genes=test$AGI)
+overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI,permutation=100)
 overlap.melt<-melt(overlap$pTable,id=1,permutation=100) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="0",]
 for(i in 3:29) {
-overlap<-GOseq.overlapTable(test[,30],test[,i],genes=test$AGI,permutation=100)
+overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI,permutation=100)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
@@ -1357,8 +1336,8 @@ overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
 overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
 #table(overlap.melt.summary[,"value"])
 # graph
-overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
-save(overlap.melt.summary.s,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.WGCNA.mut.GOseq.Rdata")
+#overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
+save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") # 091716 pending
 
 # reading and cleaning overlap table
 # load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.Rdata")
@@ -1422,11 +1401,13 @@ SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]
 modules<-levels(as.factor(SAS.expression.vst.s.kazu.largeCV.modules$"1"))
 # no enriched GO; "grey60","lightyellow","magenta"
 # Warning messages:1: In pcls(G) : initial point very close to some inequality constraints in "yellow"
-for(x in modules[!modules %in% c("grey60","lightyellow","magenta")]) {
-  temp.GOseq<-GOseq.ORA(SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"==x,"AGI"])
+for(x in modules) {
+    temp.GOseq<-GOseq.ORA(SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"==x,"AGI"])
+  if(temp.GOseq=="no enriched GO") {next} else {
   temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"==x,"AGI"],category.table=Atgo.list)
   save(temp.GOseq,temp.genes,file=paste("WGCNA.Col.module.",x,".GOseq.Rdata",sep=""))
 }
+  } # 091716
 ```
 ## write summary of WGCNA.Col.module.GOseq 
 ```{r eval=FALSE}
@@ -1444,7 +1425,7 @@ for(i in WGCNA.Col.module.GOseq.files[-1]) {
   temp<-rbind(temp,temp.GOseq)
 }
 WGCNA.Col.module.GOseq.summary<-temp
-write.csv(WGCNA.Col.module.GOseq.summary,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS8_WGCNA.Col.module.GOseq.summary.csv") # supplementary table S8
+write.csv(WGCNA.Col.module.GOseq.summary,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset5_GO_enrichment_analysis_of_WGCNA_modules.csv") # Dataset 5. GO enrichment analysis of WGCNA gene co-expression modules (091716)
 ```
 ## What genes are found in given module with given GO category?
 ```{r eval=FALSE}
@@ -1536,7 +1517,7 @@ hormone.responsiveness4.DF<-data.frame(t(sapply(hormone.responsiveness4,c))) # m
 names(hormone.responsiveness4.DF)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down")
 hormone.responsiveness4.DF$AGI<-rownames(hormone.responsiveness4.DF)
 
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata") # is this current version? yes. (100716)
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # merge with WGCNA modules
 test<-merge(hormone.responsiveness4.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
@@ -1550,8 +1531,9 @@ hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules==""]<-"0
 hormone.responsiveness.WGCNAmodules[is.na(hormone.responsiveness.WGCNAmodules)]<-"0"
 head(hormone.responsiveness.WGCNAmodules)
 
-write.csv(hormone.responsiveness.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS9_hormone.responsiveness.WGCNAmodules.csv")
-
+# write.csv(hormone.responsiveness.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS9_hormone.responsiveness.WGCNAmodules.csv") #
+# Plant Cell version
+write.csv(hormone.responsiveness.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset_6_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules.csv")
 
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,-1]
@@ -1929,7 +1911,7 @@ setwd("../../Nozue2016_SAStranscriptome_output/output/")
 write.csv(DE.batch.49h.Col.salmon,file="DE.batch.49h.Col.salmon.csv")
 setwd("../../Nozue2016_SAStranscriptome_scripts/")
 ```
-# appendix 1: differentially expressed geens used for ORA
+# appendix 1: differentially expressed genes used for ORA
 ```{r eval=FALSE}
 # differential expression analysis with npr1-1
 # http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE51626
