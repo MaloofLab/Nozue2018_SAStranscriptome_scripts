@@ -102,6 +102,8 @@ samples.nolow5$genotype2<-""
 for(i in 1:27){
   samples.nolow5[samples.nolow5$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])  
 } 
+# all libraries > eliminate low count libraries > eliminate libraries with wrong genotypes > eliminate outliers based on DE (sun vs shade) > samples.nolow5
+## double check if this is correct. (092116)
 PLoSGenetics2015mutants<-samples.nolow5[samples.nolow5$genotype2 %in% c("Col","aos","co_9","coi1-16","jar1","kat1_2","hy5","mida9_4","PAR1_RNAi09","phyAB","phyB","pif3","pif45","spt_11","sto","yuc2589"),]
 # genotypes not working in edgeR 
 errorDE<-c("coi1-16","phyAB","sto")
