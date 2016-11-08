@@ -876,6 +876,7 @@ save(DE.genotype.batch.genes.unique.DF,file="../../Nozue2016_SAStranscriptome_ou
 
 # SOM clusters
 setwd(homedir)
+load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 
 newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
 # merge with SOM clusters
