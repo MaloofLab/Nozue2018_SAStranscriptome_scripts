@@ -4,10 +4,11 @@
 ## function_RNAseq_time_course.R
 ##  
 ###################################################
-library(edgeR);library(ggplot2);library(reshape2);library(ggdendro);  library(grid);library(class);library(MASS);library(kohonen);library(plyr)
+library(edgeR);library(ggplot2);library(reshape2);library(grid);library(class);library(MASS);library(kohonen);library(plyr)
 library(scales) # for muted
 library(WGCNA);library(ShortRead);library(goseq);library(GO.db); library("org.At.tair.db");library("annotate")
 # see http://www.bioconductor.org/install/ for installation of these packages 
+#library(ggdendro) # for dendrogram
 library(lmerTest) # for significant analysis
 TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
 TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
@@ -178,63 +179,63 @@ expression.mean<-function(data) { # return rowMean results for given data
   return(data.rowMeans)
 }
 ### barcoding
-###### for any genotype 
-SOM.clustering3<-function(data,gt="Col",cluster) { # "Col","YuQ","Coi","Jar","Pi3","Pi4","Spt","PhB","Co_" (021114)
-  # genotype is numeric (061114) 
-  data.SOM.gt<-data[grep(gt,rownames(data)),] # gt subset
-  #print(data.SOM.gt)
-  data.SOM.gt.SOM1<-data.SOM.gt[data.SOM.gt$ssom3.4.unit.classif==cluster,]
-  #print(data.SOM.gt.SOM1)
-  temp<-paste("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.",gt,")",sep="")
-  #print(paste("temp is",temp))
-  #print(gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)))
-  data.SOM.gt.SOM1.all<-data[gsub("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.[[:print:]]+)","\\1",rownames(data)) %in% gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)),]
-  #print(data.SOM.gt.SOM1.all) 
-  data.SOM.gt.SOM1.all.s<-data.frame(row.names=rownames(data.SOM.gt.SOM1.all),ssom3.4.unit.classif=data.SOM.gt.SOM1.all[,"ssom3.4.unit.classif"])
-  #print(data.SOM.gt.SOM1.all.s) # does not work
-  data.SOM.gt.SOM1.all.s$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\1",rownames(data.SOM.gt.SOM1.all.s))
-  data.SOM.gt.SOM1.all.s$genotype<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\5",rownames(data.SOM.gt.SOM1.all.s))
-  data.SOM.gt.SOM1.all.s.sorted<-data.SOM.gt.SOM1.all.s[order(data.SOM.gt.SOM1.all.s$AGI),1:3]
-  data.SOM.gt.SOM1.all.s.sorted$genotype<-as.factor(data.SOM.gt.SOM1.all.s.sorted$genotype)
-  #print(data.SOM.Col.SOM1.all.s.sorted)
-  # reshape
-  data.SOM.gt.SOM1.all.barcode<-reshape(data.SOM.gt.SOM1.all.s.sorted,idvar="AGI",v.names ="ssom3.4.unit.classif",timevar="genotype",direction="wide")
-  names(data.SOM.gt.SOM1.all.barcode)[-1]<-gsub("(ssom3.4.unit.classif\\.)([[:print:]]+)","\\2",names(data.SOM.gt.SOM1.all.barcode)[-1])
-  rownames(data.SOM.gt.SOM1.all.barcode)<-data.SOM.gt.SOM1.all.barcode$AGI
-  data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode[,-1]
-  return(data.SOM.gt.SOM1.all.barcode.s)#
-}
-###
-SOM.clustering4<-function(data,gt=1,cluster) { # "Col","YuQ","Coi","Jar","Pi3","Pi4","Spt","PhB","Co_" (021114)
-  # genotype is numeric (061114) 
-  data.SOM.gt<-data[grep(paste(".",gt,"$",sep=""),rownames(data),value=T),] # gt subset
-  #print(data.SOM.gt)
-  data.SOM.gt.SOM1<-data.SOM.gt[data.SOM.gt$ssom3.4.unit.classif==cluster,]
-  #print(data.SOM.gt.SOM1)
-  temp<-paste("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.",gt,")",sep="")
-  #print(paste("temp is",temp))
-  #print(gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)))
-  data.SOM.gt.SOM1.all<-data[gsub("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.[[:print:]]+)","\\1",rownames(data)) %in% gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)),]
-  #print(data.SOM.gt.SOM1.all) 
-  data.SOM.gt.SOM1.all.s<-data.frame(row.names=rownames(data.SOM.gt.SOM1.all),ssom3.4.unit.classif=data.SOM.gt.SOM1.all[,"ssom3.4.unit.classif"])
-  #print(data.SOM.gt.SOM1.all.s) # does not work
-  data.SOM.gt.SOM1.all.s$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\1",rownames(data.SOM.gt.SOM1.all.s))
-  data.SOM.gt.SOM1.all.s$genotype<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\5",rownames(data.SOM.gt.SOM1.all.s))
-  data.SOM.gt.SOM1.all.s.sorted<-data.SOM.gt.SOM1.all.s[order(data.SOM.gt.SOM1.all.s$AGI),1:3]
-  data.SOM.gt.SOM1.all.s.sorted$genotype<-factor(data.SOM.gt.SOM1.all.s.sorted$genotype,levels=levels(data$gt))
-  #print(data.SOM.gt.SOM1.all.s.sorted)
-  #print(levels(data.SOM.gt.SOM1.all.s.sorted$genotype))
-  # reshape
-  data.SOM.gt.SOM1.all.barcode<-reshape(data.SOM.gt.SOM1.all.s.sorted,idvar="AGI",v.names ="ssom3.4.unit.classif",timevar="genotype",direction="wide")
-  #print("data.SOM.gt.SOM1.all.barcode is")
-  #print(data.SOM.gt.SOM1.all.barcode)  
-  names(data.SOM.gt.SOM1.all.barcode)[-1]<-gsub("(ssom3.4.unit.classif\\.)([[:print:]]+)","\\2",names(data.SOM.gt.SOM1.all.barcode)[-1])
-  rownames(data.SOM.gt.SOM1.all.barcode)<-data.SOM.gt.SOM1.all.barcode$AGI
-  data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode[,-1]
-  data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode.s[,order(names(data.SOM.gt.SOM1.all.barcode.s))]
-  return(data.SOM.gt.SOM1.all.barcode.s)#
-}
-
+# ###### for any genotype 
+# SOM.clustering3<-function(data,gt="Col",cluster) { # "Col","YuQ","Coi","Jar","Pi3","Pi4","Spt","PhB","Co_" (021114)
+#   # genotype is numeric (061114) 
+#   data.SOM.gt<-data[grep(gt,rownames(data)),] # gt subset
+#   #print(data.SOM.gt)
+#   data.SOM.gt.SOM1<-data.SOM.gt[data.SOM.gt$ssom3.4.unit.classif==cluster,]
+#   #print(data.SOM.gt.SOM1)
+#   temp<-paste("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.",gt,")",sep="")
+#   #print(paste("temp is",temp))
+#   #print(gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)))
+#   data.SOM.gt.SOM1.all<-data[gsub("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.[[:print:]]+)","\\1",rownames(data)) %in% gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)),]
+#   #print(data.SOM.gt.SOM1.all) 
+#   data.SOM.gt.SOM1.all.s<-data.frame(row.names=rownames(data.SOM.gt.SOM1.all),ssom3.4.unit.classif=data.SOM.gt.SOM1.all[,"ssom3.4.unit.classif"])
+#   #print(data.SOM.gt.SOM1.all.s) # does not work
+#   data.SOM.gt.SOM1.all.s$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\1",rownames(data.SOM.gt.SOM1.all.s))
+#   data.SOM.gt.SOM1.all.s$genotype<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\5",rownames(data.SOM.gt.SOM1.all.s))
+#   data.SOM.gt.SOM1.all.s.sorted<-data.SOM.gt.SOM1.all.s[order(data.SOM.gt.SOM1.all.s$AGI),1:3]
+#   data.SOM.gt.SOM1.all.s.sorted$genotype<-as.factor(data.SOM.gt.SOM1.all.s.sorted$genotype)
+#   #print(data.SOM.Col.SOM1.all.s.sorted)
+#   # reshape
+#   data.SOM.gt.SOM1.all.barcode<-reshape(data.SOM.gt.SOM1.all.s.sorted,idvar="AGI",v.names ="ssom3.4.unit.classif",timevar="genotype",direction="wide")
+#   names(data.SOM.gt.SOM1.all.barcode)[-1]<-gsub("(ssom3.4.unit.classif\\.)([[:print:]]+)","\\2",names(data.SOM.gt.SOM1.all.barcode)[-1])
+#   rownames(data.SOM.gt.SOM1.all.barcode)<-data.SOM.gt.SOM1.all.barcode$AGI
+#   data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode[,-1]
+#   return(data.SOM.gt.SOM1.all.barcode.s)#
+# }
+# ###
+# SOM.clustering4<-function(data,gt=1,cluster) { # "Col","YuQ","Coi","Jar","Pi3","Pi4","Spt","PhB","Co_" (021114)
+#   # genotype is numeric (061114) 
+#   data.SOM.gt<-data[grep(paste(".",gt,"$",sep=""),rownames(data),value=T),] # gt subset
+#   #print(data.SOM.gt)
+#   data.SOM.gt.SOM1<-data.SOM.gt[data.SOM.gt$ssom3.4.unit.classif==cluster,]
+#   #print(data.SOM.gt.SOM1)
+#   temp<-paste("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.",gt,")",sep="")
+#   #print(paste("temp is",temp))
+#   #print(gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)))
+#   data.SOM.gt.SOM1.all<-data[gsub("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.[[:print:]]+)","\\1",rownames(data)) %in% gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)),]
+#   #print(data.SOM.gt.SOM1.all) 
+#   data.SOM.gt.SOM1.all.s<-data.frame(row.names=rownames(data.SOM.gt.SOM1.all),ssom3.4.unit.classif=data.SOM.gt.SOM1.all[,"ssom3.4.unit.classif"])
+#   #print(data.SOM.gt.SOM1.all.s) # does not work
+#   data.SOM.gt.SOM1.all.s$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\1",rownames(data.SOM.gt.SOM1.all.s))
+#   data.SOM.gt.SOM1.all.s$genotype<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\5",rownames(data.SOM.gt.SOM1.all.s))
+#   data.SOM.gt.SOM1.all.s.sorted<-data.SOM.gt.SOM1.all.s[order(data.SOM.gt.SOM1.all.s$AGI),1:3]
+#   data.SOM.gt.SOM1.all.s.sorted$genotype<-factor(data.SOM.gt.SOM1.all.s.sorted$genotype,levels=levels(data$gt))
+#   #print(data.SOM.gt.SOM1.all.s.sorted)
+#   #print(levels(data.SOM.gt.SOM1.all.s.sorted$genotype))
+#   # reshape
+#   data.SOM.gt.SOM1.all.barcode<-reshape(data.SOM.gt.SOM1.all.s.sorted,idvar="AGI",v.names ="ssom3.4.unit.classif",timevar="genotype",direction="wide")
+#   #print("data.SOM.gt.SOM1.all.barcode is")
+#   #print(data.SOM.gt.SOM1.all.barcode)  
+#   names(data.SOM.gt.SOM1.all.barcode)[-1]<-gsub("(ssom3.4.unit.classif\\.)([[:print:]]+)","\\2",names(data.SOM.gt.SOM1.all.barcode)[-1])
+#   rownames(data.SOM.gt.SOM1.all.barcode)<-data.SOM.gt.SOM1.all.barcode$AGI
+#   data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode[,-1]
+#   data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode.s[,order(names(data.SOM.gt.SOM1.all.barcode.s))]
+#   return(data.SOM.gt.SOM1.all.barcode.s)#
+# }
+# 
 
 
 # ORA with GOseq
