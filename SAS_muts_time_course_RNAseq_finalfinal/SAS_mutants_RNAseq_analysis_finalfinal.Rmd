@@ -1384,9 +1384,9 @@ load("all1.largeCV.merge.net2.RData")
 ########
 moduleColors.allCol.largeCV<-moduleColors
 temp<-moduleColors.allCol.largeCV
-for(y in moduleColors.files) {
+for(y in moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net2.RData"]) {
   load(y)
-  print(length(moduleColors)) # [1] 18379??? why?
+  print(length(moduleColors)) # [1] 17757
   matched.moduleColors<-matchLabels(moduleColors,moduleColors.allCol.largeCV)
   temp<-cbind(temp, matched.moduleColors)
 }   
