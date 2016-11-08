@@ -1137,6 +1137,176 @@ for(x in Genotype[-1]) {
   geneTree = net$dendrograms[[1]]
   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.RData",sep=""))
 } # recalculating 082016. Recalculating genotype "3" due to "3" was missing (091616)
+# new WGCNA modules are too many (110716)
+## use recutBlockwiseTrees()
+?recutBlockwiseTrees
+## for Col (Genotype=1)
+x<-Genotype[1]
+  SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
+    dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 17757     21
+  datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
+  # Choose a set of soft-thresholding powers
+  powers = c(c(1:9), seq(from = 2, to=20, by=10))
+  sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)  
+  # Plot the results:
+  #sizeGrWindow(9, 5)
+  pdf(paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.softthresholding.pdf",sep=""),width=10,height=8)
+  par(mfrow = c(1,2));
+  cex1 = 0.9;
+  # Scale-free topology fit index as a function of the soft-thresholding power
+  plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+       main = paste("Scale independence"));
+  text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+       labels=powers,cex=cex1,col="red");
+  # this line corresponds to using an R^2 cut-off of h
+  abline(h=0.90,col="red")
+  # Mean connectivity as a function of the soft-thresholding power
+  plot(sft$fitIndices[,1], sft$fitIndices[,5],
+       xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+       main = paste("Mean connectivity"))
+  text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+  dev.off()
+  # 
+  net = blockwiseModules(datExpr, power = 6,
+                         TOMType = "unsigned", minModuleSize = 20,
+                         reassignThreshold = 0, mergeCutHeight = 0.25,
+                         numericLabels = TRUE, pamRespectsDendro = FALSE,
+                         saveTOMs = TRUE,
+                         saveTOMFileBase = paste("SAS.expression.vst.s.kazu.largeCV",x,".TOM",sep=""),
+                         verbose = 3)
+  save(net,file=paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV",x,".Rdata",sep=""))  
+  # how to extract module info?
+  # open a graphics window
+  pdf(file=paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.dendrogram.pdf",sep=""),width=10,height=8)
+  # Convert labels to colors for plotting
+  mergedColors = labels2colors(net$colors)
+  # Plot the dendrogram and the module colors underneath
+  plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]],
+                      "Module colors",
+                      dendroLabels = FALSE, hang = 0.03,
+                      addGuide = TRUE, guideHang = 0.05)
+  dev.off()
+  # save parameters  
+  moduleLabels = net$colors
+  moduleColors = labels2colors(net$colors)
+  MEs = net$MEs
+  geneTree = net$dendrograms[[1]]
+  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.RData",sep=""))
+
+ # recalculating 110716. 
+minNSamples<-10
+minNGenes<-30
+goodSampleGenes.result<-goodSamplesGenes(
+  datExpr, 
+  minFraction = 1/2, 
+  minNSamples = minNSamples, 
+  minNGenes = minNGenes, 
+  tol = NULL,
+  verbose = 1, indent = 0)
+####
+minModuleSize<-20
+
+recut.net<-recutBlockwiseTrees(datExpr,
+                      goodSamples=goodSampleGenes.result$goodSamples, goodGenes=goodSampleGenes.result$goodGenes,
+  blocks=net$blocks,
+  TOMFiles=net$TOMFiles,
+  dendrograms=net$dendrograms,
+  corType = "pearson",
+  networkType = "unsigned",
+  deepSplit = 2,
+  detectCutHeight = 0.995, minModuleSize = 20,
+  maxCoreScatter = NULL, minGap = NULL,
+  maxAbsCoreScatter = NULL, minAbsGap = NULL,
+  minSplitHeight = NULL, minAbsSplitHeight = NULL,
+
+  useBranchEigennodeDissim = FALSE,
+  minBranchEigennodeDissim = mergeCutHeight,
+
+  pamStage = TRUE, pamRespectsDendro = TRUE,
+  minCoreKME = 0.5, minCoreKMESize = minModuleSize/3,
+  minKMEtoStay = 0.3,
+  reassignThreshold = 1e-6,
+  mergeCutHeight = 0.1, impute = TRUE,
+  trapErrors = FALSE, numericLabels = FALSE,
+  verbose = 0, indent = 0)
+
+table(recut.et$color) # this is more cut
+
+## try
+merge.net<-mergeCloseModules(
+ # input data
+  exprData=datExpr, colors=net$colors,
+  # Optional starting eigengenes
+  MEs = NULL,
+  # Optional restriction to a subset of all sets
+  useSets = NULL,
+  # If missing data are present, impute them?
+  impute = TRUE,
+  # Input handling options
+  checkDataFormat = TRUE,
+  unassdColor = if (is.numeric(colors)) 0 else "grey",
+  # Options for eigengene network construction
+  corFnc = cor, corOptions = list(use = 'p'),
+  useAbs = FALSE,
+  # Options for constructing the consensus
+  equalizeQuantiles = FALSE,
+  quantileSummary = "mean",
+  consensusQuantile = 0,
+  # Merging options
+  cutHeight = 0.5,
+  iterate = TRUE,
+  # Output options
+  relabel = FALSE,
+  colorSeq = NULL,
+  getNewMEs = TRUE,
+  getNewUnassdME = TRUE,
+  # Options controlling behaviour of the function
+  trapErrors = FALSE,
+  verbose = 1, indent = 0)
+length(table(merge.net$color)) # 31 modules
+# higher height
+merge.net2<-mergeCloseModules(
+ # input data
+  exprData=datExpr, colors=net$colors,
+  # Optional starting eigengenes
+  MEs = NULL,
+  # Optional restriction to a subset of all sets
+  useSets = NULL,
+  # If missing data are present, impute them?
+  impute = TRUE,
+  # Input handling options
+  checkDataFormat = TRUE,
+  unassdColor = if (is.numeric(colors)) 0 else "grey",
+  # Options for eigengene network construction
+  corFnc = cor, corOptions = list(use = 'p'),
+  useAbs = FALSE,
+  # Options for constructing the consensus
+  equalizeQuantiles = FALSE,
+  quantileSummary = "mean",
+  consensusQuantile = 0,
+  # Merging options
+  cutHeight = 0.6,
+  iterate = TRUE,
+  # Output options
+  relabel = FALSE,
+  colorSeq = NULL,
+  getNewMEs = TRUE,
+  getNewUnassdME = TRUE,
+  # Options controlling behaviour of the function
+  trapErrors = FALSE,
+  verbose = 1, indent = 0)
+length(table(merge.net2$color)) # 22 modules
+# save parameters  
+  moduleLabels = merge.net2$colors
+  moduleColors = labels2colors(merge.net2$colors)
+  MEs = merge.net2$MEs
+  geneTree = merge.net2$dendrograms[[1]]
+  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net2.RData",sep=""))
+
+
+
+
 ```
 
 # drawing boxplot (WGCNA module) (061915)
@@ -1208,10 +1378,16 @@ load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.l
 ```{r eval=FALSE}
 setwd(homedir)
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
-moduleColors.files<-list.files(pattern=".largeCV.RData")
-load("all1.largeCV.RData")
+# moduleColors.files<-list.files(pattern=".largeCV.RData")
+# load("all1.largeCV.RData")
+### use merged modules by mergeCloseModules function above for Col (22 modules; 110716)
+load("all1.largeCV.merge.net2.RData")
+########
 moduleColors.allCol.largeCV<-moduleColors
 temp<-moduleColors.allCol.largeCV
+
+#### under construction ############### 110716
+
 for(y in moduleColors.files[-7]) {
   load(y)
   print(length(moduleColors)) # [1] 18379??? why?
@@ -1225,7 +1401,7 @@ SAS.expression.vst.s.kazu.largeCV.modules<-cbind(rownames(SAS.expression.vst.s.k
 names(SAS.expression.vst.s.kazu.largeCV.modules)[1]<-"AGI"
 names(SAS.expression.vst.s.kazu.largeCV.modules)
 setwd(homedir)
-save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata") #091616
+save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") #110816
 ```
 
 # overlap between WGCNA Col modules and mutation affected genes
