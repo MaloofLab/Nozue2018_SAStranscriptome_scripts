@@ -638,7 +638,7 @@ p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(an
 p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
 p <- p + coord_flip()
 p 
-ggsave("Fig2_Coexpression_clusters_of_shade-responsive_genes_090116.pdf",width=11,height=5,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # needs to change order of cluster (090116). File name changed (091016)
+ggsave("Fig2_Coexpression_clusters_of_shade-responsive_genes_090116.pdf",width=11,height=5,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # needs to change order of cluster (090116). File name changed (091016; 110716)
 
 ```
 
@@ -887,9 +887,9 @@ DE.genotype.batch.genes.SOMclusters[is.na(DE.genotype.batch.genes.SOMclusters)]<
 # DE.genotype.batch.genes.SOMclusters<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.SOMclusters.csv")
 # DE.genotype.batch.genes.SOMclusters<-DE.genotype.batch.genes.SOMclusters[,-1]
 # adding gene description
-# TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
-# head(TAIR10_gene_descriptions)
-# TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
+head(TAIR10_gene_descriptions)
+TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 DE.genotype.batch.genes.SOMclusters.description<-merge(DE.genotype.batch.genes.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 write.csv(DE.genotype.batch.genes.SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset3_Complete_list_of_shade-responsive_genes_and_SOM_gene_clusters_and_misexpressed_genes.csv")
 test<-DE.genotype.batch.genes.SOMclusters
@@ -960,7 +960,7 @@ q4b # almost the same with fisher's exact test version
 
 setwd(homedir)
 ```
-# Overlap analysis with custome categories
+# Overlap analysis with custome categories (SOM)
 ```{r eval=FALSE}
 rm(list=ls())
 source("function_RNAseq_time_course.R")
@@ -969,8 +969,7 @@ options(stringsAsFactors = FALSE);
 conversion.table
 # custom categories
 load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness4.Rdata") #new version. check if new version is identical to this. copy the file to this location
-
-## or change list into data.frame
+## change list into data.frame
 attributes(hormone.responsiveness4)
 hormone.responsiveness4.DF<-data.frame(t(sapply(hormone.responsiveness4,c)))
 names(hormone.responsiveness4.DF)<-attributes(hormone.responsiveness4)$category
@@ -996,7 +995,7 @@ hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"
 hormone.responsiveness.SOMclusters.description<-merge(hormone.responsiveness.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 write.csv(hormone.responsiveness.SOMclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables//Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv")
 # in whitney (****16) for ORA
-test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables//Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv") # 
+test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv") # 
 test<-test[,-1]
 # overlap table 
 i<-2 
@@ -1014,12 +1013,11 @@ overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
 overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
 overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
 overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
-save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.091216.Rdata") # whitney. 
-####### under construction #########
+save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata") # whitney. 
 setwd(homedir)
-setwd("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.091216.Rdata")
-load("overlap.melt.summary.SOM.custom.GOseq.091216.Rdata")
-setwd(homedir)
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
+#load("overlap.melt.summary.SOM.custom.GOseq.091216.Rdata")
+#setwd(homedir)
 #table(overlap.melt.summary[,"value"])
 # graph
 #overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
@@ -1047,8 +1045,8 @@ q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title="custom category enrichment",fill="-log10\n p-value")
 #q4b
 #ggsave(q4b,file="Col.SOM.clusters.vs.my.category.table.s.2.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.061816.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.061816.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # testing this with Whitney (091616)
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.110816.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.110816.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # testing this with Whitney (110816)
 
 ```
 
