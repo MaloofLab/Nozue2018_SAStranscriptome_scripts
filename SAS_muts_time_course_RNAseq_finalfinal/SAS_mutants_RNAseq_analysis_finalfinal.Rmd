@@ -1206,9 +1206,9 @@ goodSampleGenes.result<-goodSamplesGenes(
   verbose = 1, indent = 0)
 ####
 minModuleSize<-20
-
 recut.net<-recutBlockwiseTrees(datExpr,
-                      goodSamples=goodSampleGenes.result$goodSamples, goodGenes=goodSampleGenes.result$goodGenes,
+  goodSamples=goodSampleGenes.result$goodSamples, 
+  goodGenes=goodSampleGenes.result$goodGenes,
   blocks=net$blocks,
   TOMFiles=net$TOMFiles,
   dendrograms=net$dendrograms,
@@ -1230,45 +1230,18 @@ recut.net<-recutBlockwiseTrees(datExpr,
   mergeCutHeight = 0.1, impute = TRUE,
   trapErrors = FALSE, numericLabels = FALSE,
   verbose = 0, indent = 0)
-
 table(recut.et$color) # this is more cut
 
-## try
-merge.net<-mergeCloseModules(
- # input data
-  exprData=datExpr, colors=net$colors,
-  # Optional starting eigengenes
-  MEs = NULL,
-  # Optional restriction to a subset of all sets
-  useSets = NULL,
-  # If missing data are present, impute them?
-  impute = TRUE,
-  # Input handling options
-  checkDataFormat = TRUE,
-  unassdColor = if (is.numeric(colors)) 0 else "grey",
-  # Options for eigengene network construction
-  corFnc = cor, corOptions = list(use = 'p'),
-  useAbs = FALSE,
-  # Options for constructing the consensus
-  equalizeQuantiles = FALSE,
-  quantileSummary = "mean",
-  consensusQuantile = 0,
-  # Merging options
-  cutHeight = 0.5,
-  iterate = TRUE,
-  # Output options
-  relabel = FALSE,
-  colorSeq = NULL,
-  getNewMEs = TRUE,
-  getNewUnassdME = TRUE,
-  # Options controlling behaviour of the function
-  trapErrors = FALSE,
-  verbose = 1, indent = 0)
-length(table(merge.net$color)) # 31 modules
-# higher height with all Genotype
-for(x in Genotype) {
-merge.net2<-mergeCloseModules(
- # input data
+## try mergeCloseMOdulesl wutg higher height (0.6) for all Genotype
+setwd(homedir)
+rm(net)
+for(x in Genotype[1:2]) {
+  SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
+    dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 17757     21
+  datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
+  load(paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV",x,".Rdata",sep=""))
+mergeCloseModules(
+     # input data
   exprData=datExpr, colors=net$colors,
   # Optional starting eigengenes
   MEs = NULL,
@@ -1304,11 +1277,12 @@ length(table(merge.net2$color)) # 22 modules
   MEs = merge.net2$MEs
   geneTree = merge.net2$dendrograms[[1]]
   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net2.RData",sep=""))
+rm(net)
 }
 
 ```
 
-# drawing boxplot (WGCNA module) (061915)
+# drawing boxplot (WGCNA module) (061915; no use for SALMON module)
 # ```{r eval=FALSE}
 # # load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.Col.absolute.SOM.Rdata") # 022115
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata") 
@@ -1392,10 +1366,11 @@ for(y in moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net2.RData"
 }   
 length(moduleColors.files)
 temp<-as.data.frame(temp)
-names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.RData)","\\2",moduleColors.files)
+names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.merge.net2.RData)","\\2",c("all1.largeCV.merge.net2.RData",moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net2.RData"]))
 SAS.expression.vst.s.kazu.largeCV.modules<-cbind(rownames(SAS.expression.vst.s.kazu.largeCV),temp)
 names(SAS.expression.vst.s.kazu.largeCV.modules)[1]<-"AGI"
 names(SAS.expression.vst.s.kazu.largeCV.modules)
+head(SAS.expression.vst.s.kazu.largeCV.modules) # whye they are the same? (110816)
 setwd(homedir)
 save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") #110816
 ```
@@ -1461,7 +1436,8 @@ setwd(homedir)
 
 ### I did the same calculation above? (091616)
 setwd(homedir)
-load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
+# load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata")
 # 
 #setwd(homedir)
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
@@ -1471,12 +1447,13 @@ SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]
 test<-merge(DE.genotype.batch.genes.unique.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
 DE.genotype.batch.genes.WGCNAmodules<-test
 DE.genotype.batch.genes.WGCNAmodules[is.na(DE.genotype.batch.genes.WGCNAmodules)]<-"0"
-names(DE.genotype.batch.genes.WGCNAmodules)<-sub("X1","WGCNAmodules",names(DE.genotype.batch.genes.WGCNAmodules))
+names(DE.genotype.batch.genes.WGCNAmodules)<-sub("1","WGCNAmodules",names(DE.genotype.batch.genes.WGCNAmodules))
 
 write.csv(DE.genotype.batch.genes.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
 DE.genotype.batch.genes.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
 DE.genotype.batch.genes.WGCNAmodules<-DE.genotype.batch.genes.WGCNAmodules[,-1]
-length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) $ 59 modules
+
+length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) # 59 modules
 # adding gene description
 # TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
 # TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
