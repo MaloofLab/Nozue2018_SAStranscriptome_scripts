@@ -1265,7 +1265,8 @@ merge.net<-mergeCloseModules(
   trapErrors = FALSE,
   verbose = 1, indent = 0)
 length(table(merge.net$color)) # 31 modules
-# higher height
+# higher height with all Genotype
+for(x in Genotype) {
 merge.net2<-mergeCloseModules(
  # input data
   exprData=datExpr, colors=net$colors,
@@ -1303,9 +1304,7 @@ length(table(merge.net2$color)) # 22 modules
   MEs = merge.net2$MEs
   geneTree = merge.net2$dendrograms[[1]]
   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net2.RData",sep=""))
-
-
-
+}
 
 ```
 
@@ -1378,17 +1377,14 @@ load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.l
 ```{r eval=FALSE}
 setwd(homedir)
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
-# moduleColors.files<-list.files(pattern=".largeCV.RData")
+moduleColors.files<-list.files(pattern=".largeCV.merge.net2.RData") # for  merged modules by mergeCloseModules function above for Col (110816)
 # load("all1.largeCV.RData")
 ### use merged modules by mergeCloseModules function above for Col (22 modules; 110716)
 load("all1.largeCV.merge.net2.RData")
 ########
 moduleColors.allCol.largeCV<-moduleColors
 temp<-moduleColors.allCol.largeCV
-
-#### under construction ############### 110716
-
-for(y in moduleColors.files[-7]) {
+for(y in moduleColors.files) {
   load(y)
   print(length(moduleColors)) # [1] 18379??? why?
   matched.moduleColors<-matchLabels(moduleColors,moduleColors.allCol.largeCV)
