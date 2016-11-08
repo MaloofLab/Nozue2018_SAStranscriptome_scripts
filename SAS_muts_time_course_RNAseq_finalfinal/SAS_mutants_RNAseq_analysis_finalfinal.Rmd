@@ -913,8 +913,8 @@ overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-""
 #table(overlap.melt.summary[,"value"])
-save(overlap.GOseq.melt.summary, file="../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.091016.Rdata") # 091516
-load("../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.091016.Rdata")
+save(overlap.GOseq.melt.summary, file="../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.110716.Rdata") 
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.GOseq.melt.summary.SOM.DEgenes.110716.Rdata")
 # # graph
 # overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),] # eliminate bsk5_1 (genotype15) and AT5G02540_1 (genotype 2)
 overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!is.na(overlap.GOseq.melt.summary$Var2),]
@@ -954,7 +954,7 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2)
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_091616.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_110716.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 q4b # almost the same with fisher's exact test version
 # needs to remove Var2="0" (091016)
 
