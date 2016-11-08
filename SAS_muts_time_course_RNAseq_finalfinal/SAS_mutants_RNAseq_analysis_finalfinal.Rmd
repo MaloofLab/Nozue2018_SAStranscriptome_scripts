@@ -45,7 +45,7 @@ homedir<-"/Volumes/Data8new/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAS
 # download "Nozue2016_SAStranscriptome_data" at the same level of "Nozue2016_SAStranscriptome_scripts"
 # Atmosphere (Cyverse)
 if(Sys.info()["user"]=="kazu") { 
-homedir<-"/vol1/kazu/home/****/" # under construction
+homedir<-"/vol1/SAS_muts_time_course_RNAseq4/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
 }
 # Whitney
 if(Sys.info()["nodename"]=="whitney") {
@@ -955,7 +955,7 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2)
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_110716.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_110716.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # running in whitney (110716)
 q4b # almost the same with fisher's exact test version
 # needs to remove Var2="0" (091016)
 
