@@ -180,65 +180,6 @@ expression.mean<-function(data) { # return rowMean results for given data
   }	
   return(data.rowMeans)
 }
-### barcoding
-# ###### for any genotype 
-# SOM.clustering3<-function(data,gt="Col",cluster) { # "Col","YuQ","Coi","Jar","Pi3","Pi4","Spt","PhB","Co_" (021114)
-#   # genotype is numeric (061114) 
-#   data.SOM.gt<-data[grep(gt,rownames(data)),] # gt subset
-#   #print(data.SOM.gt)
-#   data.SOM.gt.SOM1<-data.SOM.gt[data.SOM.gt$ssom3.4.unit.classif==cluster,]
-#   #print(data.SOM.gt.SOM1)
-#   temp<-paste("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.",gt,")",sep="")
-#   #print(paste("temp is",temp))
-#   #print(gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)))
-#   data.SOM.gt.SOM1.all<-data[gsub("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.[[:print:]]+)","\\1",rownames(data)) %in% gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)),]
-#   #print(data.SOM.gt.SOM1.all) 
-#   data.SOM.gt.SOM1.all.s<-data.frame(row.names=rownames(data.SOM.gt.SOM1.all),ssom3.4.unit.classif=data.SOM.gt.SOM1.all[,"ssom3.4.unit.classif"])
-#   #print(data.SOM.gt.SOM1.all.s) # does not work
-#   data.SOM.gt.SOM1.all.s$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\1",rownames(data.SOM.gt.SOM1.all.s))
-#   data.SOM.gt.SOM1.all.s$genotype<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\5",rownames(data.SOM.gt.SOM1.all.s))
-#   data.SOM.gt.SOM1.all.s.sorted<-data.SOM.gt.SOM1.all.s[order(data.SOM.gt.SOM1.all.s$AGI),1:3]
-#   data.SOM.gt.SOM1.all.s.sorted$genotype<-as.factor(data.SOM.gt.SOM1.all.s.sorted$genotype)
-#   #print(data.SOM.Col.SOM1.all.s.sorted)
-#   # reshape
-#   data.SOM.gt.SOM1.all.barcode<-reshape(data.SOM.gt.SOM1.all.s.sorted,idvar="AGI",v.names ="ssom3.4.unit.classif",timevar="genotype",direction="wide")
-#   names(data.SOM.gt.SOM1.all.barcode)[-1]<-gsub("(ssom3.4.unit.classif\\.)([[:print:]]+)","\\2",names(data.SOM.gt.SOM1.all.barcode)[-1])
-#   rownames(data.SOM.gt.SOM1.all.barcode)<-data.SOM.gt.SOM1.all.barcode$AGI
-#   data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode[,-1]
-#   return(data.SOM.gt.SOM1.all.barcode.s)#
-# }
-# ###
-# SOM.clustering4<-function(data,gt=1,cluster) { # "Col","YuQ","Coi","Jar","Pi3","Pi4","Spt","PhB","Co_" (021114)
-#   # genotype is numeric (061114) 
-#   data.SOM.gt<-data[grep(paste(".",gt,"$",sep=""),rownames(data),value=T),] # gt subset
-#   #print(data.SOM.gt)
-#   data.SOM.gt.SOM1<-data.SOM.gt[data.SOM.gt$ssom3.4.unit.classif==cluster,]
-#   #print(data.SOM.gt.SOM1)
-#   temp<-paste("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.",gt,")",sep="")
-#   #print(paste("temp is",temp))
-#   #print(gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)))
-#   data.SOM.gt.SOM1.all<-data[gsub("(AT[[:alnum:]]+)(\\.[[:digit:]]+)(\\.[[:print:]]+)","\\1",rownames(data)) %in% gsub(temp,"\\1",rownames(data.SOM.gt.SOM1)),]
-#   #print(data.SOM.gt.SOM1.all) 
-#   data.SOM.gt.SOM1.all.s<-data.frame(row.names=rownames(data.SOM.gt.SOM1.all),ssom3.4.unit.classif=data.SOM.gt.SOM1.all[,"ssom3.4.unit.classif"])
-#   #print(data.SOM.gt.SOM1.all.s) # does not work
-#   data.SOM.gt.SOM1.all.s$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\1",rownames(data.SOM.gt.SOM1.all.s))
-#   data.SOM.gt.SOM1.all.s$genotype<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)(\\.)([[:print:]]+)","\\5",rownames(data.SOM.gt.SOM1.all.s))
-#   data.SOM.gt.SOM1.all.s.sorted<-data.SOM.gt.SOM1.all.s[order(data.SOM.gt.SOM1.all.s$AGI),1:3]
-#   data.SOM.gt.SOM1.all.s.sorted$genotype<-factor(data.SOM.gt.SOM1.all.s.sorted$genotype,levels=levels(data$gt))
-#   #print(data.SOM.gt.SOM1.all.s.sorted)
-#   #print(levels(data.SOM.gt.SOM1.all.s.sorted$genotype))
-#   # reshape
-#   data.SOM.gt.SOM1.all.barcode<-reshape(data.SOM.gt.SOM1.all.s.sorted,idvar="AGI",v.names ="ssom3.4.unit.classif",timevar="genotype",direction="wide")
-#   #print("data.SOM.gt.SOM1.all.barcode is")
-#   #print(data.SOM.gt.SOM1.all.barcode)  
-#   names(data.SOM.gt.SOM1.all.barcode)[-1]<-gsub("(ssom3.4.unit.classif\\.)([[:print:]]+)","\\2",names(data.SOM.gt.SOM1.all.barcode)[-1])
-#   rownames(data.SOM.gt.SOM1.all.barcode)<-data.SOM.gt.SOM1.all.barcode$AGI
-#   data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode[,-1]
-#   data.SOM.gt.SOM1.all.barcode.s<-data.SOM.gt.SOM1.all.barcode.s[,order(names(data.SOM.gt.SOM1.all.barcode.s))]
-#   return(data.SOM.gt.SOM1.all.barcode.s)#
-# }
-# 
-
 
 # ORA with GOseq
 # prerequisit
@@ -343,216 +284,216 @@ genes.in.enriched.category<-function(enrich.result,gene.list,category.table=horm
 }
 
 # custom category heatmap
-library(functional) # for Compose function
-my.category.heatmap<-function(summary3.response,gt.num,gt2) { # gt.num (num), gt2 (gt name)
-  ### for temp 
-  # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
-  #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
-  summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
-  head(summary3.response.log2.temp)
-  summary3.response.log2.temp$AGI<-gsub("(AT[[:print:]]+).[[:digit:]]","\\1",rownames(summary3.response.log2.temp))
-  
-  #newdata.SOM.temp.wGO<-merge(newdata.SOM.temp,Atgo.terms,by="AGI") # I should use newdata.SOM.temp for Col. no need to add AtGO
-  #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
-  selected.genes<-newdata.Col.wGO.selected$AGI
-  summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
-  # not that way. use Col data
-  summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
-  #
-  names(summary3.response.log2.temp.selected)[2:6]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:6]))
-  # remove "-Inf" gene # alternative http://stackoverflow.com/questions/15773189/remove-na-nan-inf-in-a-matrix
-  summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:6], 1, Compose(is.finite, all)),]
-  
-  # melt
-  summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
-  head(summary3.response.log2.temp.selected.noINF.melt)
-  summary(summary3.response.log2.temp.selected.noINF.melt)
-  summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","16","25","49"))
-  summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=c("auxin","ABA","defense","SA","JA","energy","ethylene"))
-  # mean table (= heat map should reflect this table)
-  summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
-  summary.table$my.category<-factor(rownames(summary.table),levels=c("auxin","brassinosteroid","cell wall","GA","abiotic stress","defense","JA","SAR","energy"))
-  sumamry.table.melt<-melt(summary.table,id="my.category")
-  names(summary.table)
-  summary.table
-  print(paste("summary table for ",gt2))
-  print(summary.table)
-  
-  p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3) 
-  #p.selected <- p.selected + scale_fill_gradient(limit=c(-0.5,3), high="magenta", low="green") 
-  #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,3), mid="gray2",high="magenta", low="green") 
-  library(scales) # for muted
-  p.selected <- p.selected + scale_fill_gradient2(limits=c(-2,3),low=muted("green"), high=muted("magenta"),guide = guide_legend(title = "log2 fold change"))
-  p.selected <- p.selected + theme_bw() + theme(legend.position="right",axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
-  p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2)
-  #p.all <- p.all + facet_grid(variable~.,space="free",scale="free") # scale="free"
-  #p.selected <- p.selected + guides(color=guide_legend(title="log2 fold change")) # does not work
-  #p.selected
-  ggsave(file=paste("/mydata/kazu_data/SASmutRNAseq2/fix_no_outlier_elimination/fixed_timelabel/my.category.",gt2,".expression.pattern.noscaleFDR0.001.pdf",sep=""),width=5,height=2.5)
-  #### the end of temp
-}
-
-my.category.heatmap2<-function(summary3.response,gt.num,gt2) { # gt.num (num), gt2 (gt name), for w/o 16h data
-  ### for temp 
-  # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
-  #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
-  summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
-  head(summary3.response.log2.temp)
-  summary3.response.log2.temp$AGI<-gsub("(AT[[:print:]]+).[[:digit:]]","\\1",rownames(summary3.response.log2.temp))
-  
-  #newdata.SOM.temp.wGO<-merge(newdata.SOM.temp,Atgo.terms,by="AGI") # I should use newdata.SOM.temp for Col. no need to add AtGO
-  #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
-  selected.genes<-newdata.Col.wGO.selected$AGI
-  summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
-  # not that way. use Col data
-  summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
-  #
-  names(summary3.response.log2.temp.selected)[2:5]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:5]))
-  # remove "-Inf" gene
-  summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:5], 1, Compose(is.finite, all)),]
-  
-  # melt
-  summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
-  head(summary3.response.log2.temp.selected.noINF.melt)
-  summary(summary3.response.log2.temp.selected.noINF.melt)
-  summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","25","49"))
-  summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=c("energy","SAR","JA","defense","abiotic stress","GA","cell wall","brassinosteroid","auxin"))
-  # mean table (= heat map should reflect this table)
-  summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
-  summary.table$my.category<-factor(rownames(summary.table),levels=c("energy","SAR","JA","defense","abiotic stress","GA","cell wall","brassinosteroid","auxin"))
-  sumamry.table.melt<-melt(summary.table,id="my.category")
-  names(summary.table)
-  summary.table
-  print(paste("summary table for ",gt2))
-  print(summary.table)
-  
-  p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3) 
-  #p.selected <- p.selected + scale_fill_gradient(limit=c(-0.5,3), high="magenta", low="green") 
-  #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,3), mid="gray2",high="magenta", low="green") 
-  library(scales) # for muted
-  p.selected <- p.selected + scale_fill_gradient2(limits=c(-2,3),low=muted("green"), high=muted("magenta"),guide = guide_legend(title = "log2 fold change"))
-  p.selected <- p.selected + theme_bw() + theme(legend.position="bottom",axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
-  p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2)
-  #p.all <- p.all + facet_grid(variable~.,space="free",scale="free") # scale="free"
-  #p.selected <- p.selected + guides(color=guide_legend(title="log2 fold change")) # does not work
-  #p.selected
-  ggsave(file=paste("my.category.",gt2,".expression.pattern.noscaleFDR0.01.pdf",sep=""),width=3.5,height=2.5)
-  #### the end of temp
-}
-
-###
-my.category.heatmap3<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname) { # gt.num (num), gt2 (gt name), for w/o 16h data
-  ### for temp 
-  # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
-  #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
-  summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
-  print(head(summary3.response.log2.temp))
-  summary3.response.log2.temp$AGI<-gsub("(AT[[:print:]]+).[[:digit:]]","\\1",rownames(summary3.response.log2.temp))
-  print(head(summary3.response.log2.temp$AGI))
-  #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
-  print(newdata.Col.wGO.selected)
-  selected.genes<-newdata.Col.wGO.selected$AGI
-  print(paste("selected.genes are",selected.genes))
-  summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
-  # not that way. use Col data
-  summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
-  #
-  names(summary3.response.log2.temp.selected)[2:5]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:5]))
-  # remove "-Inf" gene
-  summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:5], 1, Compose(is.finite, all)),]
-  print(summary3.response.log2.temp.selected)
-  # melt
-  summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
-  head(summary3.response.log2.temp.selected.noINF.melt)
-  summary(summary3.response.log2.temp.selected.noINF.melt)
-  summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","25","49"))
-  summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=levels(newdata.Col.wGO.selected$my.category))
-  # mean table (= heat map should reflect this table)
-  summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
-  summary.table$my.category<-factor(rownames(summary.table),levels=levels(newdata.Col.wGO.selected$my.category))
-  sumamry.table.melt<-melt(summary.table,id="my.category")
-  #names(summary.table)
-  #summary.table
-  print(paste("summary table for ",gt2))
-  print(summary.table)
-  
-  p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3) 
-  library(scales) # for muted
-  p.selected <- p.selected + scale_fill_gradient2(limits=c(-2,3),low=muted("green"), high=muted("magenta"),guide = guide_legend(title = "log2 fold change"))
-  #p.selected <- p.selected + theme_bw() + theme(legend.position="none",axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
-  p.selected <- p.selected + theme_bw() + theme(axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
-  
-  p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2)
-  ggsave(file=paste(plotname,gt2,".expression.pattern.pdf",sep=""),width=5,height=2.5)
-  #### the end of temp
-  return(summary3.response.log2.temp.selected.noINF)
-}
-#############
-my.category.heatmap4<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname,h=5,w=5*4/3,path,save.plot=T) { # gt.num (num), gt2 (gt name), for w/o 16h data, newdata.Col.wGO.selected should have "AGI" and "my.category"
-  # voom transformed data has been transformd into log2
-  ### for temp 
-  # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
-  #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
-  summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
-  #summary3.response.log2.temp<-summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num] # 121315
-  #summary3.response.log2.temp<-summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num] #   
-  print(head(summary3.response.log2.temp))
-  #summary3.response.log2.temp$AGI<-gsub("(AT[[:print:]]+).[[:digit:]]","\\1",rownames(summary3.response.log2.temp))
-  summary3.response.log2.temp$AGI<-rownames(summary3.response.log2.temp)
-  
-  print(head(summary3.response.log2.temp$AGI))
-  #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
-  print(newdata.Col.wGO.selected)
-  selected.genes<-newdata.Col.wGO.selected$AGI
-  print(paste("selected.genes are",selected.genes))
-  summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
-  # not that way. use Col data
-  summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
-  #
-  names(summary3.response.log2.temp.selected)[2:5]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:5]))
-  # remove "-Inf" gene
-  summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:5], 1, Compose(is.finite, all)),]
-  print(summary3.response.log2.temp.selected.noINF)
-  # melt
-  summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
-  print("summary3.response.log2.temp.selected.noINF.melt is")
-  print(head(summary3.response.log2.temp.selected.noINF.melt)) # OK
-  summary(summary3.response.log2.temp.selected.noINF.melt)
-  summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","25","49"))
-  
-  summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=levels(newdata.Col.wGO.selected$my.category))
-  print(head(summary3.response.log2.temp.selected.noINF.melt)) # OK? no.
-  
-  # mean table (= heat map should reflect this table)
-  summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
-  print(paste("summary table for ",gt2))
-  print(summary.table)
-  summary.table$my.category<-factor(rownames(summary.table),levels=levels(summary3.response.log2.temp.selected.noINF.melt$my.category))
-  
-  sumamry.table.melt<-melt(summary.table,id="my.category")
-  #names(summary.table)
-  #summary.table
-  
-  p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3,colour="black") 
-  library(scales) # for muted
-  p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
-  # scale_fill_gradient2 itself create "Non Lab interpolation is deprecated " warning (121315)
-  #,guide = guide_legend(title = "log2 fold change"
-  #p.selected <- p.selected + theme_bw() + theme(legend.position="none",axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
-  p.selected <- p.selected  + 
-    theme(axis.title.y=element_blank(),
-          axis.text.x=element_text(size=18),
-          axis.ticks = element_blank(),
-          panel.background = element_rect(fill = "white"))
-  #,strip.background=element_rect(fill=c("red","blue")))
-  p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2,fill="log2 fold change")
-  if(save.plot==T)   {
-    ggsave(file=paste(gt2,plotname,sep="."),p.selected,height=h,width=w,path=path)
-  } 
-  else {return(sumamry.table.melt)}
-  #### the end of temp
-  
-}
+# library(functional) # for Compose function
+# my.category.heatmap<-function(summary3.response,gt.num,gt2) { # gt.num (num), gt2 (gt name)
+#   ### for temp 
+#   # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
+#   #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
+#   summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
+#   head(summary3.response.log2.temp)
+#   summary3.response.log2.temp$AGI<-gsub("(AT[[:print:]]+).[[:digit:]]","\\1",rownames(summary3.response.log2.temp))
+#   
+#   #newdata.SOM.temp.wGO<-merge(newdata.SOM.temp,Atgo.terms,by="AGI") # I should use newdata.SOM.temp for Col. no need to add AtGO
+#   #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
+#   selected.genes<-newdata.Col.wGO.selected$AGI
+#   summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
+#   # not that way. use Col data
+#   summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
+#   #
+#   names(summary3.response.log2.temp.selected)[2:6]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:6]))
+#   # remove "-Inf" gene # alternative http://stackoverflow.com/questions/15773189/remove-na-nan-inf-in-a-matrix
+#   summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:6], 1, Compose(is.finite, all)),]
+#   
+#   # melt
+#   summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
+#   head(summary3.response.log2.temp.selected.noINF.melt)
+#   summary(summary3.response.log2.temp.selected.noINF.melt)
+#   summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","16","25","49"))
+#   summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=c("auxin","ABA","defense","SA","JA","energy","ethylene"))
+#   # mean table (= heat map should reflect this table)
+#   summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
+#   summary.table$my.category<-factor(rownames(summary.table),levels=c("auxin","brassinosteroid","cell wall","GA","abiotic stress","defense","JA","SAR","energy"))
+#   sumamry.table.melt<-melt(summary.table,id="my.category")
+#   names(summary.table)
+#   summary.table
+#   print(paste("summary table for ",gt2))
+#   print(summary.table)
+#   
+#   p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3) 
+#   #p.selected <- p.selected + scale_fill_gradient(limit=c(-0.5,3), high="magenta", low="green") 
+#   #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,3), mid="gray2",high="magenta", low="green") 
+#   library(scales) # for muted
+#   p.selected <- p.selected + scale_fill_gradient2(limits=c(-2,3),low=muted("green"), high=muted("magenta"),guide = guide_legend(title = "log2 fold change"))
+#   p.selected <- p.selected + theme_bw() + theme(legend.position="right",axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
+#   p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2)
+#   #p.all <- p.all + facet_grid(variable~.,space="free",scale="free") # scale="free"
+#   #p.selected <- p.selected + guides(color=guide_legend(title="log2 fold change")) # does not work
+#   #p.selected
+#   ggsave(file=paste("/mydata/kazu_data/SASmutRNAseq2/fix_no_outlier_elimination/fixed_timelabel/my.category.",gt2,".expression.pattern.noscaleFDR0.001.pdf",sep=""),width=5,height=2.5)
+#   #### the end of temp
+# }
+# 
+# my.category.heatmap2<-function(summary3.response,gt.num,gt2) { # gt.num (num), gt2 (gt name), for w/o 16h data
+#   ### for temp 
+#   # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
+#   #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
+#   summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
+#   head(summary3.response.log2.temp)
+#   summary3.response.log2.temp$AGI<-gsub("(AT[[:print:]]+).[[:digit:]]","\\1",rownames(summary3.response.log2.temp))
+#   
+#   #newdata.SOM.temp.wGO<-merge(newdata.SOM.temp,Atgo.terms,by="AGI") # I should use newdata.SOM.temp for Col. no need to add AtGO
+#   #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
+#   selected.genes<-newdata.Col.wGO.selected$AGI
+#   summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
+#   # not that way. use Col data
+#   summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
+#   #
+#   names(summary3.response.log2.temp.selected)[2:5]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:5]))
+#   # remove "-Inf" gene
+#   summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:5], 1, Compose(is.finite, all)),]
+#   
+#   # melt
+#   summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
+#   head(summary3.response.log2.temp.selected.noINF.melt)
+#   summary(summary3.response.log2.temp.selected.noINF.melt)
+#   summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","25","49"))
+#   summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=c("energy","SAR","JA","defense","abiotic stress","GA","cell wall","brassinosteroid","auxin"))
+#   # mean table (= heat map should reflect this table)
+#   summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
+#   summary.table$my.category<-factor(rownames(summary.table),levels=c("energy","SAR","JA","defense","abiotic stress","GA","cell wall","brassinosteroid","auxin"))
+#   sumamry.table.melt<-melt(summary.table,id="my.category")
+#   names(summary.table)
+#   summary.table
+#   print(paste("summary table for ",gt2))
+#   print(summary.table)
+#   
+#   p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3) 
+#   #p.selected <- p.selected + scale_fill_gradient(limit=c(-0.5,3), high="magenta", low="green") 
+#   #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,3), mid="gray2",high="magenta", low="green") 
+#   library(scales) # for muted
+#   p.selected <- p.selected + scale_fill_gradient2(limits=c(-2,3),low=muted("green"), high=muted("magenta"),guide = guide_legend(title = "log2 fold change"))
+#   p.selected <- p.selected + theme_bw() + theme(legend.position="bottom",axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
+#   p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2)
+#   #p.all <- p.all + facet_grid(variable~.,space="free",scale="free") # scale="free"
+#   #p.selected <- p.selected + guides(color=guide_legend(title="log2 fold change")) # does not work
+#   #p.selected
+#   ggsave(file=paste("my.category.",gt2,".expression.pattern.noscaleFDR0.01.pdf",sep=""),width=3.5,height=2.5)
+#   #### the end of temp
+# }
+# 
+# ###
+# my.category.heatmap3<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname) { # gt.num (num), gt2 (gt name), for w/o 16h data
+#   ### for temp 
+#   # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
+#   #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
+#   summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
+#   print(head(summary3.response.log2.temp))
+#   summary3.response.log2.temp$AGI<-gsub("(AT[[:print:]]+).[[:digit:]]","\\1",rownames(summary3.response.log2.temp))
+#   print(head(summary3.response.log2.temp$AGI))
+#   #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
+#   print(newdata.Col.wGO.selected)
+#   selected.genes<-newdata.Col.wGO.selected$AGI
+#   print(paste("selected.genes are",selected.genes))
+#   summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
+#   # not that way. use Col data
+#   summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
+#   #
+#   names(summary3.response.log2.temp.selected)[2:5]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:5]))
+#   # remove "-Inf" gene
+#   summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:5], 1, Compose(is.finite, all)),]
+#   print(summary3.response.log2.temp.selected)
+#   # melt
+#   summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
+#   head(summary3.response.log2.temp.selected.noINF.melt)
+#   summary(summary3.response.log2.temp.selected.noINF.melt)
+#   summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","25","49"))
+#   summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=levels(newdata.Col.wGO.selected$my.category))
+#   # mean table (= heat map should reflect this table)
+#   summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
+#   summary.table$my.category<-factor(rownames(summary.table),levels=levels(newdata.Col.wGO.selected$my.category))
+#   sumamry.table.melt<-melt(summary.table,id="my.category")
+#   #names(summary.table)
+#   #summary.table
+#   print(paste("summary table for ",gt2))
+#   print(summary.table)
+#   
+#   p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3) 
+#   library(scales) # for muted
+#   p.selected <- p.selected + scale_fill_gradient2(limits=c(-2,3),low=muted("green"), high=muted("magenta"),guide = guide_legend(title = "log2 fold change"))
+#   #p.selected <- p.selected + theme_bw() + theme(legend.position="none",axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
+#   p.selected <- p.selected + theme_bw() + theme(axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
+#   
+#   p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2)
+#   ggsave(file=paste(plotname,gt2,".expression.pattern.pdf",sep=""),width=5,height=2.5)
+#   #### the end of temp
+#   return(summary3.response.log2.temp.selected.noINF)
+# }
+# #############
+# my.category.heatmap4<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname,h=5,w=5*4/3,path,save.plot=T) { # gt.num (num), gt2 (gt name), for w/o 16h data, newdata.Col.wGO.selected should have "AGI" and "my.category"
+#   # voom transformed data has been transformd into log2
+#   ### for temp 
+#   # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
+#   #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
+#   summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
+#   #summary3.response.log2.temp<-summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num] # 121315
+#   #summary3.response.log2.temp<-summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num] #   
+#   print(head(summary3.response.log2.temp))
+#   #summary3.response.log2.temp$AGI<-gsub("(AT[[:print:]]+).[[:digit:]]","\\1",rownames(summary3.response.log2.temp))
+#   summary3.response.log2.temp$AGI<-rownames(summary3.response.log2.temp)
+#   
+#   print(head(summary3.response.log2.temp$AGI))
+#   #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
+#   print(newdata.Col.wGO.selected)
+#   selected.genes<-newdata.Col.wGO.selected$AGI
+#   print(paste("selected.genes are",selected.genes))
+#   summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
+#   # not that way. use Col data
+#   summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
+#   #
+#   names(summary3.response.log2.temp.selected)[2:5]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:5]))
+#   # remove "-Inf" gene
+#   summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:5], 1, Compose(is.finite, all)),]
+#   print(summary3.response.log2.temp.selected.noINF)
+#   # melt
+#   summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
+#   print("summary3.response.log2.temp.selected.noINF.melt is")
+#   print(head(summary3.response.log2.temp.selected.noINF.melt)) # OK
+#   summary(summary3.response.log2.temp.selected.noINF.melt)
+#   summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","25","49"))
+#   
+#   summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=levels(newdata.Col.wGO.selected$my.category))
+#   print(head(summary3.response.log2.temp.selected.noINF.melt)) # OK? no.
+#   
+#   # mean table (= heat map should reflect this table)
+#   summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
+#   print(paste("summary table for ",gt2))
+#   print(summary.table)
+#   summary.table$my.category<-factor(rownames(summary.table),levels=levels(summary3.response.log2.temp.selected.noINF.melt$my.category))
+#   
+#   sumamry.table.melt<-melt(summary.table,id="my.category")
+#   #names(summary.table)
+#   #summary.table
+#   
+#   p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category,fill=value)) + geom_tile(size=0.3,colour="black") 
+#   library(scales) # for muted
+#   p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
+#   # scale_fill_gradient2 itself create "Non Lab interpolation is deprecated " warning (121315)
+#   #,guide = guide_legend(title = "log2 fold change"
+#   #p.selected <- p.selected + theme_bw() + theme(legend.position="none",axis.title.y=element_blank(),axis.text.x=element_text(size=18),axis.ticks = element_blank())#,strip.background=element_rect(fill=c("red","blue")))
+#   p.selected <- p.selected  + 
+#     theme(axis.title.y=element_blank(),
+#           axis.text.x=element_text(size=18),
+#           axis.ticks = element_blank(),
+#           panel.background = element_rect(fill = "white"))
+#   #,strip.background=element_rect(fill=c("red","blue")))
+#   p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2,fill="log2 fold change")
+#   if(save.plot==T)   {
+#     ggsave(file=paste(gt2,plotname,sep="."),p.selected,height=h,width=w,path=path)
+#   } 
+#   else {return(sumamry.table.melt)}
+#   #### the end of temp
+#   
+# }
 ## new version (052716)
 my.category.heatmap5<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname,h=5,w=5*4/3,path,save.plot=T,legend.fill=F) { # gt.num (num), gt2 (gt name), for w/o 16h data, newdata.Col.wGO.selected should have "AGI" and "my.category"
   # voom transformed data has been transformd into log2
