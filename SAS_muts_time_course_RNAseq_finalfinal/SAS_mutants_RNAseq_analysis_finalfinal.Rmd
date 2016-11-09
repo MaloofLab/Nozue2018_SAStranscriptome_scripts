@@ -1560,11 +1560,11 @@ temp.genes.wdescrition[temp.genes.wdescrition$"GO:0000271"==1,c("AGI","Short_des
 ## GOseq analysis of each cluster (cellular component)
 ```{r eval=FALSE}
 # reading necessary funcitons and libraries
-source("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/function_RNAseq_time_course.R")
+#source("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/function_RNAseq_time_course.R")
 # load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata")
 #library(WGCNA)
-setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
+#setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # prep for GO category
   ###Read in AtGO
@@ -1577,6 +1577,8 @@ SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]
 # 
 modules<-levels(as.factor(SAS.expression.vst.s.kazu.largeCV.modules$"1"))
 # no enriched GO; 
+
+# needs to fix for new GOseq.CC.ORA (did I fixed it?; 110816)
 for(x in modules[!modules %in% c("darkred","greenyellow","grey","grey60","lightcyan","purple","salmon","yellow")]) { # 
   temp.GOseq<-GOseq.CC.ORA(SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"==x,"AGI"])
   temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"==x,"AGI"],category.table=Atgo.list)
@@ -1602,7 +1604,7 @@ for(i in GOCC.WGCNA.Col.module.GOseq.files[-1]) {
 WGCNA.Col.module.GOseq.CC.summary<-temp
 write.csv(WGCNA.Col.module.GOseq.CC.summary,file="../../Nozue2016_SAStranscriptome_output/figs_tables/WGCNA.Col.module.GOseq.CC.summary.csv") # not used
 ```
-# overlap analysis with custome categories (WGCNA modules)
+# overlap analysis with custome categories (WGCNA modules): Fig6
 ```{r eval=FALSE}
 library(WGCNA);library(ggplot2);library(reshape2);library(scales)
 # custom categories
@@ -1612,8 +1614,8 @@ hormone.responsiveness4.DF<-data.frame(t(sapply(hormone.responsiveness4,c))) # m
 names(hormone.responsiveness4.DF)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down")
 hormone.responsiveness4.DF$AGI<-rownames(hormone.responsiveness4.DF)
 
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata") # is this current version? (100716)
-SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") 
+SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) # remove .1, .2, etc
 # merge with WGCNA modules
 test<-merge(hormone.responsiveness4.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
 names(test)[names(test)=="1"]<-"WGCNAmodules"
@@ -1630,9 +1632,8 @@ head(hormone.responsiveness.WGCNAmodules)
 # Plant Cell version
 write.csv(hormone.responsiveness.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset_6_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules.csv")
 
-
-
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
+hormone.responsiveness.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset_6_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules.csv")
 hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,-1]
 # remove GRF1_3target (052616)
 hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,!names(hormone.responsiveness.WGCNAmodules)=="GRF1_3target"]
@@ -1674,8 +1675,8 @@ q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4 <- q4 + geom_text(aes(label=count),size=5)
 q4 <- q4 + labs(x="custom category",y="WGCNA modules in Col",title="custom category enrichment",fill="-log10\n pvalue")
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
-ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.061816.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.061816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.110816.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.110816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
 q4 # magenta indicates pvalue is smaller than 0.01.
 ```
