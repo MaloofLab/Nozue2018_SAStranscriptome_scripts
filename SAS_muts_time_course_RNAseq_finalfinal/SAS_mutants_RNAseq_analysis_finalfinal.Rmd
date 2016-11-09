@@ -1436,7 +1436,7 @@ setwd(homedir)
 
 ### I did the same calculation above? (091616)
 setwd(homedir)
-# load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata")
 # 
 #setwd(homedir)
@@ -1453,12 +1453,12 @@ write.csv(DE.genotype.batch.genes.WGCNAmodules,file="../../Nozue2016_SAStranscri
 DE.genotype.batch.genes.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
 DE.genotype.batch.genes.WGCNAmodules<-DE.genotype.batch.genes.WGCNAmodules[,-1]
 
-length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) # 59 modules
+length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) # 23 modules (110816)
 # adding gene description
 # TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
 # TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-names(DE.genotype.batch.genes.WGCNAmodules.description)<-sub("X1","WGCNAmodules",names(test))
+#names(DE.genotype.batch.genes.WGCNAmodules.description)<-sub("X1","WGCNAmodules",names(test))
 write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv") #091616
 # in whitney
 test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv")
@@ -1485,11 +1485,11 @@ overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
 #table(overlap.melt.summary[,"value"])
 # graph
 #overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
-save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") # 091716 pending
+save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") # 110816
 
 # reading and cleaning overlap table
 # load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.WGCNA.mut.GOseq.Rdata") # calculated in whitney (052616)
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.WGCNA.mut.GOseq.Rdata") # calculated in whitney (052616); (110816, testing with permutation =100)
 overlap.melt.summary.s
 overlap.melt.summary.ss<-overlap.melt.summary.s[!overlap.melt.summary.s$Var1=="0",]
 
@@ -1507,8 +1507,8 @@ q4 <- q4 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modu
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq061816.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq061816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq11081616.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+# ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq061816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
 q4 # magenta indicates pvalue is smaller than 0.01.
 #### only "salmon","pink" (=JA),"purple" (=auxin) for job application 2015 - 2016 ###
