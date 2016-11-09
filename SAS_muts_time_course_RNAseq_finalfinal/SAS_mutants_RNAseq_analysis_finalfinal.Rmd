@@ -1384,7 +1384,8 @@ load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.uni
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata")
 # 
 #setwd(homedir)
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
+# load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata")
 #library(WGCNA)
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # merge with WGCNA modules
@@ -1478,6 +1479,7 @@ table(SAS.expression.vst.s.kazu.largeCV.modules$"1")
 # The next question is what are these modules?  GOseq analysis of each cluster
 ```{r eval=FALSE}
 setwd(homedir)
+# load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
@@ -1559,6 +1561,7 @@ temp.genes.wdescrition[temp.genes.wdescrition$"GO:0000271"==1,c("AGI","Short_des
 ```{r eval=FALSE}
 # reading necessary funcitons and libraries
 source("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/function_RNAseq_time_course.R")
+# load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
 #library(WGCNA)
 setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
