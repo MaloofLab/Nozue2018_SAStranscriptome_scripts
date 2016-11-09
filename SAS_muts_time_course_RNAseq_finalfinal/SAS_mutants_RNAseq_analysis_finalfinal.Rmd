@@ -1235,12 +1235,12 @@ table(recut.et$color) # this is more cut
 ## try mergeCloseMOdulesl wutg higher height (0.6) for all Genotype
 setwd(homedir)
 rm(net)
-for(x in Genotype[1:2]) {
+for(x in Genotype) {
   SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
     dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 17757     21
   datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
   load(paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV",x,".Rdata",sep=""))
-mergeCloseModules(
+merge.net2<-mergeCloseModules(
      # input data
   exprData=datExpr, colors=net$colors,
   # Optional starting eigengenes
@@ -1270,7 +1270,6 @@ mergeCloseModules(
   # Options controlling behaviour of the function
   trapErrors = FALSE,
   verbose = 1, indent = 0)
-length(table(merge.net2$color)) # 22 modules
 # save parameters  
   moduleLabels = merge.net2$colors
   moduleColors = labels2colors(merge.net2$colors)
@@ -1278,6 +1277,7 @@ length(table(merge.net2$color)) # 22 modules
   geneTree = merge.net2$dendrograms[[1]]
   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net2.RData",sep=""))
 rm(net)
+rm(merge.net2)
 }
 
 ```
@@ -1370,7 +1370,7 @@ names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.merge.net2.RData)","\\2",c("all1
 SAS.expression.vst.s.kazu.largeCV.modules<-cbind(rownames(SAS.expression.vst.s.kazu.largeCV),temp)
 names(SAS.expression.vst.s.kazu.largeCV.modules)[1]<-"AGI"
 names(SAS.expression.vst.s.kazu.largeCV.modules)
-head(SAS.expression.vst.s.kazu.largeCV.modules) # whye they are the same? (110816)
+head(SAS.expression.vst.s.kazu.largeCV.modules)
 setwd(homedir)
 save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") #110816
 ```
