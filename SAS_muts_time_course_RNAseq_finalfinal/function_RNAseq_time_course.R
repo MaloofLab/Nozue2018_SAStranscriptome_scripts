@@ -8,6 +8,8 @@ library(edgeR);library(ggplot2);library(reshape2);library(grid);library(class);l
 # library(kohonen) # for SOM analysis
 library(scales) # for muted
 library(WGCNA);library(ShortRead);library(goseq);library(GO.db); library("org.At.tair.db")
+options(stringsAsFactors = FALSE) # for WGCNA
+
 #library("annotate") # does not work in whitney
 # see http://www.bioconductor.org/install/ for installation of these packages 
 #library(ggdendro) # for dendrogram
@@ -183,7 +185,7 @@ expression.mean<-function(data) { # return rowMean results for given data
 
 # ORA with GOseq
 # prerequisit
-library(ShortRead);library(goseq);library(GO.db);library("org.At.tair.db");library("annotate")
+#library(ShortRead);library(goseq);library(GO.db);library("org.At.tair.db");library("annotate")
 
 TIR10_cdna_rep_model<-readDNAStringSet("../../Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") 
 

@@ -883,10 +883,6 @@ newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
 test<-merge(DE.genotype.batch.genes.unique.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
 DE.genotype.batch.genes.SOMclusters<-test
 DE.genotype.batch.genes.SOMclusters[is.na(DE.genotype.batch.genes.SOMclusters)]<-"0"
-
-# write.csv(DE.genotype.batch.genes.SOMclusters,file="../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.SOMclusters.csv")
-# DE.genotype.batch.genes.SOMclusters<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.SOMclusters.csv")
-# DE.genotype.batch.genes.SOMclusters<-DE.genotype.batch.genes.SOMclusters[,-1]
 # adding gene description
 TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
 head(TAIR10_gene_descriptions)
@@ -1071,20 +1067,10 @@ enableWGCNAThreads(10) # in Whitney (Maloof lab server)
 ## Co-expressed gene module detection by WGCNA
 ```{r eval=FALSE}
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata") #  where this come from?
-#setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp")
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
-# Genotype<-levels(as.factor(samples.nolow5$genotype))
-#SAS.expression.vst<-read.csv("../../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (070416), fixed (082016)
-#rownames(SAS.expression.vst)<-SAS.expression.vst$X
-# # calculate mean value among replicates?
-# load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
-# samples.nolow5$sample<-with(samples.nolow5,paste(genotype,trt,time,sep=""))
-# samples.nolow5$sample<-factor(samples.nolow5$sample) #where this is used? (122214)
-# Genotype used in SAS.expression.vst 
-#Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)[-1])))
 Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst.s.kazu.largeCV)[-c(1,288)])))
 # why 56 modules? (091716)
-for(x in Genotype[-1]) {
+for(x in Genotype[1]) {
   SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
     dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 7438     21
   datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
@@ -1137,110 +1123,59 @@ for(x in Genotype[-1]) {
   geneTree = net$dendrograms[[1]]
   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.RData",sep=""))
 } # recalculating 082016. Recalculating genotype "3" due to "3" was missing (091616)
+
 # new WGCNA modules are too many (110716)
-## use recutBlockwiseTrees()
-?recutBlockwiseTrees
-## for Col (Genotype=1)
-x<-Genotype[1]
-  SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
-    dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 17757     21
-  datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
-  # Choose a set of soft-thresholding powers
-  powers = c(c(1:9), seq(from = 2, to=20, by=10))
-  sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)  
-  # Plot the results:
-  #sizeGrWindow(9, 5)
-  pdf(paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.softthresholding.pdf",sep=""),width=10,height=8)
-  par(mfrow = c(1,2));
-  cex1 = 0.9;
-  # Scale-free topology fit index as a function of the soft-thresholding power
-  plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-       xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
-       main = paste("Scale independence"));
-  text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-       labels=powers,cex=cex1,col="red");
-  # this line corresponds to using an R^2 cut-off of h
-  abline(h=0.90,col="red")
-  # Mean connectivity as a function of the soft-thresholding power
-  plot(sft$fitIndices[,1], sft$fitIndices[,5],
-       xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
-       main = paste("Mean connectivity"))
-  text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
-  dev.off()
-  # 
-  net = blockwiseModules(datExpr, power = 6,
-                         TOMType = "unsigned", minModuleSize = 20,
-                         reassignThreshold = 0, mergeCutHeight = 0.25,
-                         numericLabels = TRUE, pamRespectsDendro = FALSE,
-                         saveTOMs = TRUE,
-                         saveTOMFileBase = paste("SAS.expression.vst.s.kazu.largeCV",x,".TOM",sep=""),
-                         verbose = 3)
-  save(net,file=paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV",x,".Rdata",sep=""))  
-  # how to extract module info?
-  # open a graphics window
-  pdf(file=paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.dendrogram.pdf",sep=""),width=10,height=8)
-  # Convert labels to colors for plotting
-  mergedColors = labels2colors(net$colors)
-  # Plot the dendrogram and the module colors underneath
-  plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]],
-                      "Module colors",
-                      dendroLabels = FALSE, hang = 0.03,
-                      addGuide = TRUE, guideHang = 0.05)
-  dev.off()
-  # save parameters  
-  moduleLabels = net$colors
-  moduleColors = labels2colors(net$colors)
-  MEs = net$MEs
-  geneTree = net$dendrograms[[1]]
-  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.RData",sep=""))
-
- # recalculating 110716. 
-minNSamples<-10
-minNGenes<-30
-goodSampleGenes.result<-goodSamplesGenes(
-  datExpr, 
-  minFraction = 1/2, 
-  minNSamples = minNSamples, 
-  minNGenes = minNGenes, 
-  tol = NULL,
-  verbose = 1, indent = 0)
-####
-minModuleSize<-20
-recut.net<-recutBlockwiseTrees(datExpr,
-  goodSamples=goodSampleGenes.result$goodSamples, 
-  goodGenes=goodSampleGenes.result$goodGenes,
-  blocks=net$blocks,
-  TOMFiles=net$TOMFiles,
-  dendrograms=net$dendrograms,
-  corType = "pearson",
-  networkType = "unsigned",
-  deepSplit = 2,
-  detectCutHeight = 0.995, minModuleSize = 20,
-  maxCoreScatter = NULL, minGap = NULL,
-  maxAbsCoreScatter = NULL, minAbsGap = NULL,
-  minSplitHeight = NULL, minAbsSplitHeight = NULL,
-
-  useBranchEigennodeDissim = FALSE,
-  minBranchEigennodeDissim = mergeCutHeight,
-
-  pamStage = TRUE, pamRespectsDendro = TRUE,
-  minCoreKME = 0.5, minCoreKMESize = minModuleSize/3,
-  minKMEtoStay = 0.3,
-  reassignThreshold = 1e-6,
-  mergeCutHeight = 0.1, impute = TRUE,
-  trapErrors = FALSE, numericLabels = FALSE,
-  verbose = 0, indent = 0)
-table(recut.et$color) # this is more cut
-
+## recutBlockwiseTrees() is too divide modules further
 ## try mergeCloseMOdulesl wutg higher height (0.6) for all Genotype
+## resultant "tan" module is SA/JA module but it is too big. (110916)
+## try 0.55
 setwd(homedir)
 rm(net)
 for(x in Genotype) {
   SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
     dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 17757     21
   datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
-  load(paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV",x,".Rdata",sep=""))
-merge.net2<-mergeCloseModules(
+  load(paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata",x,".Rdata",sep=""))
+# merge.net2<-mergeCloseModules(
+#      # input data
+#   exprData=datExpr, colors=net$colors,
+#   # Optional starting eigengenes
+#   MEs = NULL,
+#   # Optional restriction to a subset of all sets
+#   useSets = NULL,
+#   # If missing data are present, impute them?
+#   impute = TRUE,
+#   # Input handling options
+#   checkDataFormat = TRUE,
+#   unassdColor = if (is.numeric(colors)) 0 else "grey",
+#   # Options for eigengene network construction
+#   corFnc = cor, corOptions = list(use = 'p'),
+#   useAbs = FALSE,
+#   # Options for constructing the consensus
+#   equalizeQuantiles = FALSE,
+#   quantileSummary = "mean",
+#   consensusQuantile = 0,
+#   # Merging options
+#   cutHeight = 0.6,
+#   iterate = TRUE,
+#   # Output options
+#   relabel = FALSE,
+#   colorSeq = NULL,
+#   getNewMEs = TRUE,
+#   getNewUnassdME = TRUE,
+#   # Options controlling behaviour of the function
+#   trapErrors = FALSE,
+#   verbose = 1, indent = 0)
+# # save parameters  
+#   moduleLabels = merge.net2$colors
+#   moduleColors = labels2colors(merge.net2$colors)
+#   MEs = merge.net2$MEs
+#   geneTree = merge.net2$dendrograms[[1]]
+#   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net2.RData",sep="")) 
+# rm(net)
+# rm(merge.net2)
+# } # resultant "tan" module is SA/JA module but it is too big. (110916)
+merge.net3<-mergeCloseModules(
      # input data
   exprData=datExpr, colors=net$colors,
   # Optional starting eigengenes
@@ -1260,7 +1195,7 @@ merge.net2<-mergeCloseModules(
   quantileSummary = "mean",
   consensusQuantile = 0,
   # Merging options
-  cutHeight = 0.6,
+  cutHeight = 0.55, # smaller than 0.6
   iterate = TRUE,
   # Output options
   relabel = FALSE,
@@ -1271,14 +1206,17 @@ merge.net2<-mergeCloseModules(
   trapErrors = FALSE,
   verbose = 1, indent = 0)
 # save parameters  
-  moduleLabels = merge.net2$colors
-  moduleColors = labels2colors(merge.net2$colors)
+  moduleLabels = merge.net3$colors
+  moduleColors = labels2colors(merge.net3$colors)
   MEs = merge.net2$MEs
-  geneTree = merge.net2$dendrograms[[1]]
-  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net2.RData",sep=""))
+  geneTree = merge.net3$dendrograms[[1]]
+  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net3.RData",sep="")) 
 rm(net)
-rm(merge.net2)
-}
+rm(merge.net3)
+} # resultant ***
+
+
+
 
 ```
 
@@ -1480,7 +1418,11 @@ table(SAS.expression.vst.s.kazu.largeCV.modules$"1")
 ```{r eval=FALSE}
 setwd(homedir)
 # load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") # tan is SA and JA an everything. too big. Also overlapped with all mutants (Fig6)
+# lower threshold in meregeCloseModules.
+
+
+
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # prep for GO category
@@ -1661,7 +1603,8 @@ overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
 custom.category.overlap.melt.summary.s<-overlap.melt.summary
 custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!custom.category.overlap.melt.summary.s$Var1=="0",]
 custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!custom.category.overlap.melt.summary.s$Var2=="0",]
-save(custom.category.overlap.melt.summary.s,file="../../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata") # in whiteney
+setwd(homedir)
+save(custom.category.overlap.melt.summary.s,file="../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata") # in whiteney
 load("../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata")
 q4<-ggplot(custom.category.overlap.melt.summary.s,aes(y=factor(Var1),x=factor(Var2))) 
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
