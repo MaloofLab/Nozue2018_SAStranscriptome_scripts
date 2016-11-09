@@ -1378,62 +1378,6 @@ save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscri
 # overlap between WGCNA Col modules and mutation affected genes
 ```{r,eval=FALSE}
 setwd(homedir)
-#rm(list=ls())
-# under construction to eliminate "bsk5_1" (081816)
-
-# # sun
-# setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
-# DE.genotype.batch.sun.files<-list.files(pattern="DE.genotype.batch.sun") # needs to select "sun" object (060615)
-# #DE.genotype.batch.sun.files.kazu<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% 1:19]
-# DE.genotype.batch.sun.files.kazu<-DE.genotype.batch.sun.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.sun.files) %in% Genotype]
-# 
-# load(DE.genotype.batch.sun.files.kazu[1])
-# DE.genotype.batch.sun.genes<-rownames(DE.batch3.gt)
-# for(xx in DE.genotype.batch.sun.files.kazu) {
-#   load(xx)
-#   DE.genotype.batch.sun.genes<-c(DE.genotype.batch.sun.genes,rownames(DE.batch3.gt))
-# }
-# # shade
-# #setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")
-# DE.genotype.batch.shade.files<-list.files(pattern="DE.genotype.batch.shade")
-# 
-# #DE.genotype.batch.shade.files.kazu<-DE.genotype.batch.shade.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.shade.files) %in% 1:19]
-# DE.genotype.batch.shade.files.kazu<-DE.genotype.batch.shade.files[gsub("([[:print:]]+)(wo16h)([[:digit:]]+)(.Rdata)","\\3",DE.genotype.batch.shade.files) %in% Genotype]
-# load(DE.genotype.batch.shade.files.kazu[1])
-# DE.genotype.batch.shade.genes<-rownames(DE.batch3.gt)
-# for(xx in DE.genotype.batch.shade.files.kazu) {
-#   load(xx)
-#   DE.genotype.batch.shade.genes<-c(DE.genotype.batch.shade.genes,rownames(DE.batch3.gt))
-# }
-# ######
-# DE.genotype.batch.genes.unique<-unique(c(DE.genotype.batch.sun.genes,DE.genotype.batch.shade.genes))
-# length(DE.genotype.batch.genes.unique) #3356 > 1912 (only Genotype in new vst)
-# # 
-# DE.genotype.batch.genes.unique.DF<-data.frame(AGI=DE.genotype.batch.genes.unique)
-# # sun
-# for(x in DE.genotype.batch.sun.files.kazu) {
-# load(x)
-# temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
-# temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"sun",sep="."),sum(temp))
-# DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
-# }
-# names(DE.genotype.batch.genes.unique.DF)[-1]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.sun.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.sun.files.kazu)),2],"sun",sep=".")
-# #head(DE.genotype.batch.genes.unique.DF)
-# # shade
-# for(x in DE.genotype.batch.shade.files.kazu) {
-# # setwd("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/genotype_specific5")  
-# load(x)
-# temp<-as.integer(DE.genotype.batch.genes.unique %in% rownames(DE.batch3.gt)) 
-# temp[temp==1]<-rep(paste(conversion.table[conversion.table==gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",x),2],"shade",sep="."),sum(temp))
-# DE.genotype.batch.genes.unique.DF<-cbind(DE.genotype.batch.genes.unique.DF,temp)                   
-# }
-# #head(DE.genotype.batch.genes.unique.DF)
-# names(DE.genotype.batch.genes.unique.DF)[-(1:15)]<-paste(conversion.table[as.numeric(gsub("(DE.genotype.batch.shade.gt.wo16h)([[:digit:]]+)(.Rdata)","\\2",DE.genotype.batch.shade.files.kazu)),2],"shade",sep=".")
-# #head(DE.genotype.batch.genes.unique.DF)
-# # remove "0"
-# #DE.genotype.batch.genes.unique.DF[DE.genotype.batch.genes.unique.DF==0]<-""
-# DE.genotype.batch.genes.unique.DF$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.genes.unique.DF$AGI)
-
 ### I did the same calculation above? (091616)
 setwd(homedir)
 load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
