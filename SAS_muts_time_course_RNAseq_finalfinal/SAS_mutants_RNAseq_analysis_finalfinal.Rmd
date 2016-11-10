@@ -1070,7 +1070,7 @@ load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.l
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
 Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst.s.kazu.largeCV)[-c(1,288)])))
 # why 56 modules? (091716)
-for(x in Genotype[1]) {
+for(x in Genotype) {
   SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
     dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 7438     21
   datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
@@ -1105,7 +1105,6 @@ for(x in Genotype[1]) {
                          saveTOMFileBase = paste("SAS.expression.vst.s.kazu.largeCV",x,".TOM",sep=""),
                          verbose = 3)
   save(net,file=paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV",x,".Rdata",sep=""))  
-  # how to extract module info?
   # open a graphics window
   pdf(file=paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.dendrogram.pdf",sep=""),width=10,height=8)
   # Convert labels to colors for plotting
@@ -1125,17 +1124,31 @@ for(x in Genotype[1]) {
 } # recalculating 082016. Recalculating genotype "3" due to "3" was missing (091616)
 
 # new WGCNA modules are too many (110716)
+# how many modules?
+  table(net$colors);length(table(net$colors)) #
 ## recutBlockwiseTrees() is too divide modules further
 ## try mergeCloseMOdulesl wutg higher height (0.6) for all Genotype
 ## resultant "tan" module is SA/JA module but it is too big. (110916)
 ## try 0.55
+##  cutHeight = 0.55, 27 modules, yellow = SA is too large
+## try 0.4, 37 modules, gray60 that PCC1 belongs is slight large (594)
+## try 0.35 (merge.net35) 44 modules (JA and SA GO terms were found in the same module; gray60)
+### all PCC1, XBAT34, AIG1, ACD6 belong to "gray60"
+## try 0.3 (merge.net30) 50 modules (JA (gray60) and SA (orange) GO terms were separated). PCC1 (  AT3G22231; orange, XBAT34 (AT4G14365, orange), but AIG1 (thistle2;  AT1G33960), ACD6 (?)
+## try 0.32; all four genes belong to "orange"
+
+
 setwd(homedir)
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata") #  where this come from?
+load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
+Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst.s.kazu.largeCV)[-c(1,288)])))
+
 rm(net)
 for(x in Genotype) {
   SAS.expression.vst.s.kazu.largeCV.x<-SAS.expression.vst.s.kazu.largeCV[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s.kazu.largeCV))==x]
     dim(SAS.expression.vst.s.kazu.largeCV.x) #[1] 17757     21
   datExpr <-t(SAS.expression.vst.s.kazu.largeCV.x)
-  load(paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata",x,".Rdata",sep=""))
+  load(paste("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV",x,".Rdata",sep=""))
 # merge.net2<-mergeCloseModules(
 #      # input data
 #   exprData=datExpr, colors=net$colors,
@@ -1175,7 +1188,7 @@ for(x in Genotype) {
 # rm(net)
 # rm(merge.net2)
 # } # resultant "tan" module is SA/JA module but it is too big. (110916)
-merge.net3<-mergeCloseModules(
+merge.net32<-mergeCloseModules(
      # input data
   exprData=datExpr, colors=net$colors,
   # Optional starting eigengenes
@@ -1195,7 +1208,7 @@ merge.net3<-mergeCloseModules(
   quantileSummary = "mean",
   consensusQuantile = 0,
   # Merging options
-  cutHeight = 0.55, # smaller than 0.6
+  cutHeight = 0.32, # need to optimize 
   iterate = TRUE,
   # Output options
   relabel = FALSE,
@@ -1206,17 +1219,23 @@ merge.net3<-mergeCloseModules(
   trapErrors = FALSE,
   verbose = 1, indent = 0)
 # save parameters  
-  moduleLabels = merge.net3$colors
-  moduleColors = labels2colors(merge.net3$colors)
-  MEs = merge.net2$MEs
-  geneTree = merge.net3$dendrograms[[1]]
-  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net3.RData",sep="")) 
+  moduleLabels = merge.net32$colors
+  moduleColors = labels2colors(merge.net32$colors)
+  MEs = merge.net32$MEs
+  geneTree = merge.net32$dendrograms[[1]]
+  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net32.RData",sep="")) 
 rm(net)
-rm(merge.net3)
+rm(merge.net32)
 } # resultant ***
-
-
-
+# check new module numbers
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
+moduleColors.files<-list.files(pattern=".largeCV.merge.net32.RData") # for  merged modules by mergeCloseModules function above for Col (110816); newer (110916)
+### use merged modules by mergeCloseModules function above for Col (22 modules; 110716)
+load("all1.largeCV.merge.net32.RData")
+########
+moduleColors.allCol.largeCV<-moduleColors
+table(moduleColors.allCol.largeCV);length(table(moduleColors.allCol.largeCV)) #
+## check module character by GO ORA
 
 ```
 
@@ -1285,18 +1304,21 @@ load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.l
 
 ```
 
-## overlap table between Col WGCNA modules and mutant modules
+## summary of modules in mutants
 ```{r eval=FALSE}
 setwd(homedir)
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata") 
+
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
-moduleColors.files<-list.files(pattern=".largeCV.merge.net2.RData") # for  merged modules by mergeCloseModules function above for Col (110816)
-# load("all1.largeCV.RData")
+moduleColors.files<-list.files(pattern=".largeCV.merge.net32.RData") # for  merged modules by mergeCloseModules function above for Col (110816); newer (110916)
 ### use merged modules by mergeCloseModules function above for Col (22 modules; 110716)
-load("all1.largeCV.merge.net2.RData")
+load("all1.largeCV.merge.net32.RData")
 ########
 moduleColors.allCol.largeCV<-moduleColors
+table(moduleColors.allCol.largeCV)
+
 temp<-moduleColors.allCol.largeCV
-for(y in moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net2.RData"]) {
+for(y in moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net32.RData"]) {
   load(y)
   print(length(moduleColors)) # [1] 17757
   matched.moduleColors<-matchLabels(moduleColors,moduleColors.allCol.largeCV)
@@ -1304,26 +1326,29 @@ for(y in moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net2.RData"
 }   
 length(moduleColors.files)
 temp<-as.data.frame(temp)
-names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.merge.net2.RData)","\\2",c("all1.largeCV.merge.net2.RData",moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net2.RData"]))
+
+names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.merge.net32.RData)","\\2",c("all1.largeCV.merge.net35.RData",moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net35.RData"]))
 SAS.expression.vst.s.kazu.largeCV.modules<-cbind(rownames(SAS.expression.vst.s.kazu.largeCV),temp)
+
 names(SAS.expression.vst.s.kazu.largeCV.modules)[1]<-"AGI"
 names(SAS.expression.vst.s.kazu.largeCV.modules)
+# look modules of PCC1, XBAT34, AIG1 (PCC1 (  AT3G22231; orange, XBAT34 (AT4G14365, orange), but AIG1 (thistle2;  AT1G33960), ACD6 (AT4G14400, ?)
+SAS.expression.vst.s.kazu.largeCV.modules[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),]
+#
+##
 head(SAS.expression.vst.s.kazu.largeCV.modules)
 setwd(homedir)
-save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") #110816
+#save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") #110816
+save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata") #110916
 ```
 
 # overlap between WGCNA Col modules and mutation affected genes
 ```{r,eval=FALSE}
 setwd(homedir)
-### I did the same calculation above? (091616)
-setwd(homedir)
 load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata")
-# 
 #setwd(homedir)
 # load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata")
 #library(WGCNA)
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # merge with WGCNA modules
@@ -1336,13 +1361,15 @@ write.csv(DE.genotype.batch.genes.WGCNAmodules,file="../../Nozue2016_SAStranscri
 DE.genotype.batch.genes.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
 DE.genotype.batch.genes.WGCNAmodules<-DE.genotype.batch.genes.WGCNAmodules[,-1]
 
-length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) # 23 modules (110816)
+length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) #
 # adding gene description
 # TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
 # TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 #names(DE.genotype.batch.genes.WGCNAmodules.description)<-sub("X1","WGCNAmodules",names(test))
 write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv") #091616
+
+
 # in whitney
 test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv")
 test<-test[,-1]
@@ -1351,12 +1378,12 @@ dim(test) # 17985   28
 # overlap table (revsised into GOseq.overlapTable; 052616)
 # with ,permutation=100 (060316)
 i<-2
-overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI,permutation=100)
-overlap.melt<-melt(overlap$pTable,id=1,permutation=100) #
+overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
+overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="0",]
 for(i in 3:29) {
-overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI,permutation=100)
+overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
@@ -1418,11 +1445,9 @@ table(SAS.expression.vst.s.kazu.largeCV.modules$"1")
 ```{r eval=FALSE}
 setwd(homedir)
 # load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") # tan is SA and JA an everything. too big. Also overlapped with all mutants (Fig6)
+#load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") # tan is SA and JA an everything. too big. Also overlapped with all mutants (Fig6)
 # lower threshold in meregeCloseModules.
-
-
-
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata") # 
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # prep for GO category
@@ -1443,11 +1468,11 @@ for(x in modules) {
   temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"==x,"AGI"],category.table=Atgo.list)
   save(temp.GOseq,temp.genes,file=paste("WGCNA.Col.module.",x,".GOseq.Rdata",sep=""))
 }
-  } # 091716
+  } # 110916
 ```
 ## write summary of WGCNA.Col.module.GOseq 
 ```{r eval=FALSE}
-rm(list=ls())
+#rm(list=ls())
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 WGCNA.Col.module.GOseq.files<-list.files(pattern="^WGCNA.Col.module.")
 WGCNA.Col.module.GOseq.files<-grep(".GOseq.Rdata",WGCNA.Col.module.GOseq.files,value=TRUE)
@@ -1958,6 +1983,7 @@ setwd("../../Nozue2016_SAStranscriptome_scripts/")
 # http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE51626
 # Singh M, Bag SK, Bhardwaj A, Ranjan A et al. Global nucleosome positioning 
 # regulates salicylic acid mediated transcription in Arabidopsis thaliana. BMC Plant # Biol 2015 Jan 21;15:13. PMID: 25604550
+# 24 h SA or mock treatment (thnaks for a Plant Cell reviewer)
 ###  The RNA of col-0 and npr1-1 mutant were isolated after 24hr water and SA treatment.The ATH1 gene chip was used for expression analysis.
 ###  GSM1249675  Col-0 water, biological replicate 1
 ###  GSM1249676  Col-0 water, biological replicate 2
@@ -1975,7 +2001,7 @@ CEL.filename
 Data <- ReadAffy(filenames=CEL.filename)
 Data
 eset <- rma(Data) # normalize chips 
-affyData <- read.csv("../../Nozue2016_SAStranscriptome_data/input/affy_ATH1_array_elements-2010-12-20.csv") #read TAIR annotation data from file (TAIR10)
+affyData <- read.csv("../affy_ATH1_array_elements-2010-12-20.csv") #read TAIR annotation data from file (TAIR10)
 affyData2<-affyData[,c("array_element_name","is_control","locus","description","chromosome","start","stop")]
 names(affyData2) <- c("element","is.control","locus","description","chromosome","start","stop")#get rid of underlines
 head(affyData2)
@@ -1985,11 +2011,13 @@ exp.values <- data.frame(exprs(eset)) #put normalized intensities in a data fram
 head(exp.values)
 exp.values <- cbind(affyMatch,exp.values) #add annotation to same frame as expression values
 head(exp.values)
+setwd(homedir)
 write.csv(exp.values,file="../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/exp.values.csv")
 ######## RP analysis
 library(RankProd)
-exp.values<-read.csv("../../Nozue2016_SAStranscriptome_data/inpu/GSE51626_RAW/exp.values.csv")
+exp.values<-read.csv("../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/exp.values.csv")
 names(exp.values)
+## Col (water) vs npr1 (water)
 names(exp.values)[c(9:10,13:14)]
 RP.GSE51626.npr1 <- RP(exp.values[,c(9:10,13:14)], rep(1:0,each=2), num.perm=100) # water control, 0 (class 1) = Col, 1 (class 2)= npr1-1 
 topgene.RP.GSE51626.npr1<-topGene(RP.GSE51626.npr1,cutoff=0.01,gene.names=exp.values$element,logged=TRUE,logbase=2)
@@ -1999,7 +2027,7 @@ topgene.RP.GSE51626.npr1.T2$element<-rownames(topgene.RP.GSE51626.npr1.T2)
 topgene.RP.GSE51626.npr1.T2.m<-merge(topgene.RP.GSE51626.npr1.T2, affyData2,by="element")
 head(topgene.RP.GSE51626.npr1.T2.m)
 topgene.RP.GSE51626.npr1.T2.m.exp.value<-merge(topgene.RP.GSE51626.npr1.T2.m, exp.values[,c(2,9:10,13:14)],by="element")
-topgene.RP.GSE51626.npr1.T2.m.exp.value<=topgene.RP.GSE51626.npr1.T2.m.exp.value[order(topgene.RP.GSE51626.npr1.T2.m.exp.value$pfp),]
+topgene.RP.GSE51626.npr1.T2.m.exp.value<-topgene.RP.GSE51626.npr1.T2.m.exp.value[order(topgene.RP.GSE51626.npr1.T2.m.exp.value$pfp),]
 
 #  repressed genes in npr1-1
 topgene.RP.GSE51626.npr1.T1<-as.data.frame(topgene.RP.GSE51626.npr1$Table1)
@@ -2012,6 +2040,33 @@ topgene.RP.GSE51626.npr1.T1.m.exp.value<-topgene.RP.GSE51626.npr1.T1.m.exp.value
 # summary
 topgene.RP.GSE51626.npr1.summary<-rbind(topgene.RP.GSE51626.npr1.T1.m.exp.value,topgene.RP.GSE51626.npr1.T2.m.exp.value)
 write.csv(topgene.RP.GSE51626.npr1.summary,file="../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/topgene.RP.GSE51626.npr1.summary.csv")
+
+# Col, SA responsive (24h) (110916)
+names(exp.values)[c(11:12,15:16)] # 
+RP.GSE51626.SA.npr1 <- RP(exp.values[,c(11:12,15:16)], rep(1:0,each=2), num.perm=100) # water control, 0 (class 1) = SA + Col, 1 (class 2)= SA + npr1
+topgene.RP.GSE51626.SA.npr1<-topGene(RP.GSE51626.SA.npr1,cutoff=0.01,gene.names=exp.values$element,logged=TRUE,logbase=2)
+#  induced genes by SA in Col
+topgene.RP.GSE51626.SA.npr1.T2<-as.data.frame(topgene.RP.GSE51626.SA.npr1$Table2)
+topgene.RP.GSE51626.SA.npr1.T2$element<-rownames(topgene.RP.GSE51626.SA.npr1.T2)
+topgene.RP.GSE51626.SA.npr1.T2.m<-merge(topgene.RP.GSE51626.SA.npr1.T2, affyData2,by="element")
+head(topgene.RP.GSE51626.SA.npr1.T2.m)
+topgene.RP.GSE51626.SA.npr1.T2.m.exp.value<-merge(topgene.RP.GSE51626.SA.npr1.T2.m, exp.values[,c(2,11:12,15:16)],by="element")
+topgene.RP.GSE51626.SA.npr1.T2.m.exp.value<-topgene.RP.GSE51626.SA.npr1.T2.m.exp.value[order(topgene.RP.GSE51626.SA.npr1.T2.m.exp.value$pfp),]
+
+#  repressed genes by SA
+topgene.RP.GSE51626.SA.npr1.T1<-as.data.frame(topgene.RP.GSE51626.SA.npr1$Table1)
+topgene.RP.GSE51626.SA.npr1.T1$element<-rownames(topgene.RP.GSE51626.SA.npr1.T1)
+topgene.RP.GSE51626.SA.npr1.T1.m<-merge(topgene.RP.GSE51626.SA.npr1.T1, affyData2,by="element")
+head(topgene.RP.GSE51626.SA.npr1.T1.m)
+topgene.RP.GSE51626.SA.npr1.T1.m.exp.value<-merge(topgene.RP.GSE51626.SA.npr1.T1.m, exp.values[,c(2,11:12,15:16)],by="element")
+topgene.RP.GSE51626.SA.npr1.T1.m.exp.value<-topgene.RP.GSE51626.SA.npr1.T1.m.exp.value[order(topgene.RP.GSE51626.SA.npr1.T1.m.exp.value$pfp),]
+
+# summary
+topgene.RP.GSE51626.SA.npr1.summary<-rbind(topgene.RP.GSE51626.SA.npr1.T1.m.exp.value,topgene.RP.GSE51626.SA.npr1.T2.m.exp.value)
+write.csv(topgene.RP.GSE51626.SA.npr1.summary,file="../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/topgene.RP.GSE51626.SA.npr1.summary.csv")
+
+
+
 
 # ### other SA microarray
 # http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE3984
