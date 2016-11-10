@@ -274,5 +274,6 @@ head(hormone.responsiveness5)
 table(hormone.responsiveness5[1:10])
 attributes(hormone.responsiveness5)$category<-names(group_comparison.Ver5.selected)
 setwd(homedir)
+setwd("../../Nozue2016_SAStranscriptome_data/input")
 save(hormone.responsiveness5,file="hormone.responsiveness5.Rdata")
 
