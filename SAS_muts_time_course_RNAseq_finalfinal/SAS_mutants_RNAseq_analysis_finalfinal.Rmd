@@ -1993,6 +1993,7 @@ setwd("../../Nozue2016_SAStranscriptome_scripts/")
 ###  GSM1249680	npr1-1 water, biological replicate 2
 ###  GSM1249681	npr1-1 SA, biological replicate 1
 ###  GSM1249682	npr1-1 SA, biological replicate 2
+setwd(hormedir)
 setwd("../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW")
 library(affy)
 #Data <- ReadAffy(widget=T) # error
@@ -2041,7 +2042,7 @@ topgene.RP.GSE51626.npr1.T1.m.exp.value<-topgene.RP.GSE51626.npr1.T1.m.exp.value
 topgene.RP.GSE51626.npr1.summary<-rbind(topgene.RP.GSE51626.npr1.T1.m.exp.value,topgene.RP.GSE51626.npr1.T2.m.exp.value)
 write.csv(topgene.RP.GSE51626.npr1.summary,file="../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/topgene.RP.GSE51626.npr1.summary.csv")
 
-# Col, SA responsive (24h) (110916)
+# npr1 responsive (24h SA treated) (110916)
 names(exp.values)[c(11:12,15:16)] # 
 RP.GSE51626.SA.npr1 <- RP(exp.values[,c(11:12,15:16)], rep(1:0,each=2), num.perm=100) # water control, 0 (class 1) = SA + Col, 1 (class 2)= SA + npr1
 topgene.RP.GSE51626.SA.npr1<-topGene(RP.GSE51626.SA.npr1,cutoff=0.01,gene.names=exp.values$element,logged=TRUE,logbase=2)
@@ -2065,8 +2066,51 @@ topgene.RP.GSE51626.SA.npr1.T1.m.exp.value<-topgene.RP.GSE51626.SA.npr1.T1.m.exp
 topgene.RP.GSE51626.SA.npr1.summary<-rbind(topgene.RP.GSE51626.SA.npr1.T1.m.exp.value,topgene.RP.GSE51626.SA.npr1.T2.m.exp.value)
 write.csv(topgene.RP.GSE51626.SA.npr1.summary,file="../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/topgene.RP.GSE51626.SA.npr1.summary.csv")
 
+# SA responsive
+## Col (water) vs Col (SA)
+names(exp.values)[c(9:12)]
+RP.GSE51626.SA.Col <- RP(exp.values[,c(9:12)], rep(1:0,each=2), num.perm=100) # water control, 0 (class 1) = Col, 1 (class 2)= SA Col
+topgene.RP.GSE51626.SA.Col<-topGene(RP.GSE51626.SA.Col,cutoff=0.01,gene.names=exp.values$element,logged=TRUE,logbase=2)
+#  induced genes in npr1-1
+topgene.RP.GSE51626.SA.Col.T2<-as.data.frame(topgene.RP.GSE51626.SA.Col$Table2)
+topgene.RP.GSE51626.SA.Col.T2$element<-rownames(topgene.RP.GSE51626.SA.Col.T2)
+topgene.RP.GSE51626.SA.Col.T2.m<-merge(topgene.RP.GSE51626.SA.Col.T2, affyData2,by="element")
+head(topgene.RP.GSE51626.SA.Col.T2.m)
+topgene.RP.GSE51626.SA.Col.T2.m.exp.value<-merge(topgene.RP.GSE51626.SA.Col.T2.m, exp.values[,c(2,9:12)],by="element")
+topgene.RP.GSE51626.SA.Col.T2.m.exp.value<-topgene.RP.GSE51626.SA.Col.T2.m.exp.value[order(topgene.RP.GSE51626.SA.Col.T2.m.exp.value$pfp),]
 
+#  SA repressed genes
+topgene.RP.GSE51626.SA.Col.T1<-as.data.frame(topgene.RP.GSE51626.SA.Col$Table1)
+topgene.RP.GSE51626.SA.Col.T1$element<-rownames(topgene.RP.GSE51626.SA.Col.T1)
+topgene.RP.GSE51626.SA.Col.T1.m<-merge(topgene.RP.GSE51626.SA.Col.T1, affyData2,by="element")
+head(topgene.RP.GSE51626.SA.Col.T1.m)
+topgene.RP.GSE51626.SA.Col.T1.m.exp.value<-merge(topgene.RP.GSE51626.SA.Col.T1.m, exp.values[,c(2,9:12)],by="element")
+topgene.RP.GSE51626.SA.Col.T1.m.exp.value<-topgene.RP.GSE51626.SA.Col.T1.m.exp.value[order(topgene.RP.GSE51626.SA.Col.T1.m.exp.value$pfp),]
 
+# summary
+topgene.RP.GSE51626.SA.Col.summary<-rbind(topgene.RP.GSE51626.SA.Col.T1.m.exp.value,topgene.RP.GSE51626.SA.Col.T2.m.exp.value)
+write.csv(topgene.RP.GSE51626.SA.Col.summary,file="../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/topgene.RP.GSE51626.SA.Col.summary.csv")
+
+# VennDiagram (111116) see more in https://rstudio-pubs-static.s3.amazonaws.com/13301_6641d73cfac741a59c0a851feb99e98b.html. That is Ruijuan is using for her color VennDiagram.
+library(VennDiagram)
+setwd(homedir)
+# reading DE gene list tables
+GSE51626.Venn<-data.frame(element=affyData$array_element_name,AGI=affyData$locus,npr1=" ",SA.npr1=" ",SA.Col=" ")
+topgene.RP.GSE51626.npr1.summary<-read.csv("../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/topgene.RP.GSE51626.npr1.summary.csv");topgene.RP.GSE51626.npr1.summary<-topgene.RP.GSE51626.npr1.summary[,-1]
+topgene.RP.GSE51626.SA.npr1.summary<-read.csv("../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/topgene.RP.GSE51626.SA.npr1.summary.csv");topgene.RP.GSE51626.SA.npr1.summary<-topgene.RP.GSE51626.SA.npr1.summary[,-1]
+topgene.RP.GSE51626.SA.Col.summary<-read.csv("../../Nozue2016_SAStranscriptome_data/input/GSE51626_RAW/topgene.RP.GSE51626.SA.Col.summary.csv");topgene.RP.GSE51626.SA.Col.summary<-topgene.RP.GSE51626.SA.Col.summary[,-1]
+
+GSE51626.Venn[GSE51626.Venn$element %in% topgene.RP.GSE51626.npr1.summary$element,"npr1"]<-"npr1"
+GSE51626.Venn[GSE51626.Venn$element %in% topgene.RP.GSE51626.SA.npr1.summary$element,"SA.npr1"]<-"SA.npr1"
+GSE51626.Venn[GSE51626.Venn$element %in% topgene.RP.GSE51626.SA.Col.summary$element,"SA.Col"]<-"SA.Col"
+# gene of interest in the VennDiagram  PCC1, XBAT34, AIG1 (PCC1 (  AT3G22231; orange, XBAT34 (AT4G14365, orange), but AIG1 (thistle2;  AT1G33960), ACD6 (AT4G14400, ?)
+GSE51626.Venn[GSE51626.Venn$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),] #
+GSE51626.Venn[GSE51626.Venn$npr1=="npr1",]
+# update hormone responsiveness data set (111116)
+
+# no need to make data frame! Use use element name for each set
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
+venn.plot<-venn.diagram(list(npr1=topgene.RP.GSE51626.npr1.summary$element,SA.npr1=topgene.RP.GSE51626.SA.npr1.summary$element,SA.Col=topgene.RP.GSE51626.SA.Col.summary$element),filename="Venn_npr1.png")
 
 # ### other SA microarray
 # http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE3984
