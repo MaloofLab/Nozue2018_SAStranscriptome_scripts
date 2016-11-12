@@ -498,6 +498,7 @@ ssom3.4.noscaling <- som(as.matrix(data5), somgrid(3,4,"hexagonal"))
 plot(ssom3.4.noscaling) 
 ssom4.4.noscaling <- som(as.matrix(data5), somgrid(4,4,"hexagonal")) 
 plot(ssom4.4.noscaling) 
+# Selecting ssom3.4 because of (1) sufficient variation among clusters and (2) minimum redundancy among clusters judted from those plot 
 
 ## Create and write-out master SOM file
 newdata.vst<-cbind(data5,ssom3.4.noscaling$unit.classif,ssom3.4.noscaling$distances)
@@ -918,24 +919,7 @@ overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!is.na(overlap.GOseq.me
 overlap.GOseq.melt.summary.ss<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var1==0,]
 overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # 052516
 # needs to change Var1 levels (091016)
-
-# 
-# q4<-ggplot(overlap.GOseq.melt.summary.ss,aes(y=factor(Var1),x=factor(Var2))) 
-# #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
-# q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta") # 061816
-# #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
-# q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
-#                  panel.grid.major = element_blank(),
-#                  panel.grid.minor = element_blank(),
-#                  panel.background = element_blank(),
-#                  axis.ticks = element_line(size=0,color="white"))
-# q4 <- q4 + geom_text(aes(label=count,size=1))
-# q4 <- q4 + labs(x="genotype specific genes",y="SOM clusters in Col",title="SOM clusters affected in SAS mutants")
-# #setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp")
-# ggsave(q4,file="Col.SOM.clusters.vs.GenotypeSpecific.genes.table.s.GOseq.newcolor.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-# q4 # magenta indicates pvalue is smaller than 0.01.
 # switching x and y axis
-#overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=rev(c(3,6,9,5,8,2,4,11,1,12,7,10)))
 overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # 052516
 overlap.GOseq.melt.summary.ss$Var2<-factor(overlap.GOseq.melt.summary.ss$Var2,levels=rev(levels(overlap.GOseq.melt.summary.ss$Var2))) 
 
@@ -959,27 +943,29 @@ setwd(homedir)
 ```
 # Overlap analysis with custome categories (SOM)
 ```{r eval=FALSE}
-rm(list=ls())
-source("function_RNAseq_time_course.R")
-library(WGCNA);library(ggplot2);library(reshape2);library(scales)
-options(stringsAsFactors = FALSE);
+#rm(list=ls())
+#source("function_RNAseq_time_course.R")
+#library(WGCNA);library(ggplot2);library(reshape2);library(scales)
+options(stringsAsFactors = FALSE) # for WGCNA
 conversion.table
 # custom categories
-load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness4.Rdata") #new version. check if new version is identical to this. copy the file to this location
+# load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness4.Rdata") #new version. check if new version is identical to this. copy the file to this location
+load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness5.Rdata") #new version. 
+
 ## change list into data.frame
-attributes(hormone.responsiveness4)
-hormone.responsiveness4.DF<-data.frame(t(sapply(hormone.responsiveness4,c)))
-names(hormone.responsiveness4.DF)<-attributes(hormone.responsiveness4)$category
+attributes(hormone.responsiveness5)
+hormone.responsiveness5.DF<-data.frame(t(sapply(hormone.responsiveness5,c)))
+names(hormone.responsiveness5.DF)<-attributes(hormone.responsiveness5)$category
 ## convert into hormone.responsiveness3.DF (omit "PCC1", "GRF1_3")
-hormone.responsiveness3.DF<-hormone.responsiveness4.DF[,!names(hormone.responsiveness4.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
-summary(hormone.responsiveness3.DF)
-hormone.responsiveness3.DF$AGI<-rownames(hormone.responsiveness3.DF)
+hormone.responsiveness5.DF<-hormone.responsiveness5.DF[,!names(hormone.responsiveness5.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
+summary(hormone.responsiveness5.DF)
+hormone.responsiveness5.DF$AGI<-rownames(hormone.responsiveness5.DF)
 # SOM clusters
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 022215
 
 newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,] 
 # merge with SOM clusters
-test<-merge(hormone.responsiveness3.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
+test<-merge(hormone.responsiveness5.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
 hormone.responsiveness.SOMclusters<-test
 hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"0"
 # write.csv(hormone.responsiveness.SOMclusters,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
@@ -991,17 +977,17 @@ hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"
 # TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 hormone.responsiveness.SOMclusters.description<-merge(hormone.responsiveness.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 write.csv(hormone.responsiveness.SOMclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables//Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv")
-# in whitney (****16) for ORA
+# in whitney (111016) for ORA
 test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv") # 
 test<-test[,-1]
 # overlap table 
 i<-2 
-overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI,permutation=100)
+overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="0",]
 for(i in 3:26) {
-overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI,permutation=100)
+overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
@@ -1024,14 +1010,16 @@ overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4
 
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616)
-overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","SARplus","SARminus","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616)
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616)
 # switching x and y axis
 #overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=rev(c(3,6,9,5,8,2,4,11,1,12,7,10)))
 overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # 052616
 overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=rev(levels(overlap.melt.summary.s$Var2)))                                    
 q4b<-ggplot(overlap.melt.summary.s,aes(y=factor(Var2),x=factor(Var1))) 
 #q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)# ,guide = guide_legend(title="-log10 p-value"))
-q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")
+#q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")
+q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",midpoint=2,high="magenta")
+
 #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
 q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
                  panel.grid.major = element_blank(),
@@ -1441,7 +1429,7 @@ ggsave(q5,file="Fig6_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.selecte
 ```{r eval=FALSE} 
 table(SAS.expression.vst.s.kazu.largeCV.modules$"1") 
 ```
-# The next question is what are these modules?  GOseq analysis of each cluster
+# The next question is what are these modules?  GOseq analysis of each module
 ```{r eval=FALSE}
 setwd(homedir)
 # load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
