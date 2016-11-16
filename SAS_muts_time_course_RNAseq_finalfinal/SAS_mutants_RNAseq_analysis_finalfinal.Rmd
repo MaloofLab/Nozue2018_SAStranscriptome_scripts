@@ -1367,13 +1367,13 @@ test<-test[,-1]
 dim(test) # 17985   28
 #test<-DE.genotype.batch.genes.WGCNAmodules
 # overlap table (revsised into GOseq.overlapTable; 052616)
-# with ,permutation=100 (060316)
+# loop fixed (111616)
 i<-2
 overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="0",]
-for(i in 3:29) {
+for(i in 3:25) {
 overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
@@ -1408,8 +1408,8 @@ q4 <- q4 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modu
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq11081616.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-# ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq061816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq11161616.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111616.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
 q4 # magenta indicates pvalue is smaller than 0.01.
 #### only "salmon","pink" (=JA),"purple" (=auxin) for job application 2015 - 2016 ###
