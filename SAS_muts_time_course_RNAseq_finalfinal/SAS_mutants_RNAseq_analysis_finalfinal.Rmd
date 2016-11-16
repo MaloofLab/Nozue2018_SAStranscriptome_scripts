@@ -928,7 +928,8 @@ overlap.GOseq.melt.summary.ss$Var2<-factor(overlap.GOseq.melt.summary.ss$Var2,le
 
 q4b<-ggplot(overlap.GOseq.melt.summary.ss,aes(y=factor(Var2),x=factor(Var1))) 
 #q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)  #+ ,guide = guide_legend(title="-log10\n p-value")) 
-q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")  
+#q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta") 
+q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2)
 #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
 q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
                  panel.grid.major = element_blank(),
@@ -938,7 +939,7 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2)
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_110716.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # running in whitney (110716)
+ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_111616.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # running in whitney (111616)
 q4b # almost the same with fisher's exact test version
 # needs to remove Var2="0" (091016)
 
@@ -1033,8 +1034,8 @@ q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title="custom category enrichment",fill="-log10\n p-value")
 #q4b
 #ggsave(q4b,file="Col.SOM.clusters.vs.my.category.table.s.2.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.110816.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.110816.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # testing this with Whitney (110816)
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.111616.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.111616.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # testing this with Whitney (110816)
 
 ```
 
