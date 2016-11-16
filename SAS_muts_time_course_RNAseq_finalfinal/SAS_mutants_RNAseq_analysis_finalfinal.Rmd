@@ -40,7 +40,10 @@ output: html_document
 if(Sys.info()["user"]=="nozue") {
 #homedir<-"/Volumes/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
 # for temporary computer system (J's ex hard drive)
-homedir<-"/Volumes/Data8new/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
+# homedir<-"/Volumes/Data8new/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
+# for new computer system (Toshiba 3T ex hard drive)
+homedir<-"/Volumes/data_work/data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
+
 } # customize homedir
 # download "Nozue2016_SAStranscriptome_data" at the same level of "Nozue2016_SAStranscriptome_scripts"
 # Atmosphere (Cyverse)
