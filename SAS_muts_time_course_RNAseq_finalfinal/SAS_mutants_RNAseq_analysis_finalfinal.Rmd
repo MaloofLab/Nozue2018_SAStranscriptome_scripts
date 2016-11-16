@@ -1346,10 +1346,10 @@ SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]
 test<-merge(DE.genotype.batch.genes.unique.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
 DE.genotype.batch.genes.WGCNAmodules<-test
 DE.genotype.batch.genes.WGCNAmodules[is.na(DE.genotype.batch.genes.WGCNAmodules)]<-"0"
-names(DE.genotype.batch.genes.WGCNAmodules)<-sub("1","WGCNAmodules",names(DE.genotype.batch.genes.WGCNAmodules))
+names(DE.genotype.batch.genes.WGCNAmodules)<-sub("1$","WGCNAmodules",names(DE.genotype.batch.genes.WGCNAmodules)) # 
 
 write.csv(DE.genotype.batch.genes.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
-DE.genotype.batch.genes.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
+DE.genotype.batch.genes.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv") #Column names were screwed up (111616)
 DE.genotype.batch.genes.WGCNAmodules<-DE.genotype.batch.genes.WGCNAmodules[,-1]
 
 length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) #
@@ -1358,7 +1358,7 @@ length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) #
 # TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 #names(DE.genotype.batch.genes.WGCNAmodules.description)<-sub("X1","WGCNAmodules",names(test))
-write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv") #091616
+write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv") #091616. Column names were screwed up (111616)
 
 
 # in whitney
