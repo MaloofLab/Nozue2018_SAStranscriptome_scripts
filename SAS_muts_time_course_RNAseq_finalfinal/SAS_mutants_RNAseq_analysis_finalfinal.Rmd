@@ -1626,7 +1626,9 @@ save(custom.category.overlap.melt.summary.s,file="../../Nozue2016_SAStranscripto
 load("../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata")
 q4<-ggplot(custom.category.overlap.melt.summary.s,aes(y=factor(Var1),x=factor(Var2))) 
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
-q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")
+#q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")
+q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2)
+
 #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
 q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
                  panel.grid.major = element_blank(),
@@ -1636,8 +1638,8 @@ q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4 <- q4 + geom_text(aes(label=count),size=5)
 q4 <- q4 + labs(x="custom category",y="WGCNA modules in Col",title="custom category enrichment",fill="-log10\n pvalue")
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
-ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.111016.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.111016.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.111516.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.111516.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
 q4 # magenta indicates pvalue is smaller than 0.01.
 ```
