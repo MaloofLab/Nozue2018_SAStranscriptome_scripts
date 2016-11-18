@@ -1391,13 +1391,15 @@ save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/o
 
 # reading and cleaning overlap table
 # load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.WGCNA.mut.GOseq.Rdata") # calculated in whitney (052616); (110816, testing with permutation =100)
-overlap.melt.summary.s
-overlap.melt.summary.ss<-overlap.melt.summary.s[!overlap.melt.summary.s$Var1=="0",]
+#load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.WGCNA.mut.GOseq.Rdata") # calculated in whitney (052616); (110816, testing with permutation =100)
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") 
+overlap.melt.summary
+overlap.melt.summary.ss<-overlap.melt.summary[!overlap.melt.summary$Var1=="0",]
 
 q4<-ggplot(overlap.melt.summary.ss,aes(y=factor(Var1),x=factor(Var2))) 
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2) # this color coding is not good (061716)
-q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta") # Is this better? (061716)
+#q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta") # Is this better? (061716)
+q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) # Is this better? (061716)
 
 #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
 #q4 <- q4 +theme(legend.position="none") # this removed all legend
@@ -1409,25 +1411,25 @@ q4 <- q4 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modu
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq11161616.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111616.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111816.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
 q4 # magenta indicates pvalue is smaller than 0.01.
-#### only "salmon","pink" (=JA),"purple" (=auxin) for job application 2015 - 2016 ###
-overlap.melt.summary.ss.selected<-overlap.melt.summary.ss[overlap.melt.summary.ss$Var1 %in% c("salmon","purple","pink"),]
-q5<-ggplot(overlap.melt.summary.ss.selected,aes(y=factor(Var1),x=factor(Var2))) 
-q5 <- q5 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
-q5 <- q5 + theme(axis.text.x=element_text(angle=90,hjust=1),
-                 panel.grid.major = element_blank(),
-                 panel.grid.minor = element_blank(),
-                 panel.background = element_blank(),
-                 axis.ticks = element_line(size=0,color="white"))
-q5 <- q5 + geom_text(aes(label=count),size=5,show_guide = FALSE)
+# #### only "salmon","pink" (=JA),"purple" (=auxin) for job application 2015 - 2016 ###
+# overlap.melt.summary.ss.selected<-overlap.melt.summary.ss[overlap.melt.summary.ss$Var1 %in% c("salmon","purple","pink"),]
+# q5<-ggplot(overlap.melt.summary.ss.selected,aes(y=factor(Var1),x=factor(Var2))) 
+# q5 <- q5 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
+# q5 <- q5 + theme(axis.text.x=element_text(angle=90,hjust=1),
+#                  panel.grid.major = element_blank(),
+#                  panel.grid.minor = element_blank(),
+#                  panel.background = element_blank(),
+#                  axis.ticks = element_line(size=0,color="white"))
+# q5 <- q5 + geom_text(aes(label=count),size=5,show_guide = FALSE)
+# 
+# q5 <- q5 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modules affected in SAS mutants",fill="-log10\n p-value")
+# q5 <- q5 + theme(legend.title=element_blank())
+# #ggsave(q5,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.selected.pdf",width=11,height=4,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
-q5 <- q5 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modules affected in SAS mutants",fill="-log10\n p-value")
-q5 <- q5 + theme(legend.title=element_blank())
-#ggsave(q5,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.selected.pdf",width=11,height=4,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q5,file="Fig6_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.selected.GOseq.pdf",width=11,height=4,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 ```
 # Number of Col genes in each module are: 
 ```{r eval=FALSE} 
