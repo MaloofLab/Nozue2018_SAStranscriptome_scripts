@@ -540,7 +540,7 @@ write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_
 ## drawing bloxplot for each cluster
 ```{r eval=FALSE, ggplot, fig.width=11, fig.height=8}
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 122214, 090116
-length(unique(newdata.vst$AGI)) # 261 genes
+length(unique(newdata.vst$AGI)) # 333 genes (111816)
 # boxplot
 newdata.vstmelt<-melt(newdata.vst[,c("1h","4h","25h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
 
@@ -972,7 +972,7 @@ newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
 test<-merge(hormone.responsiveness5.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
 hormone.responsiveness.SOMclusters<-test
 hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"0"
-# write.csv(hormone.responsiveness.SOMclusters,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
+write.csv(hormone.responsiveness.SOMclusters,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
 # hormone.responsiveness.SOMclusters<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
 #hormone.responsiveness.SOMclusters<-hormone.responsiveness.SOMclusters[,-1]
 # addint gene description
@@ -1003,6 +1003,7 @@ overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
 save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata") # whitney. 
 setwd(homedir)
 load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
+
 #load("overlap.melt.summary.SOM.custom.GOseq.091216.Rdata")
 #setwd(homedir)
 #table(overlap.melt.summary[,"value"])
@@ -1405,7 +1406,7 @@ q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="wh
 #q4 <- q4 +theme(legend.position="none") # this removed all legend
 q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
                  axis.ticks = element_line(size=0,color="white"))
-q4 <- q4 + geom_text(aes(label=count),size=5)
+q4 <- q4 + geom_text(aes(label=count),size=4)
 q4 <- q4 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modules affected in SAS mutants",fill="-log10\n pvalue")
 #q4 <- q4 + theme(legend.title=element_blank())
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
@@ -1629,7 +1630,7 @@ custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!
 custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!custom.category.overlap.melt.summary.s$Var2=="0",]
 setwd(homedir)
 save(custom.category.overlap.melt.summary.s,file="../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata") # in whiteney
-load("../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.sGOseq.Rdata")
 q4<-ggplot(custom.category.overlap.melt.summary.s,aes(y=factor(Var1),x=factor(Var2))) 
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")
@@ -1641,7 +1642,7 @@ q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
                  panel.grid.minor = element_blank(),
                  panel.background = element_blank(),
                  axis.ticks = element_line(size=0,color="white"))
-q4 <- q4 + geom_text(aes(label=count),size=5)
+q4 <- q4 + geom_text(aes(label=count),size=4)
 q4 <- q4 + labs(x="custom category",y="WGCNA modules in Col",title="custom category enrichment",fill="-log10\n pvalue")
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
 ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.111516.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
@@ -1811,13 +1812,19 @@ newdata.vst[newdata.vst$AGI %in% c("AT3G48090","AT4G35580","AT1G74710","AT5G0833
 ```
 # visualize hormone pathway related genes (1213-1214,2015). Updated (052616-)
 # new FDR version (071716)
+# with new SOM clusters (111816)
 ```{r}
 setwd(homedir)
 my.category.diff.heatmap.graph<-list()
-categories <- read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables//TableS7_test.wozero.melt.hormone.signifiant.s.csv",row.names=1,as.is=TRUE)
+categories <- read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.signifiant.s.111816.csv",row.names=1,as.is=TRUE)
 summary(categories)
 head(categories)
-categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up")))
+table(categories$value)
+### under construction ####### 
+#categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) 
+categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # 111816
+
+
 # summary.vst.response.kazu
 load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata") # response. needs to fix colnames (060515)
 summary.vst.response.kazu<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
@@ -2208,36 +2215,43 @@ summary.vst.response.kazu<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|
 dim(summary.vst.response.kazu)
 head(summary.vst.response.kazu)
 # find overlap between shade responsive (in Col) and hormone responsive
-test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
+test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv") # needs to revise
 test<-test[,-1]
 # reading overlapTable
-load("SAS_muts_time_course_RNAseq2_mycomp_output/overlap.melt.summary.SOM.custom.Rdata") 
+#load("SAS_muts_time_course_RNAseq2_mycomp_output/overlap.melt.summary.SOM.custom.Rdata") 
+# newone
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
+# this data looks strange (111618)
 overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
 #overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10)) #
 overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) #
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
-overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","SARplus","SARminus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down"))
+table(overlap.melt.summary.s$Var2)
+#overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","SARplus","SARminus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down"))
 # select log10>2 & !Var1==0 
-overlap.melt.summary.significant<-overlap.melt.summary[overlap.melt.summary$value> -log10(0.05),] # pvalue<0.05
-overlap.melt.summary.significant$category.cluster<-with(overlap.melt.summary.significant,paste(Var2,Var1,sep="_"))
-# 
-names(test)[2:27]<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down")
+overlap.melt.summary.s.significant<-overlap.melt.summary.s[overlap.melt.summary.s$value> -log10(0.05),] # pvalue<0.05
+overlap.melt.summary.s.significant$category.cluster<-with(overlap.melt.summary.s.significant,paste(Var2,Var1,sep="_"))
+# names(test)[2:27]<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down")
 
 test.wozero<-test[!test$ssom3.4.unit.classif=="0",]
 head(test.wozero)
 test.wozero.melt<-melt(test.wozero,id.var=c("AGI","ssom3.4.unit.classif"))
-test.wozero.melt$category.cluster<-with(test.wozero.melt,paste(value,ssom3.4.unit.classif,sep="_"))
+head(test.wozero.melt)
+test.wozero.melt$category.cluster<-with(test.wozero.melt,paste(variable,ssom3.4.unit.classif,sep="_"))
 
-test.wozero.melt.hormone.signifiant<-test.wozero.melt[test.wozero.melt$category.cluster %in% overlap.melt.summary.significant$category.cluster,]
+test.wozero.melt.hormone.signifiant<-test.wozero.melt[test.wozero.melt$category.cluster %in% overlap.melt.summary.s.significant$category.cluster,]
 head(test.wozero.melt.hormone.signifiant)
-# remove "GRF1_3target" and "GAdown"
-test.wozero.melt.hormone.signifiant<-test.wozero.melt.hormone.signifiant[!(test.wozero.melt.hormone.signifiant$value %in% c("GRF1_3target","GAdown","IAAdown","ACCdown","MYC234down","SAup","GAup")),] # more than 3 genes
+# remove small group (less than 3)
+category.morethan3<-names(table(test.wozero.melt.hormone.signifiant$value)[table(test.wozero.melt.hormone.signifiant$value)>3])
+##### under construction #######
+test.wozero.melt.hormone.signifiant<-test.wozero.melt.hormone.signifiant[test.wozero.melt.hormone.signifiant$value %in% category.morethan3,] # more than 3 genes
 test.wozero.melt.hormone.signifiant$value<-as.character(test.wozero.melt.hormone.signifiant$value)
 # test.wozero.melt.hormone.signifiant.s is my category marker gene list 
 test.wozero.melt.hormone.signifiant.s<-test.wozero.melt.hormone.signifiant[,c("AGI","value")]
 names(test.wozero.melt.hormone.signifiant.s)<-c("AGI","my.category")
-test.wozero.melt.hormone.signifiant.s$my.category<-factor(test.wozero.melt.hormone.signifiant.s$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # remove GAdown (052616)
-write.csv(test.wozero.melt.hormone.signifiant.s,file="../../Nozue2016_SAStranscriptome_output/output/test.wozero.melt.hormone.signifiant.s.csv")
+#test.wozero.melt.hormone.signifiant.s$my.category<-factor(test.wozero.melt.hormone.signifiant.s$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # remove GAdown (052616)
+#write.csv(test.wozero.melt.hormone.signifiant.s,file="../../Nozue2016_SAStranscriptome_output/output/test.wozero.melt.hormone.signifiant.s.csv") # needs to revise
+write.csv(test.wozero.melt.hormone.signifiant.s,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.signifiant.s.111816.csv") # needs to revise
 ```
 # appendix 2  "Should I filter probesets or genes?
 *Probesets or genes may be filtered by mean expression or variance (or their robust analogs such as median and median absolute deviation, MAD) since low-expressed or non-varying genes usually represent noise. Whether it is better to filter by mean expression or variance is a matter of debate; both have advantages and disadvantages, but more importantly, they tend to filter out similar sets of genes since mean and variance are usually related.
