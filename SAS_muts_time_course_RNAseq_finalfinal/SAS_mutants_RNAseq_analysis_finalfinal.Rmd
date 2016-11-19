@@ -997,10 +997,29 @@ overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
 overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
 }
-overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
-overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
-overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
-save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata") # whitney. 
+## addition for 27:30 (111916)
+i<-27
+overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
+overlap.melt<-melt(overlap$pTable,id=1) #
+overlap.melt$count<-melt(overlap$countTable,id=1)$value
+overlap.melt.summary2<-overlap.melt[!overlap.melt$Var2=="0",]
+
+for(i in 28:30) {
+overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
+overlap.melt<-melt(overlap$pTable,id=1) #
+overlap.melt$count<-melt(overlap$countTable,id=1)$value
+overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
+overlap.melt.summary2<-rbind(overlap.melt.summary2,overlap.melt)
+}
+overlap.melt.summary2[,"value"]<--log10(overlap.melt.summary2[,"value"])
+overlap.melt.summary2[overlap.melt.summary2$value>10,"value"]<-10
+overlap.melt.summary2[overlap.melt.summary2$count==0,"count"]<-""
+# Add (111916)
+overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt.summary2)
+
+#save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata") # whitney. 
+save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.111916.Rdata") # whitney. 
+
 setwd(homedir)
 load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
 
@@ -1816,7 +1835,7 @@ newdata.vst[newdata.vst$AGI %in% c("AT3G48090","AT4G35580","AT1G74710","AT5G0833
 ```{r}
 setwd(homedir)
 my.category.diff.heatmap.graph<-list()
-categories <- read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.signifiant.s.111816.csv",row.names=1,as.is=TRUE)
+categories <- read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.111816.csv",row.names=1,as.is=TRUE)
 summary(categories)
 head(categories)
 table(categories$value)
@@ -2221,7 +2240,6 @@ test<-test[,-1]
 #load("SAS_muts_time_course_RNAseq2_mycomp_output/overlap.melt.summary.SOM.custom.Rdata") 
 # newone
 load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
-# this data looks strange (111618)
 overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
 #overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10)) #
 overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) #
@@ -2239,19 +2257,19 @@ test.wozero.melt<-melt(test.wozero,id.var=c("AGI","ssom3.4.unit.classif"))
 head(test.wozero.melt)
 test.wozero.melt$category.cluster<-with(test.wozero.melt,paste(variable,ssom3.4.unit.classif,sep="_"))
 
-test.wozero.melt.hormone.signifiant<-test.wozero.melt[test.wozero.melt$category.cluster %in% overlap.melt.summary.s.significant$category.cluster,]
-head(test.wozero.melt.hormone.signifiant)
+test.wozero.melt.hormone.significant<-test.wozero.melt[test.wozero.melt$category.cluster %in% overlap.melt.summary.s.significant$category.cluster,]
+head(test.wozero.melt.hormone.significant)
 # remove small group (less than 3)
-category.morethan3<-names(table(test.wozero.melt.hormone.signifiant$value)[table(test.wozero.melt.hormone.signifiant$value)>3])
+category.morethan3<-names(table(test.wozero.melt.hormone.significant$value)[table(test.wozero.melt.hormone.significant$value)>3])
 ##### under construction #######
-test.wozero.melt.hormone.signifiant<-test.wozero.melt.hormone.signifiant[test.wozero.melt.hormone.signifiant$value %in% category.morethan3,] # more than 3 genes
-test.wozero.melt.hormone.signifiant$value<-as.character(test.wozero.melt.hormone.signifiant$value)
-# test.wozero.melt.hormone.signifiant.s is my category marker gene list 
-test.wozero.melt.hormone.signifiant.s<-test.wozero.melt.hormone.signifiant[,c("AGI","value")]
-names(test.wozero.melt.hormone.signifiant.s)<-c("AGI","my.category")
-#test.wozero.melt.hormone.signifiant.s$my.category<-factor(test.wozero.melt.hormone.signifiant.s$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # remove GAdown (052616)
-#write.csv(test.wozero.melt.hormone.signifiant.s,file="../../Nozue2016_SAStranscriptome_output/output/test.wozero.melt.hormone.signifiant.s.csv") # needs to revise
-write.csv(test.wozero.melt.hormone.signifiant.s,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.signifiant.s.111816.csv") # needs to revise
+test.wozero.melt.hormone.significant<-test.wozero.melt.hormone.significant[test.wozero.melt.hormone.significant$value %in% category.morethan3,] # more than 3 genes
+test.wozero.melt.hormone.significant$value<-as.character(test.wozero.melt.hormone.significant$value)
+# test.wozero.melt.hormone.significant.s is my category marker gene list 
+test.wozero.melt.hormone.significant.s<-test.wozero.melt.hormone.significant[,c("AGI","value")]
+names(test.wozero.melt.hormone.significant.s)<-c("AGI","my.category")
+#test.wozero.melt.hormone.significant.s$my.category<-factor(test.wozero.melt.hormone.significant.s$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # remove GAdown (052616)
+#write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/output/test.wozero.melt.hormone.significant.s.csv") # needs to revise
+write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.111816.csv") # needs to revise
 ```
 # appendix 2  "Should I filter probesets or genes?
 *Probesets or genes may be filtered by mean expression or variance (or their robust analogs such as median and median absolute deviation, MAD) since low-expressed or non-varying genes usually represent noise. Whether it is better to filter by mean expression or variance is a matter of debate; both have advantages and disadvantages, but more importantly, they tend to filter out similar sets of genes since mean and variance are usually related.
