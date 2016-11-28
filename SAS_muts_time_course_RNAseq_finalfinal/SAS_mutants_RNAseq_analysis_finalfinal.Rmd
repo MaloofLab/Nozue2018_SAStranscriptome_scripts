@@ -358,13 +358,13 @@ temp<-DE.batch.anytime
 for(i in DEfiles[-1]) {
   load(i) 
   if(dim(DE.batch.anytime)[1]>1) {
-    rownames(DE.batch.anytime)<-paste(rownames(DE.batch.anytime),gsub("(DE.batch.anytime_genotype_w_outlier_wo16h)([[:print:]]+)(.Rdata)","\\2",i),sep=".")
+    rownames(DE.batch.anytime)<-paste(rownames(DE.batch.anytime),gsub("(DE.batch.anytime_genotype_wo_outlier_wo16h)([[:print:]]+)(.Rdata)","\\2",i),sep=".") # fixed, 112616
     temp<-rbind(temp,DE.batch.anytime)  }
   else next
 }
 DGEsummary.edgeR.response<-temp
 tail(DGEsummary.edgeR.response)
-dim(DGEsummary.edgeR.response) #755   8 for final sequence data with normalization (081514); 669 8 , why??? in edgeR DE loop I used "for(i in Genotype[-(1:2)]) {", but this should be "for(i in Genotype) {". After fixing this I got "755 8" . oK. (060515)
+dim(DGEsummary.edgeR.response) #755   8 for final sequence data with normalization (081514)
 
 save(DGEsummary.edgeR.response,file="../../Nozue2016_SAStranscriptome_output/output/DGEsummary.edgeR.response.Rdata")
 # # genotype conversion 
@@ -374,20 +374,19 @@ samples.nolow5$genotype2<-""
 for(i in 1:13){ # only for Genotype
   samples.nolow5[samples.nolow5$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])	
 } 
+
 ## summary of DE gene numbers
+setwd(homedir)
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
 load(DEfiles[1]) #"DE.batch.anytime_genotype_wo_outlier_wo16h1.Rdata"
 DEgenes.summary<-data.frame(genotype=gsub("(DE.batch.anytime_genotype_wo_outlier_wo16h)([[:digit:]]+)(.Rdata)","\\2",DEfiles))
 for(i in 1:length(DEfiles)) {
   load(DEfiles[i])
   DEgenes.summary$DEgenes_num[i]<-dim(DE.batch.anytime)[1]
 }
-DEgenes.summary$genotype2<-""
-for(i in 1:13) {
-  DEgenes.summary[DEgenes.summary$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])
-}
-DEgenes.summary<-DEgenes.summary[!DEgenes.summary$genotype2==""|!is.na(DEgenes.summary$genotype2==""),]
+DEgenes.summary$genotype2<-vlookup(DEgenes.summary$genotype,conversion.table,2)
+DEgenes.summary<-DEgenes.summary[!is.na(DEgenes.summary$DEgenes_num)&!is.na(DEgenes.summary$genotype2),]
 DEgenes.summary # summary
-
 setwd(homedir)
 ```
 ## select genes with largeCV and calculate responsiveness for SOM analysis
@@ -451,12 +450,10 @@ load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.kazu.l
 summary.vst.response.kazu.largeCV[summary.vst.response.kazu.largeCV=="Inf"]<-0 # arbitral
 summary.vst.response.kazu.largeCV[summary.vst.response.kazu.largeCV=="-Inf"]<-0 # arbitral
 summary.vst.response.kazu.largeCV[is.na(summary.vst.response.kazu.largeCV)]<-0 # arbitral
-load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/DGEsummary.edgeR.response.Rdata") #"AT1G33925.1"
-#DGEgenelist.edgeRglm<-unique(gsub("([[:print:]]+)(.[[:digit:]]+)(.DE.batch.anytime)([[:print:]]+)(.Rdata)","\\1",rownames(DGEsummary.edgeR.response))) # wait! this is wrong? (052916)
+#load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/DGEsummary.edgeR.response.Rdata") #"AT1G33925load("../../Nozue2016_SAStranscriptome_output/output/DGEsummary.edgeR.response.Rdata") #"AT1G33925.1" (112616 fixed)
+
 DGEgenelist.edgeRglm<-unique(gsub("([[:print:]]+)(.)([[:digit:]]+)(.DE.batch.anytime_genotype_wo_outlier_wo16h)([[:print:]]+)","\\1",rownames(DGEsummary.edgeR.response))) # 
-
-length(DGEgenelist.edgeRglm) #369 > 373
-
+length(DGEgenelist.edgeRglm) # 418
 # 
 DGE.summary.vst.response.kazu.largeCV<-summary.vst.response.kazu.largeCV[rownames(summary.vst.response.kazu.largeCV) %in% DGEgenelist.edgeRglm,]
 save(DGE.summary.vst.response.kazu.largeCV,file="../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/DGE.summary.vst.response.kazu.largeCV.Rdata") # updated 052916
@@ -467,9 +464,7 @@ DGE.summary.vst.response.kazu.largeCV[rownames(DGE.summary.vst.response.kazu.lar
 ```{r eval=TRUE}
 library(ggplot2);library(class);library(MASS);library(kohonen);library(reshape2);library(plyr);
 load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/DGE.summary.vst.response.kazu.largeCV.Rdata") # this was updated... (052916; 082016)
-genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(DGE.summary.vst.response.kazu.largeCV))))) # 12? why not 13?? "3" is missing. fixed. (090116)
-
-
+genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(DGE.summary.vst.response.kazu.largeCV)))))
 DGE.summary.vst.response.kazu.largeCV<-log2(DGE.summary.vst.response.kazu.largeCV) # log2 transformation of fold change
 i<-1
 temp<-DGE.summary.vst.response.kazu.largeCV[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.kazu.largeCV))==genotypes[i]]
@@ -513,21 +508,12 @@ head(newdata.vst)
 ## ATHB2
 newdata.vst[rownames(newdata.vst)=="AT4G16780.1",]
 save(newdata.vst,file="../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata")
-
 #### making complete table (for SOM data) ###
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata")
-
 # replace gt num into gt name
 ### convert genotype number into actual genotype name
-newdata.vst$gt2<-""
-for(i in 1:13){ # new conversion table
-  newdata.vst[newdata.vst$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
-} 
-
+newdata.vst$gt2<-vlookup(newdata.vst$gt,conversion.table,2)
 # adding gene description
-# TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
-# head(TAIR10_gene_descriptions)
-# TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 SOMclusters.description<-merge(newdata.vst[newdata.vst$gt==levels(newdata.vst$gt)[1],],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 
 for(x in levels(newdata.vst$gt)[-1]) {
@@ -569,11 +555,7 @@ names(newdata.vstmelt)[3]<-"ssom3.4.unit.classif"
 newdata.vstmelt$variable<-factor(newdata.vstmelt$variable,levels=c("1h","4h","25h","49h")) # order in graphs was fixed (022115)
 newdata.vstmelt$ssom3.4.unit.classif<-factor(newdata.vstmelt$ssom3.4.unit.classif,levels=c(10, 7,12,1,11,4,2,8,5,9,6,3)) # use this factor for all heatmap. Needs to update.
 ### convert genotype number into actual genotype name
-conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
-head(newdata.vstmelt)
-for(i in 1:27){
-  newdata.vstmelt[newdata.vstmelt$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
-} 
+newdata.vstmelt$gt2<-vlookup(newdata.vstmelt$gt,conversion.table,2) 
 # head(newdata.vstmelt)
 #draw boxplot with 90 degree orientation for ppt presentation (2014 ASPB)
 p <- ggplot(newdata.vstmelt,aes(x=variable,y=value,color=value))
@@ -620,17 +602,11 @@ ggsave("boxplot.node.genotype3.4.noscaling_vst_ColyucQ.pdf",width=11,height=5,un
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 122214
 newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
 newdata.vst.Col.melt<-melt(newdata.vst.Col[,c("1h","25h","4h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
-conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
-head(newdata.vst.Col.melt)
-for(i in 1:13){ # new conversion.table (090116)
-  newdata.vst.Col.melt[newdata.vst.Col.melt$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
-} 
+head(newdata.vst.Col.melt) 
+newdata.vst.Col.melt$gt2<-vookup(newdata.vst.Col.melt$gt,conversion.table,2)
 head(newdata.vst.Col.melt)
 newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(10, 7,4,12,1,11,2,8,5,9,6,3)) # use this factor for all heatmap. 10,7,4 together because I grouped them as "auxin" in manuscript (092315)
 newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # use this factor for all heatmap. start from upregulated (10,7,4 together because I grouped them as "auxin" in manuscript) and then down-regulated as manuscript described (052316)
-
-
-#newdata.vst.Col.melt$variable<-factor(newdata.vst.Col.melt$variable,levels=c("1h","4h","25h","49h"))
 newdata.vst.Col.melt$variable<-factor(newdata.vst.Col.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
 names(newdata.vst.Col.melt)[3]<-"ssom3.4.unit.classif"
 p <- ggplot(newdata.vst.Col.melt,aes(x=variable,y=value,color=value))
@@ -675,11 +651,99 @@ for(i in SOM.Col.cluster.GOseq.files[-1]) {
 }
 SOM.Col.cluster.GOseq.summary<-temp
 write.csv(SOM.Col.cluster.GOseq.summary,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS2_GO_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes.csv") # 091016
+```
+# SOM analysis only with DE genes in Col (112616)
+```{r}
+setwd(homedir)
+load("../../Nozue2016_SAStranscriptome_output/output/DGEsummary.edgeR.response.Rdata")
+# select only Col DE genes
+DGEsummary.edgeR.response$gt<-gsub("([[:print:]]+)(.)([[:digit:]]+)(.)([[:print:]]+)","\\5",rownames(DGEsummary.edgeR.response))
+DGEsummary.edgeR.response.Col<-DGEsummary.edgeR.response[DGEsummary.edgeR.response$gt=="1",]
+DGEsummary.edgeR.response.Col$AGI<-gsub("([[:print:]]+)(.)([[:digit:]]+)(.)([[:print:]]+)","\\1",rownames(DGEsummary.edgeR.response.Col))
+# 
+#save(summary.vst.response,file="../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata") # 
+summary.vst.response
+hist(summary.vst.response[,1]) # fold change
+genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(summary.vst.response)))))
+DGE.summary.vst.response.Col<-summary.vst.response[rownames(summary.vst.response) %in% DGEsummary.edgeR.response.Col$AGI,]
+DGE.summary.vst.response.Col<-log2(DGE.summary.vst.response.Col) # log2 transformation of fold change
+
+i<-1
+temp<-DGE.summary.vst.response.Col[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.Col))==genotypes[i]]
+rownames(temp)<-paste(rownames(temp),genotypes[i],sep=".")
+colnames(temp)<-paste(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\3",colnames(temp)),"h",sep="") ### fix (070914)
+summary(temp)
+dim(temp) #[1] 80 4
+head(temp)
+data5<-temp
+
+# under construction #
+#### no scaling
+## SOM
+set.seed(2) # Set a random seed so that SOM results are reproducible
+#set.seed(123) # I do not like to have cluster 5 mixed with constitutive and 4h peak in set.seed(2) 3x4 version
+ssom1.7.noscaling <- som(as.matrix(data5), somgrid(1,7,"hexagonal")) 
+plot(ssom1.7.noscaling, type = "codes") #
+ssom2.4.noscaling <- som(as.matrix(data5), somgrid(2,4,"hexagonal")) 
+plot(ssom2.4.noscaling, type = "codes") #
+ssom3.3.noscaling <- som(as.matrix(data5), somgrid(3,3,"hexagonal")) 
+plot(ssom3.3.noscaling,type="codes")
+ssom2.5.noscaling <- som(as.matrix(data5), somgrid(2,5,"hexagonal")) 
+plot(ssom2.5.noscaling, type = "codes") #
+ssom3.4.noscaling <- som(as.matrix(data5), somgrid(3,4,"hexagonal")) 
+plot(ssom3.4.noscaling) 
+ssom4.4.noscaling <- som(as.matrix(data5), somgrid(4,4,"hexagonal")) 
+plot(ssom4.4.noscaling) 
+# Selecting ssom1.7 because of (1) sufficient variation among clusters and (2) minimum redundancy among clusters judted from those plot 
+
+## Create and write-out master SOM file
+SOM.onlyCol.112616<-cbind(data5,ssom1.7.noscaling$unit.classif,ssom1.7.noscaling$distances)
+
+names(SOM.onlyCol.112616)[5]<-"ssom1.7.unit.classif"
+names(SOM.onlyCol.112616)[6]<-"ssom1.7.unit.distances"
+SOM.onlyCol.112616$gt<-as.factor(gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",rownames(SOM.onlyCol.112616)))
+SOM.onlyCol.112616$AGI<-as.factor(gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",rownames(SOM.onlyCol.112616)))
+head(SOM.onlyCol.112616)
+## ATHB2
+SOM.onlyCol.112616[rownames(SOM.onlyCol.112616)=="AT4G16780.1",]
+save(SOM.onlyCol.112616,file="../../Nozue2016_SAStranscriptome_output/output/SOM.onlyCol.112616.Rdata")
+#### making complete table (for SOM data) ###
+load("../../Nozue2016_SAStranscriptome_output/output/SOM.onlyCol.112616.Rdata") 
+
+# replace gt num into gt name
+### convert genotype number into actual genotype name
+#SOM.onlyCol.112616$gt2<-""
+SOM.onlyCol.112616$gt2<-vlookup(SOM.onlyCol.112616$gt,conversion.table,2)
+
+# adding gene description
+SOM.onlyCol.112616.clusters.description<-merge(SOM.onlyCol.112616[SOM.onlyCol.112616$gt==levels(SOM.onlyCol.112616$gt)[1],],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
+write.csv(SOM.onlyCol.112616.clusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3.SOM.onlyCol.112616.clusters.description.csv") #090116
+# graph
+SOM.onlyCol.112616.clusters.description<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3.SOM.onlyCol.112616.clusters.description.csv",check.names=FALSE) # "check.names=F" to avoid "X1h" etc.
+SOM.onlyCol.112616.clusters.description<-SOM.onlyCol.112616.clusters.description[,-1]
+names(SOM.onlyCol.112616.clusters.description) 
+SOM.onlyCol.112616.melt<-melt(SOM.onlyCol.112616.clusters.description[,c("1h","25h","4h","49h","ssom1.7.unit.classif","gt2","AGI")],id.var=c("gt2","AGI","ssom1.7.unit.classif"))
+head(SOM.onlyCol.112616.melt)
+SOM.onlyCol.112616.melt$ssom1.7.unit.classif<-factor(SOM.onlyCol.112616.melt$ssom1.7.unit.classif,levels=c(****)) # use this factor for all heatmap. *** think order of levels after looking expression pattern
+
+SOM.onlyCol.112616.melt$variable<-factor(SOM.onlyCol.112616.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
+names(SOM.onlyCol.112616.melt)[3]<-"ssom1.7.unit.classif"
+p <- ggplot(SOM.onlyCol.112616.melt,aes(x=variable,y=value,color=value))
+p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0 (060515)
+p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(ssom1.7.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+p <- p + facet_grid(gt2~ssom1.7.unit.classif,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free"
+p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
+p <- p + coord_flip()
+p 
+ggsave("Fig2b_Coexpression_clusters_of_shade-responsive_genes_onlyCol_112616.pdf",width=11,height=5,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables") # only Col DE genes
+# Note: Col DE genes are mostly auxin related genes. Surprisingly JA related genes which were downregulated were not detected. 
+
 
 
 ```
-
-
 ## differentially expressed gene analysis
 2a.DE at any time point (sun)
 ```{r eval=FALSE}
@@ -1590,6 +1654,7 @@ write.csv(WGCNA.Col.module.GOseq.CC.summary,file="../../Nozue2016_SAStranscripto
 library(WGCNA);library(ggplot2);library(reshape2);library(scales)
 # custom categories
 load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness5.Rdata")
+########################
 ## change list into data.frame
 hormone.responsiveness5.DF<-data.frame(t(sapply(hormone.responsiveness5,c))) # modified for ver5
 names(hormone.responsiveness5.DF)<-attributes(hormone.responsiveness5)$category
@@ -1835,7 +1900,7 @@ newdata.vst[newdata.vst$AGI %in% c("AT3G48090","AT4G35580","AT1G74710","AT5G0833
 ```{r}
 setwd(homedir)
 my.category.diff.heatmap.graph<-list()
-categories <- read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.111816.csv",row.names=1,as.is=TRUE)
+categories <- read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.111816.csv",row.names=1,as.is=TRUE) # does not work.
 summary(categories)
 head(categories)
 table(categories$value)
@@ -2225,21 +2290,21 @@ setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis")
 write.csv(topgene.RP.ThibaudNissen.SA.T1.m.limma,file="topgene.RP.ThibaudNissen.SA.T1.m.limma.csv")
 write.csv(topgene.RP.ThibaudNissen.SA.T2.m.limma,file="topgene.RP.ThibaudNissen.SA.T2.m.limma.csv")
 ```
-# 
+# Making list of custom catetory genes enriched in shade responsive genes (TableS7 for Fig5)
 ```{r}
 ## start from this line ## 052616
 # fold chagne (shade responsiveness)
-load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata") # response. needs to fix colnames (060515)
-summary.vst.response.kazu<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
-dim(summary.vst.response.kazu)
-head(summary.vst.response.kazu)
+load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata") 
+# summary.vst.response.kazu<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
+dim(summary.vst.response)
+head(summary.vst.response)
 # find overlap between shade responsive (in Col) and hormone responsive
-test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv") # needs to revise
+test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv") 
 test<-test[,-1]
 # reading overlapTable
 #load("SAS_muts_time_course_RNAseq2_mycomp_output/overlap.melt.summary.SOM.custom.Rdata") 
 # newone
-load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata") # why this is not all categories?
 overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
 #overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10)) #
 overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) #

@@ -5,12 +5,12 @@
 ##  
 ###################################################
 library(edgeR);library(ggplot2);library(reshape2);library(grid);library(class);library(MASS);library(plyr)
-# library(kohonen) # for SOM analysis
+library(kohonen) # for SOM analysis
 library(scales) # for muted
 library(WGCNA);library(ShortRead);library(goseq);library(GO.db); library("org.At.tair.db")
 options(stringsAsFactors = FALSE) # for WGCNA
 
-#library("annotate") # does not work in whitney
+library("annotate") # does not work in whitney
 # see http://www.bioconductor.org/install/ for installation of these packages 
 #library(ggdendro) # for dendrogram
 library(lmerTest) # for significant analysis
