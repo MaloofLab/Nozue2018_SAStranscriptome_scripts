@@ -1054,38 +1054,39 @@ overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AG
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt.summary<-overlap.melt[!overlap.melt$Var2=="0",]
-for(i in 3:26) {
+for(i in 3:30) {
 overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
 overlap.melt<-melt(overlap$pTable,id=1) #
 overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
 overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
 }
-## addition for 27:30 (111916)
-i<-27
-overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
-overlap.melt<-melt(overlap$pTable,id=1) #
-overlap.melt$count<-melt(overlap$countTable,id=1)$value
-overlap.melt.summary2<-overlap.melt[!overlap.melt$Var2=="0",]
-
-for(i in 28:30) {
-overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
-overlap.melt<-melt(overlap$pTable,id=1) #
-overlap.melt$count<-melt(overlap$countTable,id=1)$value
-overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
-overlap.melt.summary2<-rbind(overlap.melt.summary2,overlap.melt)
-}
-overlap.melt.summary2[,"value"]<--log10(overlap.melt.summary2[,"value"])
-overlap.melt.summary2[overlap.melt.summary2$value>10,"value"]<-10
-overlap.melt.summary2[overlap.melt.summary2$count==0,"count"]<-""
-# Add (111916)
-overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt.summary2)
+# ## addition for 27:30 (111916)
+# i<-27
+# overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
+# overlap.melt<-melt(overlap$pTable,id=1) #
+# overlap.melt$count<-melt(overlap$countTable,id=1)$value
+# overlap.melt.summary2<-overlap.melt[!overlap.melt$Var2=="0",]
+# 
+# for(i in 28:30) {
+# overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
+# overlap.melt<-melt(overlap$pTable,id=1) #
+# overlap.melt$count<-melt(overlap$countTable,id=1)$value
+# overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
+# overlap.melt.summary2<-rbind(overlap.melt.summary2,overlap.melt)
+# }
+# overlap.melt.summary2[,"value"]<--log10(overlap.melt.summary2[,"value"])
+# overlap.melt.summary2[overlap.melt.summary2$value>10,"value"]<-10
+# overlap.melt.summary2[overlap.melt.summary2$count==0,"count"]<-""
+# # Add (111916)
+# overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt.summary2)
 
 #save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata") # whitney. 
 save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.111916.Rdata") # whitney. 
 
 setwd(homedir)
-load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
+#load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.111916.Rdata")
 
 #load("overlap.melt.summary.SOM.custom.GOseq.091216.Rdata")
 #setwd(homedir)
@@ -1094,7 +1095,8 @@ load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.cu
 #overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
 overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
 # overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10))
-overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # 052516
+#overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) # 052516
+overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,9,2,12,8,4,1,5,3,11,6)) # 112816
 
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616)
