@@ -238,7 +238,7 @@ GOseq.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, padju
 }
 # example
 #enriched.GO.Col.SOMcluster1<-GOseq.ORA(rownames(data.val3.4.SOM.Col.SOM1.all.barcode.s)[rownames(data.val3.4.SOM.Col.SOM1.all.barcode.s) %in% names(bias)]) 
-
+# revised GOseq.CC.ORA (112816)
 GOseq.CC.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, padjus, padjust=0.05 
   TF<-(names(bias) %in% genelist)*1
   names(TF)<-names(bias)
@@ -253,10 +253,13 @@ GOseq.CC.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, pa
   #convert to list
   Atgo.list <- tapply(Atgo$go_id,Atgo$gene_id,c)
   #
-  GO.pval <- goseq(pwf,gene2cat=Atgo.list) # format became different in new goseq version (021111)
+  #GO.pval <- goseq(pwf,gene2cat=Atgo.list) # format became different in new goseq version (021111)
+  GO.pval <- goseq(pwf,gene2cat=Atgo.list,use_genes_without_cat=TRUE) # format became different in new goseq version (021111)
+  
   #head(GO.pval) 
   GO.pval$over_represented_padjust<-p.adjust(GO.pval$over_represented_pvalue,method="BH")
-  if(GO.pval$over_represented_padjust[1]>padjust) stop("no enriched GO")
+  if(GO.pval$over_represented_padjust[1]>padjust) return("no enriched GO")
+  
   else {
     enriched.GO<-GO.pval[GO.pval$over_represented_padjust<padjust,] 
     print("enriched.GO is")
@@ -268,7 +271,7 @@ GOseq.CC.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, pa
       enriched.GO$Definition[i]<-Definition(GOTERM[[enriched.GO[i,"category"]]])
     }
     return(enriched.GO)
-  }
+  }  
 }
 
 genes.in.enriched.category<-function(enrich.result,gene.list,category.table=hormone.responsiveness) { # return data frame with all input data with ... which format is good? VennDiagram input format?  
