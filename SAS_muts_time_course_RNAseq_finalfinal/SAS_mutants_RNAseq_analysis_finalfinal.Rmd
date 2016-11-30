@@ -3,24 +3,8 @@
 output: html_document
 ---
 ## revision history
-* focused on using edgeRglm results
-* using genotype correction ver1 (eliminating wrong genotypes): 2014 ASPB version
-* using final reads count (081514 - )
-* using variance stabilization transformed expression value (by Julin, Nov 2014) for SOM (122114 -)
-* change format into Rmarkedown (122114 - )
-* modified `r paste("on",date()) `
-* move output file directory to prevent from reaching Bitbucket max volume (0601415)
-* delete old Bitbucket repository and make new one (06??15)
-* start working on SAS module network by multiple regression and move them to new Rmd file (111415)
-* move mutant expression data transformation part for module network analysis into module network analysis scripts ("SAS_module_network_model6v2.Rmd") (040116)
-* reorder of SOM clusters according to (a) upregulated, and (b) downregulated. (052316)
-* change legend name in heatmaps (052616)
-* use GOseq.overlapTable for all SOM cluster overlapTable (052616)
-* needs to eliminate eliminate bsk5_1 (genotype15) and AT5G02540_1 (genotype 2) from the beggining?
-* creating "SAS_mutants_RNAseq_analysis_document_v3.Rmd" (052616)
-* replace "toc" in to "counts" (070516)
+* 
 ## To do
-* remove all unused genoytpe (eg. NAM parents) informaiton (eg. conversion table (083016), DGE, etc)
 * 
 ## outline of this scripts
 * eliminating libraries with wrong genotypes
@@ -1004,22 +988,23 @@ options(stringsAsFactors = FALSE) # for WGCNA
 conversion.table
 # custom categories
 # load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness4.Rdata") #new version. check if new version is identical to this. copy the file to this location
-load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness5.Rdata") #new version. 
+#load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness5.Rdata") #new version. 
+load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness6.Rdata") #corrected version. (113016)
 
 ## change list into data.frame
-attributes(hormone.responsiveness5)
-hormone.responsiveness5.DF<-data.frame(t(sapply(hormone.responsiveness5,c)))
-names(hormone.responsiveness5.DF)<-attributes(hormone.responsiveness5)$category
+attributes(hormone.responsiveness6)
+hormone.responsiveness6.DF<-data.frame(t(sapply(hormone.responsiveness6,c)))
+names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6)$category
 ## convert into hormone.responsiveness3.DF (omit "PCC1", "GRF1_3")
-hormone.responsiveness5.DF<-hormone.responsiveness5.DF[,!names(hormone.responsiveness5.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
-summary(hormone.responsiveness5.DF)
-hormone.responsiveness5.DF$AGI<-rownames(hormone.responsiveness5.DF)
+hormone.responsiveness6.DF<-hormone.responsiveness6.DF[,!names(hormone.responsiveness6.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
+summary(hormone.responsiveness6.DF)
+hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF)
 # SOM clusters
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 022215
 
 newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,] 
 # merge with SOM clusters
-test<-merge(hormone.responsiveness5.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
+test<-merge(hormone.responsiveness6.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
 hormone.responsiveness.SOMclusters<-test
 hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"0"
 write.csv(hormone.responsiveness.SOMclusters,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS4_hormone.responsiveness.SOMclusters.csv")
@@ -1048,32 +1033,20 @@ overlap.melt$count<-melt(overlap$countTable,id=1)$value
 overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
 overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
 }
-# ## addition for 27:30 (111916)
-# i<-27
-# overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
-# overlap.melt<-melt(overlap$pTable,id=1) #
-# overlap.melt$count<-melt(overlap$countTable,id=1)$value
-# overlap.melt.summary2<-overlap.melt[!overlap.melt$Var2=="0",]
-# 
-# for(i in 28:30) {
-# overlap<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
-# overlap.melt<-melt(overlap$pTable,id=1) #
-# overlap.melt$count<-melt(overlap$countTable,id=1)$value
-# overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
-# overlap.melt.summary2<-rbind(overlap.melt.summary2,overlap.melt)
-# }
-# overlap.melt.summary2[,"value"]<--log10(overlap.melt.summary2[,"value"])
-# overlap.melt.summary2[overlap.melt.summary2$value>10,"value"]<-10
-# overlap.melt.summary2[overlap.melt.summary2$count==0,"count"]<-""
-# # Add (111916)
-# overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt.summary2)
 
 #save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata") # whitney. 
-save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.111916.Rdata") # whitney. 
+save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.113016.Rdata") # whitney. 
 
 setwd(homedir)
 #load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.111916.Rdata")
+# fix reverse of WRKY33up and WRKY33down 
+# overlap.melt.summary$Var2<-as.character(overlap.melt.summary$Var2)
+# overlap.melt.summary$Var2<-gsub("WRKY33up","WRKY33down_true",overlap.melt.summary$Var2)
+# overlap.melt.summary$Var2<-gsub("WRKY33down$","WRKY33up_true",overlap.melt.summary$Var2)
+# overlap.melt.summary$Var2<-gsub("_true","",overlap.melt.summary$Var2)
+# save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.113016.Rdata") # whitney. 
+
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.113016.Rdata")
 
 #load("overlap.melt.summary.SOM.custom.GOseq.091216.Rdata")
 #setwd(homedir)
@@ -1108,8 +1081,8 @@ q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title="custom category enrichment",fill="-log10\n p-value")
 #q4b
 #ggsave(q4b,file="Col.SOM.clusters.vs.my.category.table.s.2.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.111616.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.111616.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # testing this with Whitney (112816)
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.113016.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.113016.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") # 
 
 ```
 
@@ -1558,38 +1531,20 @@ write.csv(WGCNA.Col.module.GOseq.summary,file="../../Nozue2016_SAStranscriptome_
 ```
 ## What genes are found in given module with given GO category?
 ```{r eval=FALSE}
-# "GO:0007623"" in "yellow"
-load("WGCNA.Col.module.yellow.GOseq.Rdata")
-# TAIR10_gene_descriptions<-read.csv("/Volumes/Data8/NGS_related/Arabidopsis_analysis/reference/TAIR10_functional_descriptions.csv") 
-# head(TAIR10_gene_descriptions)
-# TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
 
+# ""GO:0009507" in "orange" (chloroplast)
+load("GOCC.WGCNA.Col.module.orange.GOseq.Rdata") # none. does not work
 temp.genes.wdescrition<-merge(temp.genes,TAIR10_gene_descriptions,by="AGI")
 dim(temp.genes)
 temp.genes.wdescrition<-temp.genes.wdescrition[!duplicated(temp.genes.wdescrition$AGI),]
-#temp.genes.wdescrition[temp.genes.wdescrition$"GO:0007623"==1,c("AGI","Short_description","colE...col.F")]
-temp.genes.wdescrition[temp.genes.wdescrition$"GO:0007623"==1,c("AGI","Short_description")]
-# GO:0009697, "salmon"
+temp.genes.wdescrition[temp.genes.wdescrition$"GO:0009507"==1,c("AGI","Short_description")]
+# GO:0009697, "salmon" (old version)
 load("WGCNA.Col.module.salmon.GOseq.Rdata")
 temp.genes.wdescrition<-merge(temp.genes,TAIR10_gene_descriptions,by="AGI")
 temp.genes.wdescrition<-temp.genes.wdescrition[!duplicated(temp.genes.wdescrition$AGI),]
 #temp.genes.wdescrition[temp.genes.wdescrition$"GO:0009697"==1,c("AGI","Short_description")]
 temp.genes.wdescrition[temp.genes.wdescrition$"GO:0009697"==1,c("AGI","Short_description","colE...col.F")]
-# GO:0009825, "royalblue"
-load("WGCNA.Col.module.royalblue.GOseq.Rdata")
-temp.genes.wdescrition<-merge(temp.genes,TAIR10_gene_descriptions,by="AGI")
-temp.genes.wdescrition<-temp.genes.wdescrition[!duplicated(temp.genes.wdescrition$AGI),]
-temp.genes.wdescrition[temp.genes.wdescrition$"GO:0009825"==1,c("AGI","Short_description","colE...col.F")]
-#          AGI                                   Short_description
-# 4  AT1G23080                 Auxin efflux carrier family protein
-# 13 AT1G75780                                tubulin beta-1 chain
-# 14 AT2G06850         xyloglucan endotransglucosylase/hydrolase 4
-# 19 AT2G38120 Transmembrane amino acid transporter family protein
-# 23 AT3G23050                              indole-3-acetic acid 7
-# 41 AT5G15580                                         longifolia1
-temp.genes.wdescrition[temp.genes.wdescrition$"GO:0000271"==1,c("AGI","Short_description","colE...col.F")]
-# the same list
-
 ```
 
 ## GOseq analysis of each cluster (cellular component)
@@ -1638,19 +1593,19 @@ write.csv(WGCNA.Col.module.GOseq.CC.summary,file="../../Nozue2016_SAStranscripto
 ```{r eval=FALSE}
 library(WGCNA);library(ggplot2);library(reshape2);library(scales)
 # custom categories
-load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness5.Rdata")
+load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness6.Rdata")
 ########################
 ## change list into data.frame
-hormone.responsiveness5.DF<-data.frame(t(sapply(hormone.responsiveness5,c))) # modified for ver5
-names(hormone.responsiveness5.DF)<-attributes(hormone.responsiveness5)$category
+hormone.responsiveness6.DF<-data.frame(t(sapply(hormone.responsiveness6,c))) # modified for ver6
+names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6)$category
 
 #names(hormone.responsiveness4.DF)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down")
-hormone.responsiveness5.DF$AGI<-rownames(hormone.responsiveness5.DF)
+hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF)
 
 load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata") 
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) # remove .1, .2, etc
 # merge with WGCNA modules
-test<-merge(hormone.responsiveness5.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
+test<-merge(hormone.responsiveness6.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
 names(test)[names(test)=="1"]<-"WGCNAmodules"
 i <- sapply(test, is.factor)
 test[i]<-lapply(test[i], as.character)
@@ -1664,6 +1619,9 @@ head(hormone.responsiveness.WGCNAmodules)
 # write.csv(hormone.responsiveness.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS9_hormone.responsiveness.WGCNAmodules.csv") #
 # Plant Cell version
 write.csv(hormone.responsiveness.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset_6_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules.csv")
+
+
+
 
 # orange genes and SA, npr1 responsiveness? (PCC1, XBAT34, AIG1, ACD6)
 hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "orange" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"), c(1,18:19,24:34)]
@@ -1699,7 +1657,14 @@ custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!
 custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!custom.category.overlap.melt.summary.s$Var2=="0",]
 setwd(homedir)
 save(custom.category.overlap.melt.summary.s,file="../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata") # in whiteney
-load("../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.sGOseq.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata")
+# fix reverse of WRKY33up and WRKY33down 
+# custom.category.overlap.melt.summary.s$Var2<-as.character(custom.category.overlap.melt.summary.s$Var2)
+# custom.category.overlap.melt.summary.s$Var2<-gsub("WRKY33up","WRKY33down_true",custom.category.overlap.melt.summary.s$Var2)
+# custom.category.overlap.melt.summary.s$Var2<-gsub("WRKY33down$","WRKY33up_true",custom.category.overlap.melt.summary.s$Var2)
+# custom.category.overlap.melt.summary.s$Var2<-gsub("_true","",custom.category.overlap.melt.summary.s$Var2)
+# save(custom.category.overlap.melt.summary.s,file="../../Nozue2016_SAStranscriptome_output/output/custom.category.v4.overlap.overlap.melt.summary.s.GOseq.Rdata") 
+
 q4<-ggplot(custom.category.overlap.melt.summary.s,aes(y=factor(Var1),x=factor(Var2))) 
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")
@@ -1714,8 +1679,8 @@ q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4 <- q4 + geom_text(aes(label=count),size=4)
 q4 <- q4 + labs(x="custom category",y="WGCNA modules in Col",title="custom category enrichment",fill="-log10\n pvalue")
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
-ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.111516.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.111516.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.113016.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.113016.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
 q4 # magenta indicates pvalue is smaller than 0.01.
 ```
@@ -1891,7 +1856,9 @@ head(categories)
 table(categories$my.category)
 ### under construction ####### 
 #categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) 
-categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # 111816
+categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","NPR1up","NPR1up_uponSA","SAup_24h","WRKY33up"))) # 112816
+# needs to merge redandant SA-related categories (112916)
+
 
 
 # summary.vst.response.kazu
@@ -1901,14 +1868,14 @@ dim(summary.vst.response.kazu)
 head(summary.vst.response.kazu)
 # for Fig5A, Col
 my.category.heatmap.graph<-list()
-for(i in c(1,17,19,3,4,5,14,10,6,13,7,8,9)) {
-my.category.heatmap.graph[[i]]<-my.category.heatmap5(summary3.response=summary.vst.response.kazu,gt.num=conversion.table[i,1],gt2=conversion.table[i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v10.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T)
+for(i in c(1,17,19,3,4,5,14,10,6,13,7,8,9)) { # 
+my.category.heatmap.graph[[i]]<-my.category.heatmap5(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v11.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T) # error
 }
 # drawing heatmap graph (difference): Fig5B
 my.category.diff.data<-list()
 
 for(i in as.character(c(17,19,3,4,5,14,10,6,13,7,8,9))) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
-my.category.diff.data[[i]]<-my.category.diff(summary3.response=summary.vst.response.kazu,gt.num=conversion.table[i,1],gt2=conversion.table[i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v8.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T) # make specialized for difference heatmap function
+my.category.diff.data[[i]]<-my.category.diff(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v8.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T) # make specialized for difference heatmap function
 }
 # need to create diff data frame for (mut - Col)
 summary.vst.response.kazu.diffCol<-as.data.frame(my.category.diff.data)  # under construction
@@ -1918,14 +1885,14 @@ max.min<-c(round(min.value,1),round(max.value,1))
 my.category.diff.heatmap.graph<-list()
 
 for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
-my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap1(summary3.response=summary.vst.response.kazu,gt.num=conversion.table[i,1],gt2=conversion.table[i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v8.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T,max.min.value=max.min) # make specialized for difference heatmap function
+my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap1(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v8.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T,max.min.value=max.min) # make specialized for difference heatmap function
 }
 # significance
 significant.position<-data.frame(category=c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"),x=0,y=1:13,symbol.gt="",symbol.gt.time="")
 # write how to calculate "Fig5B_response_p_values.csv"
 
 # read p value
-response.p.values<-read.csv("../../Nozue2016_SAStranscriptome_output/output/Fig5B_response_p_values.csv") #
+response.p.values<-read.csv("../../Nozue2016_SAStranscriptome_output/output/Fig5B_response_p_values.csv") # from Julin
 response.p.values.melt<-melt(response.p.values[,-1],id="gt") # this is wrong
 
 for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
@@ -1945,7 +1912,7 @@ my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geo
                       ncol=3,nrow=5,
                       label_size = 50)
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-save_plot("Fig5_all.my.category.diff.expression.pattern.v4.FDR0.0001.png", my.category.heatmap.all,
+save_plot("Fig5_all.my.category.diff.expression.pattern.v5.FDR0.0001.png", my.category.heatmap.all,
           ncol = 3, # we're saving a grid plot of 2 columns
           nrow = 5, # and 2 rows
           base_aspect_ratio = 2.5,
@@ -2188,6 +2155,33 @@ GSE51626.Venn[GSE51626.Venn$npr1=="npr1",]
 # no need to make data frame! Use use element name for each set
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 venn.plot<-venn.diagram(list(npr1=topgene.RP.GSE51626.npr1.summary$element,SA.npr1=topgene.RP.GSE51626.SA.npr1.summary$element,SA.Col=topgene.RP.GSE51626.SA.Col.summary$element),filename="Venn_npr1.png")
+# up and down
+setwd("/Volumes/data_work/Data8/NGS_related/Arabidopsis_analysis") # for temporal system
+group_comparison.Ver5<-read.csv("group_comparison.Ver5.csv") 
+# target categories
+categories<-c("IAAup","IAAdown","BLup","BLdown","GAinga1.3UP","GAinga1.3DOWN","BLup","BLdown","MJup","MJdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SA_UP","SA_DOWN",
+              "SARplus","SARminus","GRF1_3target","PIFtarget","MYC234_up","MYC234_down","NPR1_up","NPR1_down","WRKY33up","WRKY33down","PCC1up","PCC1down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
+# rename categories
+group_comparison.Ver5.selected<-group_comparison.Ver5[,names(group_comparison.Ver5[-c(1:3),]) %in% categories]
+#names(group_comparison.Ver5.selected)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown",
+                                          "SAup_2h","SAdown_2h","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
+# "WRKY33up" and "WRKY33donw" are reversed! (correct group_comparison.Ver5.csv)
+names(group_comparison.Ver5.selected)<-gsub("MYC234_","MYC234",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("GAinga1.3","GA",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("SA_UP","SAup_2h",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("SA_DOWN","SAdown_2h",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("UP","up",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("DOWN","down",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("NPR1_","NPR1",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)
+setwd(homedir)
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
+
+temp.list<-list(NPR1.up=group_comparison.Ver5.selected$NPR1up[-(1:3)],NPR1.down=group_comparison.Ver5.selected$NPR1down[-(1:3)],NPR1up_uponSA=group_comparison.Ver5.selected$NPR1up_uponSA[-(1:3)],NPR1down_uponSA=group_comparison.Ver5.selected$NPR1down_uponSA[-(1:3)])
+temp.list2<-lapply(temp.list,as.character)
+venn.plot2<-venn.diagram(temp.list2,filename="Venn_npr2.png")
+######
+
 
 # ### other SA microarray
 # http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE3984
@@ -2294,11 +2288,8 @@ load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.cu
 
 overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
 #overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10)) #
-overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) #
-
-
-
-
+# overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,4,12,11,9,6,5,2,1,3,8)) #
+overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(10, 7,9,2,12,8,4,1,5,3,11,6)) # 112816
 
 
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
@@ -2327,13 +2318,32 @@ test.wozero.melt.hormone.significant.s<-test.wozero.melt.hormone.significant[,c(
 names(test.wozero.melt.hormone.significant.s)<-c("AGI","my.category")
 #test.wozero.melt.hormone.significant.s$my.category<-factor(test.wozero.melt.hormone.significant.s$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # remove GAdown (052616)
 #write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/output/test.wozero.melt.hormone.significant.s.csv") # needs to revise
-write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.111816.csv") # needs to revise
+write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.111816.csv") # needs to revise?
+head(test.wozero.melt.hormone.significant.s)
+reshape(test.wozero.melt.hormone.significant.s,idvar="AGI",timevar="my.category",direction="wide")
+test.wozero.melt.hormone.significant.s.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
+write.csv(test.wozero.melt.hormone.significant.s.summary,file="test.wozero.melt.hormone.significant.s.summary.csv")
+setwd(homedir)
+# specific to each category
+test.wozero.melt.hormone.significant.s.summary.specific<-test.wozero.melt.hormone.significant.s.summary[rowSums(test.wozero.melt.hormone.significant.s.summary)==1,] # need to merge SA related categories?
+
+
+
 ```
 # appendix 2  "Should I filter probesets or genes?
 *Probesets or genes may be filtered by mean expression or variance (or their robust analogs such as median and median absolute deviation, MAD) since low-expressed or non-varying genes usually represent noise. Whether it is better to filter by mean expression or variance is a matter of debate; both have advantages and disadvantages, but more importantly, they tend to filter out similar sets of genes since mean and variance are usually related.
 *We do not recommend filtering genes by differential expression. WGCNA is designed to be an unsupervised analysis method that clusters genes based on their expression profiles. Filtering genes by differential expression will lead to a set of correlated genes that will essentially form a single (or a few highly correlated) modules. It also completely invalidates the scale-free topology assumption, so choosing soft thresholding power by scale-free topology fit will fail. "
 ### http://labs.genetics.ucla.edu/horvath/CoexpressionNetwork/Rpackages/WGCNA/faq.html
 #### it is OK to filter genes by variance (= largeCV genes in my scripts)
+# misc
+```{r}
+# chloroplast localized genes in orange module (112916)
+Atgo.CC.orange<-Atgo.list[names(Atgo.list) %in% SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"=="orange","AGI"]] #"GO:0009507" is chloroplast
+Atgo.CC.orange.chl<-Atgo.CC.orange[grep("GO:0009507",Atgo.CC.orange)]
+Atgo.CC.orange.chl.description<-TAIR10_gene_descriptions[TAIR10_gene_descriptions$AGI %in% names(Atgo.CC.orange.chl),]
+write.csv(Atgo.CC.orange.chl.description,file="Atgo.CC.orange.chl.description.csv")
+```
 # session info
 ```{r}
 sessionInfo()

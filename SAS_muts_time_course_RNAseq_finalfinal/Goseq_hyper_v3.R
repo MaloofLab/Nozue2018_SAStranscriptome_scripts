@@ -234,8 +234,9 @@ save(hormone.responsiveness4,file="hormone.responsiveness4.Rdata")
 # version 5
 # add more Sight (2015) data: NPR1 regulated gene upon SA treatment (24h), 24h SA responsive genes (Col)
 # 
-setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis") 
-setwd("/Volumes/Data8new/Data8/NGS_related/Arabidopsis_analysis") # for temporal system
+#setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis") 
+#setwd("/Volumes/Data8new/Data8/NGS_related/Arabidopsis_analysis") # for temporal system
+setwd("/Volumes/data_work/Data8/NGS_related/Arabidopsis_analysis") # for temporal system
 
 group_comparison.Ver5<-read.csv("group_comparison.Ver5.csv") 
 
@@ -244,8 +245,18 @@ categories<-c("IAAup","IAAdown","BLup","BLdown","GAinga1.3UP","GAinga1.3DOWN","B
               "SARplus","SARminus","GRF1_3target","PIFtarget","MYC234_up","MYC234_down","NPR1_up","NPR1_down","WRKY33up","WRKY33down","PCC1up","PCC1down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
 # rename categories
 group_comparison.Ver5.selected<-group_comparison.Ver5[,names(group_comparison.Ver5[-c(1:3),]) %in% categories]
-names(group_comparison.Ver5.selected)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown",
+#names(group_comparison.Ver5.selected)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown",
                                           "SAup_2h","SAdown_2h","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
+# "WRKY33up" and "WRKY33donw" are reversed! (correct group_comparison.Ver5.csv)
+names(group_comparison.Ver5.selected)<-gsub("MYC234_","MYC234",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("GAinga1.3","GA",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("SA_UP","SAup_2h",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("SA_DOWN","SAdown_2h",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("UP","up",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("DOWN","down",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)<-gsub("NPR1_","NPR1",names(group_comparison.Ver5.selected))
+names(group_comparison.Ver5.selected)
+
 #dummy.cat2<-data.frame(BLup=rep("",length(bias)),row.names=names(bias))
 dummy.cat2<-as.data.frame(matrix(nrow=length(names(bias)),ncol=length(names(group_comparison.Ver5.selected))))
 dummy.cat2<-as.data.frame(matrix(nrow=length(names(bias)),ncol=1))
@@ -269,11 +280,11 @@ for(i in 1:dim(dummy.cat2)[1]) {
   temp[[i]]<-paste(dummy.cat2[i,])
 }
 names(temp)<-rownames(dummy.cat2)   
-hormone.responsiveness5<-temp
-head(hormone.responsiveness5)
-table(hormone.responsiveness5[1:10])
-attributes(hormone.responsiveness5)$category<-names(group_comparison.Ver5.selected)
+hormone.responsiveness6<-temp
+head(hormone.responsiveness6)
+table(hormone.responsiveness6[1:10])
+attributes(hormone.responsiveness6)$category<-names(group_comparison.Ver5.selected)
 setwd(homedir)
 setwd("../../Nozue2016_SAStranscriptome_data/input")
-save(hormone.responsiveness5,file="hormone.responsiveness5.Rdata")
+save(hormone.responsiveness5,file="hormone.responsiveness6.Rdata") # 113016
 
