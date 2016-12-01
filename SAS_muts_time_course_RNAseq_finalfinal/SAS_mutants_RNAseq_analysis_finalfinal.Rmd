@@ -421,7 +421,7 @@ dim(SAS.expression.vst.s.kazu.largeCV) #[1] 7438  403 > 18379   264
 save(SAS.expression.vst.s.kazu.largeCV,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata")
 
 # response value of genes with largeCV 
-summary.vst.response.kazu<-summary.vst.response
+summary.vst.response.kazu<-summary.vst.response # where does this come from? 120116
 dim(summary.vst.response.kazu)
 summary.vst.response.kazu.largeCV<-summary.vst.response.kazu[rownames(summary.vst.response.kazu) %in% gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(SAS.expression.vst.s.kazu.largeCV)),]
 
@@ -2284,7 +2284,8 @@ test<-test[,-1]
 #load("SAS_muts_time_course_RNAseq2_mycomp_output/overlap.melt.summary.SOM.custom.Rdata") 
 # newone
 # load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.110816.Rdata") # why this is not all categories?
-load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.111916.Rdata") 
+#load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.111916.Rdata") 
+load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.113016.Rdata") #WRKY33 up and down fixed 
 
 overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
 #overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,6,9,5,8,2,4,11,1,12,7,10)) #
@@ -2302,6 +2303,9 @@ overlap.melt.summary.s.significant$category.cluster<-with(overlap.melt.summary.s
 
 test.wozero<-test[!test$ssom3.4.unit.classif=="0",]
 head(test.wozero)
+
+
+
 test.wozero.melt<-melt(test.wozero,id.var=c("AGI","ssom3.4.unit.classif"))
 head(test.wozero.melt)
 test.wozero.melt$category.cluster<-with(test.wozero.melt,paste(variable,ssom3.4.unit.classif,sep="_"))
@@ -2318,8 +2322,16 @@ test.wozero.melt.hormone.significant.s<-test.wozero.melt.hormone.significant[,c(
 names(test.wozero.melt.hormone.significant.s)<-c("AGI","my.category")
 #test.wozero.melt.hormone.significant.s$my.category<-factor(test.wozero.melt.hormone.significant.s$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # remove GAdown (052616)
 #write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/output/test.wozero.melt.hormone.significant.s.csv") # needs to revise
-write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.111816.csv") # needs to revise?
-head(test.wozero.melt.hormone.significant.s)
+
+# use only hormone responsive genes and PIFtarget
+# MYC234up is redundant with MJup
+# for SA, use only SAup_24h which is redundant with SARplus, NPR1up_uponSA.
+# NPR1up and down (npr1 vs Col with water control) are difficult to interpret (different from NPR1up/down_uponSA). So omit this time
+test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.s[!test.wozero.melt.hormone.significant.s$my.category %in% c("NPR1up","NPR1down","NPR1up_uponSA","SARplus","WRKY33up","MYC234up"),] # eliminate those categories
+# write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.113016.csv") # needs to revise?
+write.csv(test.wozero.melt.hormone.significant.ss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.ss.113016.csv") # 
+
+
 reshape(test.wozero.melt.hormone.significant.s,idvar="AGI",timevar="my.category",direction="wide")
 test.wozero.melt.hormone.significant.s.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
@@ -2327,11 +2339,20 @@ write.csv(test.wozero.melt.hormone.significant.s.summary,file="test.wozero.melt.
 setwd(homedir)
 # specific to each category
 test.wozero.melt.hormone.significant.s.summary.specific<-test.wozero.melt.hormone.significant.s.summary[rowSums(test.wozero.melt.hormone.significant.s.summary)==1,] # need to merge SA related categories?
-
-
+## 
+reshape(test.wozero.melt.hormone.significant.ss,idvar="AGI",timevar="my.category",direction="wide")
+test.wozero.melt.hormone.significant.ss.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
+write.csv(test.wozero.melt.hormone.significant.ss.summary,file="test.wozero.melt.hormone.significant.ss.summary.csv")
+setwd(homedir)
+# genes with no category
+test.wozero.melt.hormone.significant.ss.summary.zero<-rownames(test.wozero.melt.hormone.significant.ss.summary[rowSums(test.wozero.melt.hormone.significant.ss.summary)<1,]) 
+# 
+test.wozero.melt.hormone.significant.sss<-test.wozero.melt.hormone.significant.ss[!test.wozero.melt.hormone.significant.ss$AGI %in% test.wozero.melt.hormone.significant.ss.summary.zero,]
+write.csv(test.wozero.melt.hormone.significant.sss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.sss.113016.csv") # 
 
 ```
-# appendix 2  "Should I filter probesets or genes?
+# appendix 2  "Should I filter probesets or genes for WGCNA analysis?
 *Probesets or genes may be filtered by mean expression or variance (or their robust analogs such as median and median absolute deviation, MAD) since low-expressed or non-varying genes usually represent noise. Whether it is better to filter by mean expression or variance is a matter of debate; both have advantages and disadvantages, but more importantly, they tend to filter out similar sets of genes since mean and variance are usually related.
 *We do not recommend filtering genes by differential expression. WGCNA is designed to be an unsupervised analysis method that clusters genes based on their expression profiles. Filtering genes by differential expression will lead to a set of correlated genes that will essentially form a single (or a few highly correlated) modules. It also completely invalidates the scale-free topology assumption, so choosing soft thresholding power by scale-free topology fit will fail. "
 ### http://labs.genetics.ucla.edu/horvath/CoexpressionNetwork/Rpackages/WGCNA/faq.html
