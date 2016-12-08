@@ -50,7 +50,7 @@ summary.table.BA.rCol.rShade.leaf3_6<-model2e.lmer("BA",SASdata.merged.leaf3_6.c
 
 # hypocotyl (120716)
 ## summary table
-SAmuthypdata<-read.csv("SAmut_hyp_data.csv")
+SAmuthypdata<-read.csv("../Nozue2016_SAStranscriptome_data/input/SAmut_hyp_data.csv")
 summary(SAmuthypdata)
 # remove empty cells
 SAmuthypdata<-SAmuthypdata[!SAmuthypdata$treatment=="",]
