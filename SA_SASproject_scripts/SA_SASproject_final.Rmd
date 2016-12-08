@@ -8,11 +8,11 @@ output: html_document
 * 
 ```{r}
 if(Sys.info()["user"]=="nozue") {
-  setwd("/Volumes/Data7/Arabi_SAS_phenotyping/SASphenotyping2014/SA_SASproject_scripts/")
+  homedir<-"/Volumes/data_work/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SA_SASproject_scripts/"
 }
-if(Sys.info()["user"]=="nozue") {
-homedir<-"/Volumes/Toshiba_CANVIO2/not synched with my computer-selected/Nozue2016_SAStranscriptome_scripts/SA_SASproject_scripts"
-} # customize homedir
+# if(Sys.info()["user"]=="nozue") {
+# homedir<-"/Volumes/Toshiba_CANVIO2/not synched with my computer-selected/Nozue2016_SAStranscriptome_scripts/SA_SASproject_scripts"
+#} # customize homedir
 setwd(homedir)
 # reading necessary funcitons and libraries
 source("function.R")
@@ -48,7 +48,73 @@ summary.table.PBL.rCol.rShade.leaf3_6<-model2e.lmer("PBL",SASdata.merged.leaf3_6
 #BA
 summary.table.BA.rCol.rShade.leaf3_6<-model2e.lmer("BA",SASdata.merged.leaf3_6.common,"Col","shade",lmer(bladeArea~plant*treatment  + (1 | leaf) + (treatment | set),data=SASdata.merged.leaf3_6.common),saveplot=T) 
 
-       
+# hypocotyl (120716)
+## summary table
+SAmuthypdata<-read.csv("SAmut_hyp_data.csv")
+summary(SAmuthypdata)
+# remove empty cells
+SAmuthypdata<-SAmuthypdata[!SAmuthypdata$treatment=="",]
+# remove small plants  
+SAmuthypdata<-SAmuthypdata[!SAmuthypdata$root=="<2mm",]
+# change format
+#SAmuthypdata[,c("exp","treatment","genotype")]<-as.data.frame(lapply(SAmuthypdata[,c("exp","treatment","genotype")],as.factor)) # 
+#SAmuthypdata[,c("exp","treatment","genotype")]<-lapply(SAmuthypdata[,c("exp","treatment","genotype")],as.character)# 
+
+str(SAmuthypdata)
+## summary table
+SAmuthyp.table<-ftable(SAmuthypdata$plant,SAmuthypdata$treatment,SAmuthypdata$exp) # we do not have enough plants in npr1
+SAmuthyp.table
+# remove npr1
+SAmuthypdata.clean<-SAmuthypdata[!SAmuthypdata$plant=="npr1",]
+##
+str(SAmuthypdata.clean)
+SAmuthypdata.clean$plant<-droplevels(SAmuthypdata.clean$plant)
+str(SAmuthypdata.clean)
+### drawing graph
+library(ggplot2) # see http://ggplot2.org/
+str(SAmuthypdata.clean)
+#### drawing mean and SE (work later, Kazu)
+p <- ggplot(data=SAmuthypdata.clean,aes(x=treatment,y=hyp_mm,color=treatment)) 
+p <- p + geom_jitter()
+
+p <- p + stat_summary(fun.y="mean",geom="bar",alpha=0.5)
+p <- p + stat_summary(fun.data="calc.sem",geom="errorbar",position="dodge") 
+p<-p + facet_grid(.~plant)
+p <- p + labs(title="rawdata hyp yuc")
+p <-p + theme(axis.title.x = element_blank(), axis.text.x=element_text(angle=90))
+p <- p + theme(strip.text.x = element_text(angle=90))
+p
+
+ggsave("rawdata_SAmut_hyp.pdf",height=8,width=11,unit="in")
+#
+# source("/Volumes/Data7/Arabi_SAS_phenotyping/SAS_analysis_April2013/SAS_analysis_Jan2014/R_scripts_data_objects/function.R") # comment out unused scripts (022614, Kazu)
+### mixed effects model
+library(lme4);library(lmerTest);library(ggplot2);library(reshape2)
+
+### reference plant is "Col"
+# rep2
+SAmuthypdata.clean$rep2<-paste(SAmuthypdata.clean$exp, SAmuthypdata.clean$plate,SAmuthypdata.clean$rep,sep="_")
+# ref "Col"
+SAmuthypdata.clean$plant<-relevel(SAmuthypdata.clean$plant,ref="Col")
+### reference treatment is "sun"
+SAmuthypdata.clean$treatment<-relevel(SAmuthypdata.clean$treatment,ref="sun")
+str(SAmuthypdata.clean)
+SAmuthypdata.clean
+summary.table.hyp.rCol.rSun<-model2e.lmer("hyp_mm",SAmuthypdata.clean,"Col","sun",lmer(hyp_mm~plant*treatment+(1|rep2) + (1|exp),data=SAmuthypdata.clean),saveplot=T) # + leaf:plant will consider leaf effects, which gave me difficult interpretation. Remove it.
+summary.table.hyp.rCol.rSun[order(summary.table.hyp.rCol.rSun$hyp_mm_shade_pvalue_rCol_rsun),]
+#  reference treatment is "shade"
+SAmuthypdata.clean$treatment<-relevel(SAmuthypdata.clean$treatment,ref="shade")
+summary.table.hyp.rCol.rShade<-model2e.lmer("hyp_mm",SAmuthypdata.clean,"Col","shade",lmer(hyp_mm~plant*treatment+(1|rep2)+(1|exp),data=SAmuthypdata.clean),saveplot=T) # + leaf:plant will consider leaf effects, which gave me difficult interpretation. Remove it.
+#
+# summary plot (hypocotyl)
+data.input=merge(summary.table.hyp.rCol.rSun,summary.table.hyp.rCol.rShade,by="plant")
+data.input$plant<-gsub("plant","",data.input$plant)
+#data.input$plant<-factor(data.input$plant,levels=c("Col","yuc2","yuc5","yuc8","yuc9","yuc2yuc5yuc9","yuc5yuc8yuc9","yuc2yuc5yuc8yuc9","yuc1yuc4"))
+p<-plot.bar6(trait="hyp_mm",title="hypocotyl",ylabel="hypocotyl (mm)",data.input=data.input,save.plot=F,show.plot=F,rownum=1)
+p<-p + theme(strip.text.x=element_text(angle=90))
+p
+ggsave("SASmut_hypocotyl.pdf",height=5*4/3,width=5) # needs more data (do exp3; 120716)
+######### 
 # summary plot
 
 # summary plot (PL)
