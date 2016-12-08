@@ -231,7 +231,7 @@ attributes(hormone.responsiveness4)$category<-names(group_comparison2016v1.selec
 setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/")
 save(hormone.responsiveness4,file="hormone.responsiveness4.Rdata")
 
-# version 5
+# version 5 and 6
 # add more Sight (2015) data: NPR1 regulated gene upon SA treatment (24h), 24h SA responsive genes (Col)
 # 
 #setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis") 
@@ -246,7 +246,7 @@ categories<-c("IAAup","IAAdown","BLup","BLdown","GAinga1.3UP","GAinga1.3DOWN","B
 # rename categories
 group_comparison.Ver5.selected<-group_comparison.Ver5[,names(group_comparison.Ver5[-c(1:3),]) %in% categories]
 #names(group_comparison.Ver5.selected)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown",
-                                          "SAup_2h","SAdown_2h","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
+#                                          "SAup_2h","SAdown_2h","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
 # "WRKY33up" and "WRKY33donw" are reversed! (correct group_comparison.Ver5.csv)
 names(group_comparison.Ver5.selected)<-gsub("MYC234_","MYC234",names(group_comparison.Ver5.selected))
 names(group_comparison.Ver5.selected)<-gsub("GAinga1.3","GA",names(group_comparison.Ver5.selected))
@@ -286,5 +286,5 @@ table(hormone.responsiveness6[1:10])
 attributes(hormone.responsiveness6)$category<-names(group_comparison.Ver5.selected)
 setwd(homedir)
 setwd("../../Nozue2016_SAStranscriptome_data/input")
-save(hormone.responsiveness5,file="hormone.responsiveness6.Rdata") # 113016
+save(hormone.responsiveness6,file="hormone.responsiveness6.Rdata") # 113016
 
