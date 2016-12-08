@@ -363,8 +363,9 @@ object.name<-function(data) {
 
 ## bar plot function (originally made by Julin)
 ###### plot.bar for ggplot2 ver 0.9.3
-# for mixed effect model summary graph
-plot.bar6 <- function(trait,data.input=data.plot,title="",ylabel,rownum=3,save.plot=T,show.plot=F,width=8,height=6,RFRratio=F) { 
+## for mixed effect model summary graph
+## add option for changing sun/shade into high R/FR and low R/FR 
+plot.bar7 <- function(trait,data.input=data.plot,title="",ylabel,rownum=3,save.plot=T,show.plot=F,width=8,height=6,RFRratio=F) { 
   #make bar chart for a trait in Kazu's data
   if (title=="") title <- trait
   data.plot<-data.input[grep(paste("(^",trait,")\\w+(rCol)",sep=""),names(data.input),value=T)]

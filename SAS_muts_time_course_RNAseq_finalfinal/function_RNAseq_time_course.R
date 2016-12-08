@@ -49,7 +49,7 @@ expression.pattern.graph2<-function(data.cpm,target.genes,samples){# require ggp
   return(q)
 }
 # fold change (fixed; 060515)
-expression.pattern.graph2b<-function(summary.vst.response.kazu,target.genes){# require ggplot2, reshape2 packages, this is only for SAS timecourse data  
+expression.pattern.graph2b<-function(summary.vst.response.kazu,target.genes,plot.order){# require ggplot2, reshape2 packages, this is only for SAS timecourse data  
   temp.data<-as.data.frame(t(summary.vst.response.kazu[rownames(summary.vst.response.kazu) %in% target.genes,]))
   temp.data$genotype<-gsub("([[:digit:]]+)(_)(1|4|25|49)(hrA)","\\1",rownames(temp.data))
   temp.data$time<-gsub("([[:digit:]]+)(_)(1|4|25|49)(hrA)","\\3",rownames(temp.data)) 
@@ -64,13 +64,13 @@ expression.pattern.graph2b<-function(summary.vst.response.kazu,target.genes){# r
   print(temp.data)
   temp.data.melt<-melt(temp.data,id=c("time","genotype"))
   temp.data.melt$time<-factor(temp.data.melt$time,levels=c("1","4","25","49"))  
-  
+  temp.data.melt$variable<-factor(temp.data.melt$variable,levels=plot.order)
   q<-ggplot(temp.data.melt,aes(x=time,y=value)) + geom_point() + facet_grid(variable~genotype,scale="free") + theme(strip.text.y=element_text(angle=0))
   #  q<-q + scale_y_continuous(trans=log2_trans())
   return(q)
 }
 
-expression.pattern.graph3<-function(data.cpm,target.genes){# require ggplot2, reshape2 packages, this is only for SAS timecourse data (mean type, eg. "summary4")
+expression.pattern.graph3<-function(data.cpm,target.genes,plot.order){# require ggplot2, reshape2 packages, this is only for SAS timecourse data (mean type, eg. "summary4")
   temp.data<-as.data.frame(t(data.cpm[rownames(data.cpm) %in% target.genes,]))
   print(temp.data)
   temp.data$genotype<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",rownames(temp.data))
@@ -88,6 +88,7 @@ expression.pattern.graph3<-function(data.cpm,target.genes){# require ggplot2, re
   print(temp.data.melt)
   #temp.data.samples.melt$time<-factor(temp.data.samples.melt$time,levels=c("1","4","16","25","49"))
   temp.data.melt$time<-factor(temp.data.melt$time,levels=c("1","4","25","49"))
+  temp.data.melt$variable<-factor(temp.data.melt$variable,levels=plot.order)
   
   q<-ggplot(temp.data.melt,aes(x=time,y=value,color=trt)) + geom_point(alpha = 0.5) 
   q<-q + facet_grid(variable~genotype,scale="free") + theme(strip.text.y=element_text(angle=0))

@@ -1709,6 +1709,18 @@ dim(summary.vst.response.kazu)
 head(summary.vst.response.kazu)
 q<-expression.pattern.graph2b(summary.vst.response.kazu,"AT2G46970") # PIL1
 q
+# XBATs (120716)
+XBATs<-c("AT2G28840","AT5G57740","AT5G07270","AT4G14365","AT3G23280") # XBAT31, 32, 33, 34, 35
+# plot
+setwd("/Volumes/data_work/Data8/XBAT34")
+p<-expression.pattern.graph3(summary.vst.kazu,XBATs,plot.order=c("AT2G28840","AT5G57740","AT5G07270","AT4G14365","AT3G23280")) 
+p
+ggsave(p, file="XBATs_absolute.expression.pdf")
+# shade response
+q<-expression.pattern.graph2b(summary.vst.response.kazu,XBATs,plot.order=c("AT2G28840","AT5G57740","AT5G07270","AT4G14365","AT3G23280"))
+q
+ggsave(q, file="XBATs_shaderesponsiveness.pdf")
+
 
 ```
 # GOseq analysis of misexpressed geens in phyB (sun) and public available phytochrome mutnats (exposed to long light condition) (060815) 
@@ -1987,11 +1999,21 @@ fisher.test(Sessa.4d.salmon) # p-value = 0.3768
 ```
 # Salmon module genes are shade responsive in Col?
 ```{r}
-DEfiles<-list.files(path="../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/",pattern="DE.batch.anytime")
-setwd("../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/")
+setwd(homedir)
+DEfiles<-list.files(path="../../Nozue2016_SAStranscriptome_output/output/",pattern="DE.batch.anytime")
+DEfiles<-grep("DE.batch.anytime_genotype_wo_outlier_wo16h",DEfiles,value=TRUE)
+setwd("../../Nozue2016_SAStranscriptome_output/output/")
 load(DEfiles[1]) 
 rownames(DE.batch.anytime)<-paste(rownames(DE.batch.anytime),gsub("(DE.batch.anytime_genotype_wo_outlier_wo16h)([[:print:]]+)(.Rdata)","\\2",DEfiles[1]),sep=".")
-DE.batch.anytime[sub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(DE.batch.anytime)) %in% salmon$AGI,] # none
+# salmon ## under construction ##
+test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv")
+DE.genotype.batch.genes.WGCNAmodules.description<-test[,-1]
+dim(DE.genotype.batch.genes.WGCNAmodules.description) # 17985   28
+
+salmon<-DE.genotype.batch.genes.WGCNAmodules.description[DE.genotype.batch.genes.WGCNAmodules.description$WGCNAmodules=="orange",]
+salmon$AGI
+#
+DE.batch.anytime[gsub("([[:print:]]+)(.)([[:digit:]]+)(.1)","\\1",rownames(DE.batch.anytime)) %in% salmon$AGI,] # none
 # Salmon module genes do not have any shade responsive genes in Col...
 
 ```
