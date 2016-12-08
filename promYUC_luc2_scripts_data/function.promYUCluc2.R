@@ -249,8 +249,7 @@ format.luc2data.multi.exp3set1special.log2<-function(plant.name,luc2.data,luc2.d
 	temp.multi$setfiles<-set.files 
 	temp.multi<-temp.multi[grep("lab",temp.multi$setfiles,invert=TRUE),]
 	write.csv(temp.multi, file="temp.multi.csv") # and then edit files
-	#temp.multi.mod<-read.csv("/Volumes/Data6/data_JM4/promYUC_luc2/exp3/temp.multi2.csv")
-	temp.multi.mod<-read.csv("/Volumes/Data6/data_JM4/promYUC_luc2/promYUC_luc2_scripts_data/raw_data/exp3/temp.multi2.csv")
+	temp.multi.mod<-read.csv("exp3/temp.multi2.csv")
 	
 	# calculate increase/decrease from begining
 	# temp.multi.dif<-as.matrix(temp.multi[,-1])-as.vector(temp.multi[1,-1]) # does not work

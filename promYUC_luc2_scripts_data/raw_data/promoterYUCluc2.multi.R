@@ -21,10 +21,10 @@
 setwd("/Volumes/Data6/data_JM4/promYUC_luc2/promYUC_luc2_scripts_data/")
 library(ggplot2);library(reshape2)
 source("function.promYUCluc2.R") # run functions used in this scrip
-setwd("/Volumes/Data6/data_JM4/promYUC_luc2/promYUC_luc2_scripts_data/raw_data/")
-
+#setwd("/Volumes/Data6/data_JM4/promYUC_luc2/promYUC_luc2_scripts_data/raw_data/")
+setwd("/Volumes/data_work/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/promYUC_luc2_scripts_data/raw_data")
 # exp3
-exp3files<-read.table("/Volumes/Data6/data_JM4/promYUC_luc2/promYUC_luc2_scripts_data/raw_data/exp3/exp3files.txt",skip=2)
+exp3files<-read.table("exp3/exp3files.txt",skip=2)
 
 first_day_ZT0<-"Jun/11/06:00"
 
@@ -36,8 +36,8 @@ paste("shade_plate3_",c("YUC9_line3_rep1","YUC5_line3_rep1","YUC8_line3_rep2"),s
 paste("sun_plate1_",c("YUC9_line2_rep1","YUC5_line2_rep1","YUC8_line2_rep1"),sep=""),
 paste("sun_plate2_",c("YUC9_line1_rep1","YUC5_line1_rep1"),sep="")
 )
-luc2.data<-read.csv("/Volumes/Data6/data_JM4/promYUC_luc2/promYUC_luc2_scripts_data/raw_data/exp3/exp3set1data.csv") 
-luc2.data.multi<-read.csv("/Volumes/Data6/data_JM4/promYUC_luc2/promYUC_luc2_scripts_data/raw_data/exp3/exp3set1data.multi.csv") 
+luc2.data<-read.csv("exp3/exp3set1data.csv") 
+luc2.data.multi<-read.csv("exp3/exp3set1data.multi.csv") 
 exp3set1.luc2.data.multi.log2<-format.luc2data.multi.exp3set1special.log2(plant.name,luc2.data,luc2.data.multi,files=exp3files,first_day_ZT0=first_day_ZT0) # under construction (070214)
 #exp3set1.luc2.data.multi.log2<-temp.multi.dif.melt
 

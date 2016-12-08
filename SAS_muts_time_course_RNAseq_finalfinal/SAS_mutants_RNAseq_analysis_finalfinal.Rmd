@@ -420,9 +420,15 @@ SAS.expression.vst.s.kazu.largeCV<-SAS.expression.vst.s.kazu[SAS.expression.vst.
 dim(SAS.expression.vst.s.kazu.largeCV) #[1] 7438  403 > 18379   264
 save(SAS.expression.vst.s.kazu.largeCV,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata")
 
+# fix (120116)
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.Rdata")
+SAS.expression.vst.s.kazu.largeCV # this is not response
+#
+
 # response value of genes with largeCV 
+load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata") #summary.vst.response is object name
 summary.vst.response.kazu<-summary.vst.response # where does this come from? 120116
-dim(summary.vst.response.kazu)
+dim(summary.vst.response.kazu) #30533    52
 summary.vst.response.kazu.largeCV<-summary.vst.response.kazu[rownames(summary.vst.response.kazu) %in% gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(SAS.expression.vst.s.kazu.largeCV)),]
 
 dim(summary.vst.response.kazu.largeCV) # 7438   60 > 18379    48
@@ -1850,21 +1856,17 @@ newdata.vst[newdata.vst$AGI %in% c("AT3G48090","AT4G35580","AT1G74710","AT5G0833
 ```{r}
 setwd(homedir)
 my.category.diff.heatmap.graph<-list()
-categories <- read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.s.111816.csv",row.names=1,as.is=TRUE) # does not work.
+categories <- read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS7_test.wozero.melt.hormone.significant.sss.113016.csv",row.names=1,as.is=TRUE) # does not work.
 summary(categories)
 head(categories)
 table(categories$my.category)
 ### under construction ####### 
-#categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) 
-categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","NPR1up","NPR1up_uponSA","SAup_24h","WRKY33up"))) # 112816
-# needs to merge redandant SA-related categories (112916)
-
-
+categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","SAup_24h"))) # 120116
 
 # summary.vst.response.kazu
 load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata") # response. needs to fix colnames (060515)
 summary.vst.response.kazu<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
-dim(summary.vst.response.kazu)
+dim(summary.vst.response.kazu) # [1] 30533    52
 head(summary.vst.response.kazu)
 # for Fig5A, Col
 my.category.heatmap.graph<-list()
@@ -1875,34 +1877,35 @@ my.category.heatmap.graph[[i]]<-my.category.heatmap5(summary3.response=summary.v
 my.category.diff.data<-list()
 
 for(i in as.character(c(17,19,3,4,5,14,10,6,13,7,8,9))) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
-my.category.diff.data[[i]]<-my.category.diff(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v8.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T) # make specialized for difference heatmap function
+my.category.diff.data[[i]]<-my.category.diff(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v12.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T) # make specialized for difference heatmap function
 }
 # need to create diff data frame for (mut - Col)
 summary.vst.response.kazu.diffCol<-as.data.frame(my.category.diff.data)  # under construction
 max.value<-max(summary.vst.response.kazu.diffCol[,grep(".value",colnames(summary.vst.response.kazu.diffCol))])
 min.value<-min(summary.vst.response.kazu.diffCol[,grep(".value",colnames(summary.vst.response.kazu.diffCol))])
-max.min<-c(round(min.value,1),round(max.value,1))
+max.min<-c(round(min.value,2),round(max.value,2))
 my.category.diff.heatmap.graph<-list()
 
 for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
 my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap1(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.v8.png",w=5,h=5*4/3, path="../../Nozue2016_SAStranscriptome_output/figs_tables/",save.plot=F,legend.fill=T,max.min.value=max.min) # make specialized for difference heatmap function
 }
 # significance
-significant.position<-data.frame(category=c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"),x=0,y=1:13,symbol.gt="",symbol.gt.time="")
 # write how to calculate "Fig5B_response_p_values.csv"
 
 # read p value
-response.p.values<-read.csv("../../Nozue2016_SAStranscriptome_output/output/Fig5B_response_p_values.csv") # from Julin
-response.p.values.melt<-melt(response.p.values[,-1],id="gt") # this is wrong
+response.p.values<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Fig5B_response_p_values.v2.csv") # from modified Julin's script (Kazu_test_v2.R)
+response.p.values.melt<-melt(response.p.values[,-1],id="gt") # this is wrong?
 
 for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
+significant.position<-data.frame(category=c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","SAup_24h"),x=0,y=1:10,symbol.gt="",symbol.gt.time="")
 response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]  
-significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.0001)*1 # significant level 
+significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level 
   significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt)
   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt)
 
 # add significance to heatmap
 my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
+rm(significant.position)
 }
 ### use geom_blank() for blank plot
 library(cowplot)
@@ -1912,7 +1915,7 @@ my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geo
                       ncol=3,nrow=5,
                       label_size = 50)
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-save_plot("Fig5_all.my.category.diff.expression.pattern.v5.FDR0.0001.png", my.category.heatmap.all,
+save_plot("Fig5_all.my.category.diff.expression.pattern.v6.120116.FDR0.01.png", my.category.heatmap.all,
           ncol = 3, # we're saving a grid plot of 2 columns
           nrow = 5, # and 2 rows
           base_aspect_ratio = 2.5,
@@ -1938,7 +1941,7 @@ my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]]+theme(legend
                       label_size = 50)
 #
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-save_plot("Fig_S2_all.my.category.expression.pattern.v10.png", my.category.heatmap.all,
+save_plot("Fig_S2_all.my.category.expression.pattern.v11.120116.png", my.category.heatmap.all,
           ncol = 3, # we're saving a grid plot of 2 columns
           nrow = 5, # and 2 rows
           base_aspect_ratio = 2.5,
@@ -2304,8 +2307,6 @@ overlap.melt.summary.s.significant$category.cluster<-with(overlap.melt.summary.s
 test.wozero<-test[!test$ssom3.4.unit.classif=="0",]
 head(test.wozero)
 
-
-
 test.wozero.melt<-melt(test.wozero,id.var=c("AGI","ssom3.4.unit.classif"))
 head(test.wozero.melt)
 test.wozero.melt$category.cluster<-with(test.wozero.melt,paste(variable,ssom3.4.unit.classif,sep="_"))
@@ -2322,7 +2323,6 @@ test.wozero.melt.hormone.significant.s<-test.wozero.melt.hormone.significant[,c(
 names(test.wozero.melt.hormone.significant.s)<-c("AGI","my.category")
 #test.wozero.melt.hormone.significant.s$my.category<-factor(test.wozero.melt.hormone.significant.s$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","MYC234up","SARplus","NPR1down","WRKY33up"))) # remove GAdown (052616)
 #write.csv(test.wozero.melt.hormone.significant.s,file="../../Nozue2016_SAStranscriptome_output/output/test.wozero.melt.hormone.significant.s.csv") # needs to revise
-
 # use only hormone responsive genes and PIFtarget
 # MYC234up is redundant with MJup
 # for SA, use only SAup_24h which is redundant with SARplus, NPR1up_uponSA.
@@ -2335,7 +2335,7 @@ write.csv(test.wozero.melt.hormone.significant.ss,file="../../Nozue2016_SAStrans
 reshape(test.wozero.melt.hormone.significant.s,idvar="AGI",timevar="my.category",direction="wide")
 test.wozero.melt.hormone.significant.s.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
-write.csv(test.wozero.melt.hormone.significant.s.summary,file="test.wozero.melt.hormone.significant.s.summary.csv")
+#write.csv(test.wozero.melt.hormone.significant.s.summary,file="test.wozero.melt.hormone.significant.s.summary.csv")
 setwd(homedir)
 # specific to each category
 test.wozero.melt.hormone.significant.s.summary.specific<-test.wozero.melt.hormone.significant.s.summary[rowSums(test.wozero.melt.hormone.significant.s.summary)==1,] # need to merge SA related categories?
@@ -2343,7 +2343,7 @@ test.wozero.melt.hormone.significant.s.summary.specific<-test.wozero.melt.hormon
 reshape(test.wozero.melt.hormone.significant.ss,idvar="AGI",timevar="my.category",direction="wide")
 test.wozero.melt.hormone.significant.ss.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
-write.csv(test.wozero.melt.hormone.significant.ss.summary,file="test.wozero.melt.hormone.significant.ss.summary.csv")
+#write.csv(test.wozero.melt.hormone.significant.ss.summary,file="test.wozero.melt.hormone.significant.ss.summary.csv")
 setwd(homedir)
 # genes with no category
 test.wozero.melt.hormone.significant.ss.summary.zero<-rownames(test.wozero.melt.hormone.significant.ss.summary[rowSums(test.wozero.melt.hormone.significant.ss.summary)<1,]) 
