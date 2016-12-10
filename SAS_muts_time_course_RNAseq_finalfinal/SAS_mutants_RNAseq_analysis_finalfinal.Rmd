@@ -1266,7 +1266,9 @@ merge.net32<-mergeCloseModules(
 # save parameters  
   moduleLabels = merge.net32$colors
   moduleColors = labels2colors(merge.net32$colors)
-  MEs = merge.net32$MEs
+  #MEs = merge.net32$MEs # null (120916)
+  MEs = merge.net32$newMEs # new one? (120916)
+
   geneTree = merge.net32$dendrograms[[1]]
   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net32.RData",sep="")) 
 rm(net)
