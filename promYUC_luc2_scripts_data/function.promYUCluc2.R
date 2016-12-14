@@ -97,7 +97,8 @@ format.luc2data.multi.exp3set1special<-function(plant.name,luc2.data,luc2.data.m
 	temp.multi<-temp.multi[grep("lab",temp.multi$setfiles,invert=TRUE),]
 	write.csv(temp.multi, file="temp.multi.csv") # and then edit files
 	#temp.multi.mod<-read.csv("/Volumes/Data6/data_JM4/promYUC_luc2/exp3/temp.multi2.csv")
-	temp.multi.mod<-read.csv("/Volumes/Data6/data_JM4/promYUC_luc2/raw_data/exp3/temp.multi2.csv")
+	#temp.multi.mod<-read.csv("/Volumes/Data6/data_JM4/promYUC_luc2/raw_data/exp3/temp.multi2.csv")
+	temp.multi.mod<-read.csv("/Volumes/data_work/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/promYUC_luc2_scripts_data/raw_data/exp3/temp.multi2.csv")
 	
 	# calculate increase/decrease from begining
 	# temp.multi.dif<-as.matrix(temp.multi[,-1])-as.vector(temp.multi[1,-1]) # does not work
@@ -448,7 +449,7 @@ format.luc2data.multi.exp3set2special.log2.BS<-function(plant.name,luc2.data,luc
   return(temp.multi.dif.melt)
 }
 ###########################################################
-################## for log2 fold change caluculation (backgroudn subtraction version)
+################## for log2 fold change caluculation (background subtraction version) : do not use
 ######
 format.luc2data.multi.log2.BS<-function(plant.name,luc2.data,luc2.data.multi,files,first_day_ZT0) { 
   #temp.multi<-luc2.data.multi[,c("Slice",grep("^IntDen",names(luc2.data.multi),value=TRUE))]

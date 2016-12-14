@@ -1268,9 +1268,13 @@ merge.net32<-mergeCloseModules(
   moduleColors = labels2colors(merge.net32$colors)
   #MEs = merge.net32$MEs # null (120916)
   MEs = merge.net32$newMEs # new one? (120916)
-
+# switch "orange" and "salmon" (to keep "salomn" module name)
+moduleColors.temp<-moduleColors
+moduleColors.temp<-gsub("^orange","salmon",moduleColors)
+moduleColors.temp<-gsub("salmon4","orange4",moduleColors.temp)
+moduleColors<-moduleColors.temp
   geneTree = merge.net32$dendrograms[[1]]
-  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net32.RData",sep="")) 
+  save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net32.RData",sep="")) # "salmon" fixed (121216)
 rm(net)
 rm(merge.net32)
 } # resultant ***
@@ -1360,6 +1364,7 @@ setwd("../../Nozue2016_SAStranscriptome_output/output/")
 moduleColors.files<-list.files(pattern=".largeCV.merge.net32.RData") # for  merged modules by mergeCloseModules function above for Col (110816); newer (110916)
 ### use merged modules by mergeCloseModules function above for Col (22 modules; 110716)
 load("all1.largeCV.merge.net32.RData")
+
 ########
 moduleColors.allCol.largeCV<-moduleColors
 table(moduleColors.allCol.largeCV)
@@ -1368,25 +1373,31 @@ temp<-moduleColors.allCol.largeCV
 for(y in moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net32.RData"]) {
   load(y)
   print(length(moduleColors)) # [1] 17757
+  # switch "orange" and "salmon" (to keep "salomn" module name)
+moduleColors.temp<-moduleColors
+moduleColors.temp<-gsub("^orange","salmon",moduleColors)
+moduleColors.temp<-gsub("salmon4","orange4",moduleColors.temp)
+moduleColors<-moduleColors.temp
+# the end of sweitch
   matched.moduleColors<-matchLabels(moduleColors,moduleColors.allCol.largeCV)
   temp<-cbind(temp, matched.moduleColors)
 }   
 length(moduleColors.files)
 temp<-as.data.frame(temp)
 
-names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.merge.net32.RData)","\\2",c("all1.largeCV.merge.net35.RData",moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net35.RData"]))
+names(temp)<-gsub("(all)([[:digit:]]+)(.largeCV.merge.net32.RData)","\\2",c("all1.largeCV.merge.net32.RData",moduleColors.files[!moduleColors.files=="all1.largeCV.merge.net32.RData"]))
 SAS.expression.vst.s.kazu.largeCV.modules<-cbind(rownames(SAS.expression.vst.s.kazu.largeCV),temp)
 
 names(SAS.expression.vst.s.kazu.largeCV.modules)[1]<-"AGI"
 names(SAS.expression.vst.s.kazu.largeCV.modules)
-# look modules of PCC1, XBAT34, AIG1 (PCC1 (  AT3G22231; orange, XBAT34 (AT4G14365, orange), but AIG1 (thistle2;  AT1G33960), ACD6 (AT4G14400, ?)
+# look modules of PCC1, XBAT34, AIG1 (PCC1 (  AT3G22231; orange, XBAT34 (AT4G14365, orange), but AIG1 (thistle2;  AT1G33960), ACD6 (AT4G14400, ?) > all became "salmon" in threshold 0.32
 SAS.expression.vst.s.kazu.largeCV.modules[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),]
-#
-##
+
 head(SAS.expression.vst.s.kazu.largeCV.modules)
 setwd(homedir)
 #save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") #110816
-save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata") #110916
+save(SAS.expression.vst.s.kazu.largeCV.modules,file="../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules121316.Rdata") #121316
+
 ```
 
 # overlap between WGCNA Col modules and mutation affected genes
@@ -1395,7 +1406,9 @@ setwd(homedir)
 load("../../Nozue2016_SAStranscriptome_output/output/DE.genotype.batch.genes.unique.DF.Rdata")
 #setwd(homedir)
 # load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata")
+#load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata")
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules121316.Rdata")
+
 #library(WGCNA)
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # merge with WGCNA modules
@@ -1403,19 +1416,11 @@ test<-merge(DE.genotype.batch.genes.unique.DF,SAS.expression.vst.s.kazu.largeCV.
 DE.genotype.batch.genes.WGCNAmodules<-test
 DE.genotype.batch.genes.WGCNAmodules[is.na(DE.genotype.batch.genes.WGCNAmodules)]<-"0"
 names(DE.genotype.batch.genes.WGCNAmodules)<-sub("1$","WGCNAmodules",names(DE.genotype.batch.genes.WGCNAmodules)) # 
-
-write.csv(DE.genotype.batch.genes.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv")
-DE.genotype.batch.genes.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/DE.genotype.batch.genes.WGCNAmodules.csv") #Column names were screwed up (111616)
-DE.genotype.batch.genes.WGCNAmodules<-DE.genotype.batch.genes.WGCNAmodules[,-1]
-
+table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules) # "salmon" should be 182, "orange4" should be 50
 length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) #
 # adding gene description
-# TAIR10_gene_descriptions<-read.csv("../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") 
-# TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-#names(DE.genotype.batch.genes.WGCNAmodules.description)<-sub("X1","WGCNAmodules",names(test))
-write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv") #091616. Column names were screwed up (111616)
-
+write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv") #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316)
 
 # in whitney
 test<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7.csv")
@@ -1439,18 +1444,21 @@ overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
 overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
 overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
 overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
+overlap.melt.summary<-overlap.melt.summary[!overlap.melt.summary$Var2=="",]
+overlap.melt.summary$Var2<-droplevels(overlap.melt.summary$Var2)
 #table(overlap.melt.summary[,"value"])
 # graph
 #overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var2 %in% c("bsk5_1.sun","bsk5_1.shade","AT5G02540_1.sun","AT5G02540_1.shade"),]
-save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") # 110816
-
+save(overlap.melt.summary,file="../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") # 110816, 121316
 # reading and cleaning overlap table
 # load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.Rdata")
 #load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.s.WGCNA.mut.GOseq.Rdata") # calculated in whitney (052616); (110816, testing with permutation =100)
 load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") 
 overlap.melt.summary
 overlap.melt.summary.ss<-overlap.melt.summary[!overlap.melt.summary$Var1=="0",]
+overlap.melt.summary.ss$Var1<-as.factor(overlap.melt.summary.ss$Var1)
 
+table(overlap.melt.summary.ss$Var1)
 q4<-ggplot(overlap.melt.summary.ss,aes(y=factor(Var1),x=factor(Var2))) 
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2) # this color coding is not good (061716)
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta") # Is this better? (061716)
@@ -1466,8 +1474,10 @@ q4 <- q4 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modu
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111816.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+# ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111816.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+# ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq121316.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq121316.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
 q4 # magenta indicates pvalue is smaller than 0.01.
 # #### only "salmon","pink" (=JA),"purple" (=auxin) for job application 2015 - 2016 ###
@@ -1496,7 +1506,8 @@ setwd(homedir)
 # load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules.Rdata")
 #load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110816.Rdata") # tan is SA and JA an everything. too big. Also overlapped with all mutants (Fig6)
 # lower threshold in meregeCloseModules.
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata") # 
+# load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata") # 
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules121316.Rdata") # 
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # prep for GO category
@@ -1517,7 +1528,7 @@ for(x in modules) {
   temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"==x,"AGI"],category.table=Atgo.list)
   save(temp.GOseq,temp.genes,file=paste("WGCNA.Col.module.",x,".GOseq.Rdata",sep=""))
 }
-  } # 110916
+  } # 110916, 121316
 ```
 ## write summary of WGCNA.Col.module.GOseq 
 ```{r eval=FALSE}
@@ -1535,14 +1546,13 @@ for(i in WGCNA.Col.module.GOseq.files[-1]) {
   temp<-rbind(temp,temp.GOseq)
 }
 WGCNA.Col.module.GOseq.summary<-temp
-write.csv(WGCNA.Col.module.GOseq.summary,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset5_GO_enrichment_analysis_of_WGCNA_modules.csv") # Dataset 5. GO enrichment analysis of WGCNA gene co-expression modules (091716)
+write.csv(WGCNA.Col.module.GOseq.summary,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset5_GO_enrichment_analysis_of_WGCNA_modules.csv") # Dataset 5. GO enrichment analysis of WGCNA gene co-expression modules (091716, salmon4<>orange 121316)
 ```
 ## What genes are found in given module with given GO category?
 ```{r eval=FALSE}
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
-
-# ""GO:0009507" in "orange" (chloroplast)
-load("GOCC.WGCNA.Col.module.orange.GOseq.Rdata") # none. does not work
+# ""GO:0009507" in "salmon" (chloroplast)
+load("GOCC.WGCNA.Col.module.salmon.GOseq.Rdata") # I did not run GOCC
 temp.genes.wdescrition<-merge(temp.genes,TAIR10_gene_descriptions,by="AGI")
 dim(temp.genes)
 temp.genes.wdescrition<-temp.genes.wdescrition[!duplicated(temp.genes.wdescrition$AGI),]
@@ -1575,7 +1585,7 @@ for(x in modules) { #
   temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=SAS.expression.vst.s.kazu.largeCV.modules[SAS.expression.vst.s.kazu.largeCV.modules$"1"==x,"AGI"],category.table=Atgo.list)
   save(temp.GOseq,temp.genes,file=paste("GOCC.WGCNA.Col.module.",x,".GOseq.Rdata",sep=""))
 }
-}
+} # 121316 with salmon4<>orange fixed module names
 setwd(homedir)
 ```
 ## write summary of WGCNA.Col.module.GOseq.CC 
@@ -1610,7 +1620,9 @@ names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6)$category
 #names(hormone.responsiveness4.DF)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","SAup","SAdown","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down")
 hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF)
 
-load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata") 
+#load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules110916.Rdata") 
+load("../../Nozue2016_SAStranscriptome_output/output/SAS.expression.vst.s.kazu.largeCV.modules121316.Rdata") 
+
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) # remove .1, .2, etc
 # merge with WGCNA modules
 test<-merge(hormone.responsiveness6.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
@@ -1628,11 +1640,8 @@ head(hormone.responsiveness.WGCNAmodules)
 # Plant Cell version
 write.csv(hormone.responsiveness.WGCNAmodules,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset_6_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules.csv")
 
-
-
-
-# orange genes and SA, npr1 responsiveness? (PCC1, XBAT34, AIG1, ACD6)
-hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "orange" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"), c(1,18:19,24:34)]
+# salmon genes and SA, npr1 responsiveness? (PCC1, XBAT34, AIG1, ACD6)
+hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "salmon" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"), c(1,18:19,24:34)]
 
 setwd("../../Nozue2016_SAStranscriptome_output/output/")
 hormone.responsiveness.WGCNAmodules<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset_6_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules.csv")
@@ -1640,9 +1649,6 @@ hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,-1]
 # remove GRF1_3target (052616)
 hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,!names(hormone.responsiveness.WGCNAmodules)=="GRF1_3target"]
 test<-hormone.responsiveness.WGCNAmodules
-# overlap table (revised to GOseq.overlapTable model, 052616, but scripts stoped. I am trying method="sampling" in dgoseq, though it takes time).
-# Error in pWNCHypergeo(num_de_incat, num_incat, num_genes - num_incat,  : 
-#   Inconsistency. mean = 280, lower limit = 264, upper limit = 279 
 i<-2
 overlap<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI) # default permutaiton is 2000 in goseq(method="Sampling")
 overlap.melt<-melt(overlap$pTable,id=1) #
@@ -1687,8 +1693,10 @@ q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4 <- q4 + geom_text(aes(label=count),size=4)
 q4 <- q4 + labs(x="custom category",y="WGCNA modules in Col",title="custom category enrichment",fill="-log10\n pvalue")
 #ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.pdf",width=11,height=8)
-ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.113016.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.113016.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+# ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.113016.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+# ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.113016.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.121316.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+ggsave(q4,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.121316.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 
 q4 # magenta indicates pvalue is smaller than 0.01.
 ```
