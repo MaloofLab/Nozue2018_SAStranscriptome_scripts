@@ -3,7 +3,7 @@
 ## promoterYUCluc2.multi_final.R
 ##    finalized by Kazu
 #########
-setwd("/Volumes/Data6/data_JM4/promYUC_luc2/scripts_data/")
+setwd("/Volumes/data_work/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/promYUC_luc2_scripts_data")
 library(ggplot2);library(reshape2)
 source("function.promYUCluc2.R") # run functions used in this scrip
 ####################################################
