@@ -50,7 +50,7 @@ summary.table.BA.rCol.rShade.leaf3_6<-model2e.lmer("BA",SASdata.merged.leaf3_6.c
 
 # hypocotyl (120716)
 ## summary table
-SAmuthypdata<-read.csv("../Nozue2016_SAStranscriptome_data/input/SAmut_hyp_data.csv")
+SAmuthypdata<-read.csv("../../Nozue2016_SAStranscriptome_data/input/SAmut_hyp_data.csv")
 summary(SAmuthypdata)
 # remove empty cells
 SAmuthypdata<-SAmuthypdata[!SAmuthypdata$treatment=="",]
@@ -66,6 +66,8 @@ SAmuthyp.table<-ftable(SAmuthypdata$plant,SAmuthypdata$treatment,SAmuthypdata$ex
 SAmuthyp.table
 # remove npr1
 SAmuthypdata.clean<-SAmuthypdata[!SAmuthypdata$plant=="npr1",]
+SAmuthypdata.clean<-SAmuthypdata
+
 ##
 str(SAmuthypdata.clean)
 SAmuthypdata.clean$plant<-droplevels(SAmuthypdata.clean$plant)
@@ -105,23 +107,19 @@ summary.table.hyp.rCol.rSun[order(summary.table.hyp.rCol.rSun$hyp_mm_shade_pvalu
 #  reference treatment is "shade"
 SAmuthypdata.clean$treatment<-relevel(SAmuthypdata.clean$treatment,ref="shade")
 summary.table.hyp.rCol.rShade<-model2e.lmer("hyp_mm",SAmuthypdata.clean,"Col","shade",lmer(hyp_mm~plant*treatment+(1|rep2)+(1|exp),data=SAmuthypdata.clean),saveplot=T) # + leaf:plant will consider leaf effects, which gave me difficult interpretation. Remove it.
-#
-# summary plot (hypocotyl)
-data.input=merge(summary.table.hyp.rCol.rSun,summary.table.hyp.rCol.rShade,by="plant")
-data.input$plant<-gsub("plant","",data.input$plant)
-#data.input$plant<-factor(data.input$plant,levels=c("Col","yuc2","yuc5","yuc8","yuc9","yuc2yuc5yuc9","yuc5yuc8yuc9","yuc2yuc5yuc8yuc9","yuc1yuc4"))
-p<-plot.bar6(trait="hyp_mm",title="hypocotyl",ylabel="hypocotyl (mm)",data.input=data.input,save.plot=F,show.plot=F,rownum=1)
-p<-p + theme(strip.text.x=element_text(angle=90))
-p
-ggsave("SASmut_hypocotyl.pdf",height=5*4/3,width=5) # needs more data (do exp3; 120716)
-######### 
-# summary plot
+
 
 # summary plot (PL)
 leaf3.6.PL<-plot.bar7(trait="PL",title="PL leaf3-6",ylabel="petiole length (mm)",data.input=merge(summary.table.PL.rCol.rSun.leaf3_6,summary.table.PL.rCol.rShade.leaf3_6,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
 # summary plot (PBL)
 leaf3.6.PBL<-plot.bar7(trait="PBL",title="PBL leaf3-6",ylabel="petiole/blade length",data.input=merge(summary.table.PBL.rCol.rSun.leaf3_6,summary.table.PBL.rCol.rShade.leaf3_6,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
-leaf3.6.BA<-plot.bar6(trait="BA",title="BA leaf3-6",ylabel="blade area (mm^2)",data.input=merge(summary.table.BA.rCol.rSun.leaf3_6,summary.table.BA.rCol.rShade.leaf3_6,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# summary plot (PA)
+leaf3.6.BA<-plot.bar7(trait="BA",title="BA leaf3-6",ylabel="blade area (mm^2)",data.input=merge(summary.table.BA.rCol.rSun.leaf3_6,summary.table.BA.rCol.rShade.leaf3_6,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# summary plot (hyp)
+hyp<-plot.bar7(trait="hyp",title="hyp leaf3-6",ylabel="hypocotyl length (mm)",data.input=merge(summary.table.hyp.rCol.rSun,summary.table.hyp.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) 
+#+ theme(axis.text.x=element_text(face="italic"))
+
+
 
 # plot in one fig by 
 library(cowplot)
@@ -135,12 +133,18 @@ library(cowplot)
 #   ncol=3,labels=c("A","B","C"))
 # save_plot("Fig8_plot.SA.leaf3.6_v2.png", plot.all.leaf3.6, ncol = 3, nrow = 1,base_aspect_ratio = 0.8)
 # remove "high R/fR" and "low R/FR" from x-axis and instead have color key.
-plot.all.leaf3.6<-plot_grid(
-  leaf3.6.PL+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title=""),
-  leaf3.6.PBL+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title=""), 
-  leaf3.6.BA+theme(axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title=""),
-  ncol=3,labels=c("A","B","C"),rel_widths=c(1,1,1.35))
-save_plot("../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.SA.leaf3.6_v3.png", plot.all.leaf3.6, ncol = 3, nrow = 1,base_aspect_ratio = 0.8)
+# change mutant genotype fontface into italic
+plot.all<-plot_grid(
+  leaf3.6.PL+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="") + theme(strip.text.x=element_text(face="italic")),
+  leaf3.6.PBL+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic")), 
+  leaf3.6.BA+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic")),
+  hyp+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic")),
+  #ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1.28),
+  ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1)
+  )
+save_plot("../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.SA.leaf3.6_v3_hyp2.png", plot.all, ncol = 2, nrow = 2,base_aspect_ratio = 0.8)
+save_plot("../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.SA.leaf3.6_v3_hyp2.pdf", plot.all, ncol = 2, nrow = 2,base_aspect_ratio = 0.8) # change a fontface of "Col" into "regular" by Illustrator. 
+
 
 ```
 
