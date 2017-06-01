@@ -1,0 +1,78 @@
+---
+title: "SA ET mutants SAS phenotyping (adult)"
+author: "Kazu Nozue"
+date: "May 29, 2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+#  060716 cleaning up scripts for SA project (paper) 
+* 
+```{r}
+if(Sys.info()["user"]=="nozue") {
+  homedir<-"/Volumes/data_work/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SA_SASproject_scripts/"
+}
+# if(Sys.info()["user"]=="nozue") {
+# homedir<-"/Volumes/Toshiba_CANVIO2/not synched with my computer-selected/Nozue2016_SAStranscriptome_scripts/SA_SASproject_scripts"
+#} # customize homedir
+setwd(homedir)
+# reading necessary funcitons and libraries
+source("function.R")
+#################################################
+# more SA mutant (eg. npr2/3/4) (Jan 26, 2017)
+# checking setH (May 29, 2017)
+#################################################
+moreSAmutSASdata<-read.csv("../../Nozue2016_SAStranscriptome_data/input/moreSAmut_SAS_leaf.csv")
+head(moreSAmutSASdata)
+# ftable
+moreSAmutSASdata.ftable<-ftable(moreSAmutSASdata[,c("petioleLength","treatment","set","plant")],col.vars=c("set"),row.vars=c("plant","treatment"))
+moreSAmutSASdata.ftable
+# select only set H (new light condition since Feb 2017; light condition accident on May 9)
+moreSAmutSASdata<-moreSAmutSASdata[moreSAmutSASdata$set=="H",]
+
+moreSAmutSASdata$set<-as.factor(as.character(moreSAmutSASdata$set))
+moreSAmutSASdata.ftable<-ftable(moreSAmutSASdata[,c("petioleLength","treatment","set","plant")],col.vars=c("set"),row.vars=c("plant","treatment"))
+moreSAmutSASdata.ftable# 
+# PBL
+moreSAmutSASdata$petiole_bladeLength<-with(moreSAmutSASdata,petioleLength/bladeLength)
+# rename rep
+moreSAmutSASdata$rep2<-with(moreSAmutSASdata,paste(set,rep,sep="_"))
+moreSAmutSASdata$treatment<-relevel(moreSAmutSASdata$treatment,ref="sun")
+# only leaf3-6
+moreSAmutSASdata.leaf3_6<-moreSAmutSASdata[moreSAmutSASdata$leaf>2&moreSAmutSASdata$leaf<7,]
+# check strange data
+moreSAmutSASdata.leaf3_6[moreSAmutSASdata.leaf3_6$petiole_bladeLength<0.3,]
+moreSAmutSASdata.leaf3_6[moreSAmutSASdata.leaf3_6$petiole_bladeLength>1,]
+
+# remove too small Col in setE, shade, rep1
+moreSAmutSASdata.leaf3_6[moreSAmutSASdata.leaf3_6$plant=="Col"&moreSAmutSASdata.leaf3_6$treatment=="shade"&moreSAmutSASdata.leaf3_6$set=="E"&moreSAmutSASdata.leaf3_6$rep==1,]
+
+hist(moreSAmutSASdata.leaf3_6[moreSAmutSASdata.leaf3_6$plant=="Col","bladeArea",]
+)
+#
+moreSAmutSASdata.leaf3_6<-moreSAmutSASdata.leaf3_6[!(moreSAmutSASdata.leaf3_6$plant=="Col"&moreSAmutSASdata.leaf3_6$treatment=="shade"&moreSAmutSASdata.leaf3_6$set=="E"&moreSAmutSASdata.leaf3_6$rep==1),]
+
+# # only leaf3 to leaf6. find strange data
+moreSAmutSASdataleaf3_6.rawdataplot.PL<-ggplot(moreSAmutSASdata.leaf3_6, aes(x=treatment,y=petioleLength,color=treatment)) + geom_jitter() + facet_grid(plant~leaf)
+moreSAmutSASdata.leaf3_6.rawdataplot.PBL<-ggplot(moreSAmutSASdata.leaf3_6, aes(x=treatment,y=petiole_bladeLength,color=treatment)) + geom_jitter() + facet_grid(plant~leaf)
+# 
+# ggsave(moreSAmutSASdata.setE.leaf3_6.rawdataplot.PL, file="moreSAmutSASdata.setE.leaf3_6.rawdataplot.PL.pdf")
+# 
+###
+# moreSAmutSASdata.setE.leaf3_6[moreSAmutSASdata.setE.leaf3_6$petioleLength<1,] #none
+### reference is "sun"
+# PL
+moreSAmutSASdata.leaf3_6$plant<-relevel(moreSAmutSASdata.leaf3_6$plant,ref="Col")
+moreSAmutSASdata.leaf3_6$treatment<-relevel(moreSAmutSASdata.leaf3_6$treatment,ref="sun")
+moreSAmutSASdata.leaf3_6<-moreSAmutSASdata.leaf3_6[!moreSAmutSASdata.leaf3_6$plant=="npr1",]
+moreSAmutSASdata.leaf3_6$plant<-as.factor(as.character(moreSAmutSASdata.leaf3_6$plant))
+#summary.table.PL.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("PL",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(petioleLength~plant*treatment  + (1 | leaf) + (treatment | set) + (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) # use this if there are more sets
+summary.table.PL.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("PL",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(petioleLength~plant*treatment  + (1 | leaf)  + (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) 
+# OK response of Col (plantCol:treatmentshade) is significant (normal)
+
+# PBL
+#summary.table.PBL.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("PBL",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(petiole_bladeLength~plant*treatment  + (1 | leaf) + (treatment | set)+ (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) # use this if there are more sets
+summary.table.PBL.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("PBL",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(petiole_bladeLength~plant*treatment  + (1 | leaf) + (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) 
+# OK response of Col (plantCol:treatmentshade) is significant (normal)
+
+```

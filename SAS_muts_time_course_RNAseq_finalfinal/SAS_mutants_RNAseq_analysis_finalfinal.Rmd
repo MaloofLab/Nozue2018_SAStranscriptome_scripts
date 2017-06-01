@@ -18,16 +18,17 @@ output: html_document
 * GOseq analysis of SOM clusters
 * overlap between SOM clusters and misexpressed genes in mutants
 * co-expression analysis by WGCNA (all Col samples)
+* rewrite setting directory to be compatible to new RStudio
 
 ## preparation
 ```{r load-data}
 if(Sys.info()["user"]=="nozue") {
 #homedir<-"/Volumes/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
 # for temporary computer system (J's ex hard drive)
-# homedir<-"/Volumes/Data8new/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
+# homedir<-"/Volumes/Data8new/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts?kknitr::opts_chunk/SAS_muts_time_course_RNAseq_finalfinal"
 # for new computer system (Toshiba 3T ex hard drive)
 homedir<-"/Volumes/data_work/data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
-
+homedir2<-getwd() # default derectory stored in project
 } # customize homedir
 # download "Nozue2016_SAStranscriptome_data" at the same level of "Nozue2016_SAStranscriptome_scripts"
 # Atmosphere (Cyverse)
@@ -38,10 +39,13 @@ homedir<-"/vol1/SAS_muts_time_course_RNAseq4/Nozue2016_SAStranscriptome_scripts/
 if(Sys.info()["nodename"]=="whitney") {
   homedir<-"~/NGS/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SAS_muts_time_course_RNAseq_finalfinal"
 } # use git repository
-setwd(homedir)
+# setwd(homedir) # does not work with new RStudio
 
 # reading necessary funcitons and libraries
-source("function_RNAseq_time_course.R")
+knitr::opts_chunk$set(echo = TRUE)
+source(file.path("SAS_muts_time_course_RNAseq_finalfinal/function_RNAseq_time_course.R"))
+source(file.path("SAS_muts_time_course_RNAseq_finalfinal/function_RNAseq_time_course.R"))
+
 ```
 
 ## eliminating libraries with wrong genotypes
@@ -294,7 +298,7 @@ load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/dge.nol
 # needs to fix Genotype part (083016)
 # Genotype<-levels(as.factor(samples.nolow5$genotype))
 # Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
-SAS.expression.vst<-read.csv("../../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (082016)
+SAS.expression.vst<-read.csv("../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (082016)
 rownames(SAS.expression.vst)<-SAS.expression.vst$X
 Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)[-1])))
 #
