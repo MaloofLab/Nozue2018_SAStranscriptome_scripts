@@ -1,0 +1,97 @@
+---
+title: "SA_amount"
+author: "Kazu"
+date: "6/15/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("SA_SASproject_scripts/function.R")
+
+```
+# 
+```{r}
+SA<-read.csv("../Nozue2016_SAStranscriptome_data/input/SAmeasurement_LCMS 06-14-2007 Kazu.csv")
+SA.s<-SA[,c("sample","genotype","treatment","exp","QUANTITY.SA..ng.g.FW..1")]
+SA.ss<-SA.s[!is.na(SA.s[,1]),]
+SA.ss$treatment<-factor(as.character(SA.ss$treatment),levels=c("sun","shade"))
+SA.ss$genotype<-factor(as.character(SA.ss$genotype),levels=c("Col-0","phyB","sid2"))
+colnames(SA.ss)<-gsub("QUANTITY.SA..ng.g.FW..1","SA_ng_per_g_FW",colnames(SA.ss))
+str(SA.ss)
+colnames(SA.ss)<-gsub("genotype","plant",colnames(SA.ss))
+SA.ss$plant<-as.factor(gsub("Col-0","Col",SA.ss$genotype))
+
+p<-ggplot(data=SA.ss,mapping=aes(x=treatment,y=SA_ng_per_g_FW,color=treatment)) + geom_boxplot()+geom_jitter() + facet_grid(.~plant)
+
+# mixed effects model
+# sun
+SA.ss$treatment<-relevel(SA.ss$treatment,ref="sun")
+summary.table.SA.rCol.rSun<-model2e.lmer("SA",SA.ss,"Col","sun",lmer(SA_ng_per_g_FW~plant*treatment+(1|exp),data=SA.ss),saveplot=T) # use this if there are more sets
+# shade
+SA.ss$treatment<-relevel(SA.ss$treatment,ref="shade")
+summary.table.SA.rCol.rShade<-model2e.lmer("SA",SA.ss,"Col","shade",lmer(SA_ng_per_g_FW~plant*treatment+(1|exp),data=SA.ss),saveplot=T) # use this if there are more sets
+# plot
+SA.data<-plot.bar7(trait="SA",title="SA amount",ylabel="SA amount (ng) per fresh weight(g)",data.input=merge(summary.table.SA.rCol.rSun,summary.table.SA.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T,significance=F)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# add significance between genotypes in each treatment in photoshop etc.
+ggsave("../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Fig1_SAamount.png")
+
+
+################### omake ################
+## Tukey HSD test
+summary(fm1 <- aov(breaks ~ wool + tension, data = warpbreaks))
+TukeyHSD(fm1, "tension", ordered = TRUE)
+plot(TukeyHSD(fm1, "tension"))
+#lsmeans() is useful (https://stats.stackexchange.com/questions/145765/post-hoc-testing-in-multcompglht-for-mixed-effects-models-lme4-with-interact)
+library(lsmeans)
+data <- warpbreaks
+warpbreaks$rand <- NA
+# I have added an extra random variable to mimic my "block" effect:
+warpbreaks$rand <- rep(c("foo", "bar", "bee"), nrow(warpbreaks)/3)
+# This mimics my model:
+library(multcomp)
+#summary(warpbreaks)
+library(lme4)
+# ggplot(warpbreaks,aes(x=wool,y=breaks,color=wool)) + geom_jitter()+facet_grid(.~tension)
+# mod <- lmer(breaks ~ tension * wool + (1|rand), data = warpbreaks) 
+# lsmeans(mod, pairwise ~ tension | wool)
+# lsmeans(mod, pairwise ~ wool | tension)
+# Therefore for my SA amount data
+SA.lmer.rSun
+SA.lsm1<-lsmeans(SA.lmer.rSun, pairwise~genotype|treatment) 
+SA.lsm2<-lsmeans(SA.lmer.rSun, pairwise~treatment|genotype) # no sun vs shade effects
+library(lattice)
+#plot(SA.lsm1,comparisons=TRUE,alpha=.10) # does not work
+# draw plot mixed effects model
+
+# ggplot_build(SA.data)
+# SA.data +geom_path(x=c(1,1,2,2),y=c(25,26,26,25)) +
+#   annotate("text",x=1.5,y=27,label="p=0.012")
+
+# gtable
+# https://stackoverflow.com/questions/42151880/ggplot-drawing-multiple-lines-across-facets
+# 
+# library(ggplot2)
+# library(gtable)
+# library(grid)
+# 
+# dat <- data.frame(x=rep(1:10,2),y=1:20+rnorm(20),z=c(rep("A",10),rep("B",10)))
+# 
+# p <- ggplot(dat,aes(x,y)) + geom_point() + facet_grid(z~.) + xlim(0,10)
+# pb <- ggplot_build(p)
+# pg <- ggplot_gtable(pb)
+# 
+# # needs to understand this part (062317)
+# data2npc <- function(x, panel = 1L, axis = "x") {
+#   range <- pb$layout$panel_ranges[[panel]][[paste0(axis,".range")]]
+#   scales::rescale(c(range, x), c(0,1))[-c(1,2)]
+# }
+# 
+# start <- sapply(c(4,8), data2npc, panel=1, axis="x")
+# 
+# pg <- gtable_add_grob(pg, segmentsGrob(x0=start, x1=start, y0=0, y1=1, gp=gpar(lty=2)), t=8, b=6, l=4)
+# 
+# grid.newpage()
+# grid.draw(pg)
+
+```

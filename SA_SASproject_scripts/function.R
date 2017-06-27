@@ -365,7 +365,7 @@ object.name<-function(data) {
 ###### plot.bar for ggplot2 ver 0.9.3
 ## for mixed effect model summary graph
 ## add option for changing sun/shade into high R/FR and low R/FR 
-plot.bar7 <- function(trait,data.input=data.plot,title="",ylabel,rownum=3,save.plot=T,show.plot=F,width=8,height=6,RFRratio=F) { 
+plot.bar7 <- function(trait,data.input=data.plot,title="",ylabel,rownum=3,save.plot=T,show.plot=F,width=8,height=6,RFRratio=F,significance=T) { 
   #make bar chart for a trait in Kazu's data
   if (title=="") title <- trait
   data.plot<-data.input[grep(paste("(^",trait,")\\w+(rCol)",sep=""),names(data.input),value=T)]
@@ -436,8 +436,10 @@ plot.bar7 <- function(trait,data.input=data.plot,title="",ylabel,rownum=3,save.p
   #pl <- pl + opts(axis.title.x = theme_blank(), axis.title.y = theme_blank(),title=title)
   pl <-pl + theme(axis.title.x = element_blank(), axis.text.x=element_text(angle=90))
   pl <-pl + labs(title=title,y=ylabel)
-  pl <- pl + geom_text(data=data.plot,aes(x=trt,y=ymax*1.05,label=factor(significance),color=trt))     # for significance
-  pl
+  if(significance){
+    pl <- pl + geom_text(data=data.plot,aes(x=trt,y=ymax*1.05,label=factor(significance),color=trt))     # for significance
+  }
+    pl
   if(save.plot) ggsave(filename=paste(title,"pdf",sep="."),
                        plot=pl,width=width,height=height)
   if(show.plot) pl
