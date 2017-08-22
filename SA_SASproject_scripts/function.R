@@ -9,8 +9,6 @@ calc.sem <- function(y) {
   data.frame(ymax=mean.y+sem.y,ymin=mean.y-sem.y)
 }
 
-
-
 model2c.lmer<-function(phenotype,data,refAccession,refTreatment,formula,saveplot=F) { # specify level before running this function becasue releveling data and use it in lme did not work although data was releveled (in model1 function).
 	# model2("hypocotyl",hyp_SAS_data2.healthy,"Col",lme(hypocotyl~plant*treatment+exp,random=~treatment|rep,data=hyp_SAS_data2.healthy))
 	# able to work with refTreatment == "sun" or "shade" (052213)
