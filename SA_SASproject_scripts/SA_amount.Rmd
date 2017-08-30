@@ -32,9 +32,28 @@ summary.table.SA.rCol.rSun<-model2e.lmer("SA",SA.ss,"Col","sun",lmer(SA_ng_per_g
 SA.ss$treatment<-relevel(SA.ss$treatment,ref="shade")
 summary.table.SA.rCol.rShade<-model2e.lmer("SA",SA.ss,"Col","shade",lmer(SA_ng_per_g_FW~plant*treatment+(1|exp),data=SA.ss),saveplot=T) # use this if there are more sets
 # plot
-SA.data<-plot.bar7(trait="SA",title="SA amount",ylabel="SA amount (ng) per fresh weight(g)",data.input=merge(summary.table.SA.rCol.rSun,summary.table.SA.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T,significance=F)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+SA.data<-plot.bar7(trait="SA",title="SA amount",ylabel="SA amount (ng) per fresh weight(g)",data.input=merge(summary.table.SA.rCol.rSun,summary.table.SA.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T,significance=F)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + theme(axis.text.x=element_blank(),axis.ticks = element_blank(),legend.title = element_blank())
 # add significance between genotypes in each treatment in photoshop etc.
-ggsave("../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Fig1_SAamount.png")
+ggsave("../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Fig1_SAamount.png",width=3, height=4)
+
+# removing phyB from plot for 2017 PBI
+library(tidyverse);library(stringi)
+plot.wophyB<- SA.ss %>% filter(!plant=="phyB") %>% mutate(treatment2=stri_replace_all_fixed(as.character(treatment),"sun","high \nR/FR"),treatment2=stri_replace_all_fixed(treatment2,"shade","low \nR/FR")) %>%
+ggplot(mapping=aes(x=treatment2,y=SA_ng_per_g_FW,color=treatment2)) + geom_boxplot() + facet_grid(.~plant)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + theme(axis.text.x=element_blank(),axis.ticks = element_blank(),legend.title = element_blank()) + labs(y="SA (ng) per fresh weight (g)",x="") 
+
+# mixed effects model
+SA.sss <-SA.ss %>% filter(!plant=="phyB") 
+# sun
+SA.sss$treatment<-relevel(SA.sss$treatment,ref="sun")
+summary.table.SA.rCol.rSun<-model2e.lmer("SA",SA.sss,"Col","sun",lmer(SA_ng_per_g_FW~plant*treatment+(1|exp),data=SA.sss),saveplot=T) # use this if there are more sets
+# shade
+SA.sss$treatment<-relevel(SA.sss$treatment,ref="shade")
+summary.table.SA.rCol.rShade<-model2e.lmer("SA",SA.sss,"Col","shade",lmer(SA_ng_per_g_FW~plant*treatment+(1|exp),data=SA.sss),saveplot=T) # use this if there are more sets
+# plot
+p.SA2<-plot.bar7(trait="",title="",ylabel="SA amount (ng) per fresh weight(g)",data.input=merge(summary.table.SA.rCol.rSun,summary.table.SA.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T,significance=F)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + theme(axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title = element_blank(),strip.text.x = element_text(face="italic",size=15))+ labs(x="")
+# add significance between genotypes in each treatment in photoshop etc.
+ggsave("../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_SAamount3.png",width=3, height=4)
+
 
 
 ################### omake ################
