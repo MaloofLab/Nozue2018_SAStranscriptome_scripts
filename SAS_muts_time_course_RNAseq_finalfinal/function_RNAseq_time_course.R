@@ -15,12 +15,12 @@ options(stringsAsFactors = FALSE) # for WGCNA
 # see http://www.bioconductor.org/install/ for installation of these packages 
 #library(ggdendro) # for dendrogram
 library(lmerTest) # for significant analysis
-# this does not work
+# this does not work while knitting
 #TAIR10_gene_descriptions<-read.csv(file.path(homedir2,"../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") )
 # how to do?
-setwd("../")
-TAIR10_gene_descriptions<-read.csv("Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv")
-setwd(homedir2)
+#setwd("../")
+TAIR10_gene_descriptions<-read.csv("../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv")
+#setwd(homedir2)
 TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 # 
 #conversion.table.nam<-data.frame(num=20:27, genotype=c("Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
@@ -195,9 +195,9 @@ expression.mean<-function(data) { # return rowMean results for given data
 #library(ShortRead);library(goseq);library(GO.db);library("org.At.tair.db");library("annotate")
 
 #TIR10_cdna_rep_model<-readDNAStringSet("../../Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") 
-setwd("../")
-TIR10_cdna_rep_model<-readDNAStringSet("Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") 
-setwd(homedir2)
+#setwd("../")
+TIR10_cdna_rep_model<-readDNAStringSet("../Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") 
+#setwd(homedir2)
 head(TIR10_cdna_rep_model)
 bias<-nchar(TIR10_cdna_rep_model)
 names(bias)<-substr(names(TIR10_cdna_rep_model),1,9)
