@@ -19,7 +19,10 @@ library(lmerTest) # for significant analysis
 #TAIR10_gene_descriptions<-read.csv(file.path(homedir2,"../../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv") )
 # how to do?
 #setwd("../")
-TAIR10_gene_descriptions<-read.csv("../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv")
+#TAIR10_gene_descriptions<-read.csv("../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv")
+#TAIR10_gene_descriptions<-read.csv("Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv")
+TAIR10_gene_descriptions<-read.csv(file.path(homedir,"..","..","Nozue2016_SAStranscriptome_data","input","TAIR10_functional_descriptions.csv"))
+
 #setwd(homedir2)
 TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 # 
@@ -189,6 +192,162 @@ expression.mean<-function(data) { # return rowMean results for given data
   }	
   return(data.rowMeans)
 }
+# 
+
+expression.pattern.graph5<-function(data.cpm,target.genes,plot.order=NULL){# require ggplot2, reshape2 packages, this is only for SAS timecourse data (mean type, eg. "summary4")
+  temp.data<-as.data.frame(t(data.cpm[rownames(data.cpm) %in% target.genes,]))
+  print(temp.data)
+  # convert into relative value Col, sun 1h is 1 (new to this function)
+  temp.data<-as.data.frame(t(t(temp.data)/(t(temp.data)[,1])))
+  temp.data<-as.data.frame(t(log2(t(temp.data)/(t(temp.data)[,1]))))
+  
+  #
+  temp.data$genotype<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",rownames(temp.data))
+    temp.data$trt<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\2",rownames(temp.data))
+   temp.data$time<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\3",rownames(temp.data))
+    temp.data$trt.time<-with(temp.data,paste(trt,time,sep=""))
+    #temp.data$trt.time<-factor(rownames(temp.data),levels=c("1H1","1H4","1H25","1H49","1L1","1L4","1L25","1L49")) # only works for Col
+  temp.data$trt.time<-factor(temp.data$trt.time,levels=c("H1","H4","H25","H49","L1","L4","L25","L49")) # only works for Col
+  
+  # convert genotype number into actual name
+  conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+  temp.data$genotype<-as.character(temp.data$genotype)
+  for(i in 1:27) {
+    conversion.table[i,]
+    temp.data[temp.data$genotype==conversion.table[i,"num"],"genotype"]<-rep(as.character(conversion.table[i,"genotype"]),sum(as.integer(temp.data$genotype==conversion.table[i,"num"])))
+  }
+  #temp.data.melt<-melt(temp.data,id=c("trt","time","genotype"))
+  temp.data.melt<-melt(subset(temp.data,select=-time),id=c("trt.time","genotype","trt"))
+
+  str(temp.data.melt)
+  temp.data.melt$value<-as.numeric(temp.data.melt$value) 
+  
+  print(temp.data.melt)
+  summary(temp.data.melt)
+  #temp.data.samples.melt$time<-factor(temp.data.samples.melt$time,levels=c("1","4","16","25","49"))
+  #temp.data.melt$time<-factor(temp.data.melt$time,levels=c("1","4","25","49"))
+  if(is.null(plot.order)==TRUE) {temp.data.melt<-temp.data.melt} else {temp.data.melt$variable<-factor(temp.data.melt$variable,levels=plot.order)}
+  # graph
+  q<-ggplot(temp.data.melt,aes(x=trt.time,y=value)) + geom_violin(aes(fill=trt))
+  q<-q + facet_grid(.~genotype,scale="free") + theme(strip.text.y=element_text(angle=0)) + labs(y="log2 normalized value") 
+  #  q<-q + scale_y_continuous(trans=log2_trans())
+  return(q)
+}
+# line version
+expression.pattern.graph5b<-function(data.cpm,target.genes,plot.order=NULL){# require ggplot2, reshape2 packages, this is only for SAS timecourse data (mean type, eg. "summary4")
+  temp.data<-as.data.frame(t(data.cpm[rownames(data.cpm) %in% target.genes,]))
+  print(temp.data)
+  # convert into relative value Col, sun 1h is 1 (new to this function)
+  temp.data<-as.data.frame(t(t(temp.data)/(t(temp.data)[,1])))
+  temp.data<-as.data.frame(t(log2(t(temp.data)/(t(temp.data)[,1]))))
+  
+  #
+  temp.data$genotype<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",rownames(temp.data))
+  temp.data$trt<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\2",rownames(temp.data))
+  temp.data$time<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\3",rownames(temp.data))
+  temp.data$trt.time<-with(temp.data,paste(trt,time,sep=""))
+  #temp.data$trt.time<-factor(rownames(temp.data),levels=c("1H1","1H4","1H25","1H49","1L1","1L4","1L25","1L49")) # only works for Col
+  temp.data$trt.time<-factor(temp.data$trt.time,levels=c("H1","H4","H25","H49","L1","L4","L25","L49")) # only works for Col
+  
+  # convert genotype number into actual name
+  conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+  temp.data$genotype<-as.character(temp.data$genotype)
+  for(i in 1:27) {
+    conversion.table[i,]
+    temp.data[temp.data$genotype==conversion.table[i,"num"],"genotype"]<-rep(as.character(conversion.table[i,"genotype"]),sum(as.integer(temp.data$genotype==conversion.table[i,"num"])))
+  }
+  temp.data.melt<-melt(temp.data,id=c("trt","time","genotype","trt.time"))
+  #temp.data.melt<-melt(subset(temp.data,select=-time),id=c("trt.time","genotype","trt"))
+  
+  str(temp.data.melt)
+  temp.data.melt$value<-as.numeric(temp.data.melt$value) 
+  
+  print(temp.data.melt)
+  summary(temp.data.melt)
+  #temp.data.samples.melt$time<-factor(temp.data.samples.melt$time,levels=c("1","4","16","25","49"))
+  #temp.data.melt$time<-factor(temp.data.melt$time,levels=c("1","4","25","49"))
+  temp.data.melt$time<-as.numeric(temp.data.melt$time)
+  if(is.null(plot.order)==TRUE) {temp.data.melt<-temp.data.melt} else {temp.data.melt$variable<-factor(temp.data.melt$variable,levels=plot.order)}
+  # graph
+  q<-ggplot(temp.data.melt,aes(x=time,y=value,color=trt,group=variable)) + geom_line(alpha=0.1)
+  q<-q + facet_grid(trt~genotype,scale="free") + theme(strip.text.y=element_text(angle=0)) + labs(y="log2 normalized value") 
+  #  q<-q + scale_y_continuous(trans=log2_trans())
+  return(q)
+}
+# absolute value
+expression.pattern.graph5.abs<-function(data.cpm,target.genes,plot.order=NULL){# require ggplot2, reshape2 packages, this is only for SAS timecourse data (mean type, eg. "summary4")
+  temp.data<-as.data.frame(t(data.cpm[rownames(data.cpm) %in% target.genes,]))
+  print(temp.data)
+  # convert into relative value Col, sun 1h is 1 (new to this function)
+  #temp.data<-as.data.frame(t(t(temp.data)/(t(temp.data)[,1])))
+  #temp.data<-as.data.frame(t(log2(t(temp.data)/(t(temp.data)[,1]))))
+  
+  #
+  temp.data$genotype<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",rownames(temp.data))
+  temp.data$trt<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\2",rownames(temp.data))
+  temp.data$time<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\3",rownames(temp.data))
+  temp.data$trt.time<-with(temp.data,paste(trt,time,sep=""))
+  #temp.data$trt.time<-factor(rownames(temp.data),levels=c("1H1","1H4","1H25","1H49","1L1","1L4","1L25","1L49")) # only works for Col
+  temp.data$trt.time<-factor(temp.data$trt.time,levels=c("H1","H4","H25","H49","L1","L4","L25","L49")) # only works for Col
+  
+  # convert genotype number into actual name
+  conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+  temp.data$genotype<-as.character(temp.data$genotype)
+  for(i in 1:27) {
+    conversion.table[i,]
+    temp.data[temp.data$genotype==conversion.table[i,"num"],"genotype"]<-rep(as.character(conversion.table[i,"genotype"]),sum(as.integer(temp.data$genotype==conversion.table[i,"num"])))
+  }
+  temp.data.melt<-melt(temp.data,id=c("trt","time","genotype","trt.time"))
+  #temp.data.melt<-melt(subset(temp.data,select=-time),id=c("trt.time","genotype","trt"))
+  
+  str(temp.data.melt)
+  #temp.data.melt$value<-as.numeric(temp.data.melt$value) 
+  
+  print(temp.data.melt)
+  summary(temp.data.melt)
+  #temp.data.samples.melt$time<-factor(temp.data.samples.melt$time,levels=c("1","4","16","25","49"))
+  temp.data.melt$time<-factor(temp.data.melt$time,levels=c("1","4","25","49"))
+  #temp.data.melt$time<-as.numeric(temp.data.melt$time)
+  if(is.null(plot.order)==TRUE) {temp.data.melt<-temp.data.melt} else {temp.data.melt$variable<-factor(temp.data.melt$variable,levels=plot.order)}
+  # graph
+  q<-ggplot(temp.data.melt,aes(x=time,y=value,color=variable,group=variable)) + geom_line(alpha=0.1)
+  q<-q + facet_grid(genotype~trt,scale="free") + theme(strip.text.y=element_text(angle=0)) + labs(y="value") 
+  #  q<-q + scale_y_continuous(trans=log2_trans())
+  return(q)
+}
+# fold chagne (shade responsiveness using summary.vst.response.kazu
+expression.pattern.graph5.FC<-function(data.cpm,target.genes,plot.order=NULL){# require ggplot2, reshape2 packages, this is only for SAS timecourse data (mean type, eg. "summary4")
+  temp.data<-as.data.frame(t(data.cpm[rownames(data.cpm) %in% target.genes,]))
+
+  temp.data$genotype<-gsub("([[:digit:]]+)(_)(1|4|25|49)(hrA)","\\1",rownames(temp.data))
+  temp.data$time<-gsub("([[:digit:]]+)(_)(1|4|25|49)(hrA)","\\3",rownames(temp.data)) 
+    # convert genotype number into actual name
+  conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+  temp.data$genotype<-as.character(temp.data$genotype)
+  for(i in 1:27) {
+    conversion.table[i,]
+    temp.data[temp.data$genotype==conversion.table[i,"num"],"genotype"]<-rep(as.character(conversion.table[i,"genotype"]),sum(as.integer(temp.data$genotype==conversion.table[i,"num"])))
+  }
+  #
+  print(temp.data)
+
+    temp.data.melt<-melt(temp.data,id=c("time","genotype"))
+
+  str(temp.data.melt)
+  #temp.data.melt$value<-as.numeric(temp.data.melt$value) 
+  
+  print(temp.data.melt)
+  summary(temp.data.melt)
+  #temp.data.samples.melt$time<-factor(temp.data.samples.melt$time,levels=c("1","4","16","25","49"))
+  temp.data.melt$time<-factor(temp.data.melt$time,levels=c("1","4","25","49"))
+  #temp.data.melt$time<-as.numeric(temp.data.melt$time)
+  if(is.null(plot.order)==TRUE) {temp.data.melt<-temp.data.melt} else {temp.data.melt$variable<-factor(temp.data.melt$variable,levels=plot.order)}
+  # graph
+  q<-ggplot(temp.data.melt,aes(x=time,y=value,color=variable,group=variable)) + geom_line()
+  q<-q + facet_grid(.~genotype,scale="free") + theme(strip.text.y=element_text(angle=0)) + labs(y="value") 
+  #  q<-q + scale_y_continuous(trans=log2_trans())
+  return(q)
+}
 
 # ORA with GOseq
 # prerequisit
@@ -196,7 +355,7 @@ expression.mean<-function(data) { # return rowMean results for given data
 
 #TIR10_cdna_rep_model<-readDNAStringSet("../../Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") 
 #setwd("../")
-TIR10_cdna_rep_model<-readDNAStringSet("../Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") 
+TIR10_cdna_rep_model<-readDNAStringSet(file.path(homedir,"..","..","Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") )
 #setwd(homedir2)
 head(TIR10_cdna_rep_model)
 bias<-nchar(TIR10_cdna_rep_model)

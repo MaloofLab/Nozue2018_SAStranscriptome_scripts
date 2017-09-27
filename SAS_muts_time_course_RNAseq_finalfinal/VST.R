@@ -108,7 +108,7 @@ PLoSGenetics2015mutants<-samples.nolow5[samples.nolow5$genotype2 %in% c("Col","a
 # genotypes not working in edgeR 
 errorDE<-c("coi1-16","phyAB","sto")
 PLoSGenetics2015mutants.errrDE<-PLoSGenetics2015mutants[!PLoSGenetics2015mutants$genotype2 %in% errorDE,]
-save(PLoSGenetics2015mutants.errrDE,file="../../Nozue2016_SAStranscriptome_output/output/PLoSGenetics2015mutants.errrDE.Rdata")
+#save(PLoSGenetics2015mutants.errrDE,file="../../Nozue2016_SAStranscriptome_output/output/PLoSGenetics2015mutants.errrDE.Rdata")
 data<-data[,colnames(data) %in% PLoSGenetics2015mutants.errrDE$file]
 
 library(DESeq2)
@@ -121,7 +121,8 @@ vstMat <- assay(vsd)
 colnames(vstMat) <- colnames(data)
 vstMat[1:10,1:10]
 #write.csv(vstMat,file="../input/kazu.SAS.expression.VST.070516.csv")
-write.csv(vstMat,file="../input/kazu.SAS.expression.VST.082016.csv")
+#write.csv(vstMat,file="../input/kazu.SAS.expression.VST.082016.csv")
+write.csv(vstMat,file="../input/kazu.SAS.expression.VST.092617.csv")
 
 log2(data[1:10,1:10]+1)
 # reality check: highest correlations should be of the sample to itself
