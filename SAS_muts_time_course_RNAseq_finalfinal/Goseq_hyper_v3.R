@@ -288,3 +288,43 @@ setwd(homedir)
 setwd("../../Nozue2016_SAStranscriptome_data/input")
 save(hormone.responsiveness6,file="hormone.responsiveness6.Rdata") # 113016
 
+
+# eliminating GRF1-3, PCC1up, PCC1down tp create hormone.responsiveness6b.Rdata (100217)
+eliminate<-c("GRF1_3target","PCC1up","PCC1down")
+names(group_comparison.Ver5.selected)
+
+group_comparison.Ver5.selected2<-group_comparison.Ver5.selected[,!names(group_comparison.Ver5.selected) %in% eliminate]
+
+names(group_comparison.Ver5.selected2)
+
+dummy.cat3<-as.data.frame(matrix(nrow=length(names(bias)),ncol=length(names(group_comparison.Ver5.selected2))))
+dummy.cat3<-as.data.frame(matrix(nrow=length(names(bias)),ncol=1))
+rownames(dummy.cat3)<-names(bias) # use "bias" object from function_RNAseq_time_course.R 
+for(i in names(group_comparison.Ver5.selected2)) {# 
+  print(i)
+  x.locus<-group_comparison.Ver5.selected2[-c(1:3),names(group_comparison.Ver5.selected2)==i]
+  # clean up x.locus
+  x.locus<-x.locus[!x.locus==""]  
+  # only single AGI name is extracted (no probe naem, no multiple AGI name, such as "AT1G23900 AT1G23940") 
+  dummy.cat2[rownames(dummy.cat2) %in% toupper(x.locus),i]<-rep(i,sum(as.integer(rownames(dummy.cat2) %in% toupper(x.locus))))
+}
+head(dummy.cat3)
+dummy.cat3<-dummy.cat2[,-1]
+# clean up <NA>
+dummy.cat3[is.na(dummy.cat3)]<-""
+# 
+### convert into list
+temp<-list()
+for(i in 1:dim(dummy.cat3)[1]) {
+  temp[[i]]<-paste(dummy.cat3[i,])
+}
+names(temp)<-rownames(dummy.cat3)   
+hormone.responsiveness6b<-temp
+head(hormone.responsiveness6b)
+table(hormone.responsiveness6b[1:10])
+attributes(hormone.responsiveness6b)$category<-names(group_comparison.Ver5.selected2)
+#setwd(homedir)
+# setwd("../../Nozue2016_SAStranscriptome_data/input")
+setwd(homedir)
+save(hormone.responsiveness6b,file=file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6b.Rdata")) # 113016, 100317
+

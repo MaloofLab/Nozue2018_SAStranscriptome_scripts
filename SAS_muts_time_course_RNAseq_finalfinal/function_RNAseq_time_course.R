@@ -5,7 +5,8 @@
 ##  
 ###################################################
 library("annotate") #
-library(edgeR);library(ggplot2);library(reshape2);library(grid);library(class);library(MASS);library(plyr)
+library(edgeR)
+library(ggplot2);library(reshape2);library(grid);library(class);library(MASS);library(plyr)
 library(kohonen) # for SOM analysis
 library(scales) # for muted
 library(WGCNA);library(ShortRead);library(goseq);library(GO.db); library("org.At.tair.db")
@@ -370,7 +371,7 @@ if (BP) Atgo <- Atgo[Atgo$Ontology=="BP",]
 #convert to list
 Atgo.list <- tapply(Atgo$go_id,Atgo$gene_id,c)
 
-GOseq.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, padjus, padjust=0.05 
+GOseq.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, padjus, padjust=0.05 , modified 092817
   TF<-(names(bias) %in% genelist)*1
   names(TF)<-names(bias)
   #print(TF)
@@ -405,6 +406,42 @@ GOseq.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, padju
 }
 # example
 #enriched.GO.Col.SOMcluster1<-GOseq.ORA(rownames(data.val3.4.SOM.Col.SOM1.all.barcode.s)[rownames(data.val3.4.SOM.Col.SOM1.all.barcode.s) %in% names(bias)]) 
+GOseq.ORA_old<-function(genelist,padjust=0.05) { # return GO enrichment table, padjus, padjust=0.05 
+  TF<-(names(bias) %in% genelist)*1
+  names(TF)<-names(bias)
+  #print(TF)
+  pwf<-nullp(TF,bias.data=bias)
+  #print(pwf$DEgenes)
+  ###Read in AtGO
+  Atgo <- toTable(org.At.tairGO)
+  #head(Atgo)
+  BP <- TRUE #only keep BP go TERMS
+  if (BP) Atgo <- Atgo[Atgo$Ontology=="BP",]
+  #convert to list
+  Atgo.list <- tapply(Atgo$go_id,Atgo$gene_id,c)
+  #
+  GO.pval <- goseq(pwf,gene2cat=Atgo.list,use_genes_without_cat=TRUE) # format became different in new goseq version (021111)
+  #head(GO.pval) 
+  GO.pval$over_represented_padjust<-p.adjust(GO.pval$over_represented_pvalue,method="BH")
+  #if(GO.pval$over_represented_padjust[1]>padjust) stop("no enriched GO")
+  if(GO.pval$over_represented_padjust[1]>padjust) return("no enriched GO")
+  
+  else {
+    enriched.GO<-GO.pval[GO.pval$over_represented_padjust<padjust,] 
+    print("enriched.GO is")
+    print(enriched.GO)
+    
+    ## write Term and Definition 
+    for(i in 1:dim(enriched.GO)[1]) {
+      enriched.GO$Term[i]<-Term(GOTERM[[enriched.GO[i,"category"]]])
+      enriched.GO$Definition[i]<-Definition(GOTERM[[enriched.GO[i,"category"]]])
+    }
+    return(enriched.GO)
+  }
+}
+
+
+
 # revised GOseq.CC.ORA (112816)
 GOseq.CC.ORA<-function(genelist,padjust=0.05) { # return GO enrichment table, padjus, padjust=0.05 
   TF<-(names(bias) %in% genelist)*1
@@ -901,7 +938,7 @@ names(bias)<-substr(names(TIR10_cdna_rep_model),1,9)
 
 GOseq.overlapTable<-function (labels1, labels2, na.rm = TRUE, ignore = NULL, levels1 = NULL, 
                               levels2 = NULL,genes,permutation = 2000)  # genes is names of all genes in this analysis (usugally rownames of matrix). This considers cDNA length bias in DE.
-{
+{ # default is permutaiton = 2000
   # for GOseq
   bias2<-bias[names(bias) %in% genes]
   #
