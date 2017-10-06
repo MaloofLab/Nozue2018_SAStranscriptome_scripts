@@ -130,7 +130,7 @@ save(counts.nolow,file=file.path("..","..","Nozue2016_SAStranscriptome_output","
 * eliminating outlier libraries
 ```{r, eval=FALSE}
 # in whitney. Initial DE analysis
-load(file.path(homedir,"..","Nozue2016_SAStranscriptome_output","output","counts.nolow.Rdata"))
+load(file.path(homedir,"..","..",Nozue2016_SAStranscriptome_output","output","counts.nolow.Rdata"))
 samples.nolow <- data.frame(file=colnames(counts.nolow),
                             batch=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\1",colnames(counts.nolow))),
                             trt=factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)A+[[:print:]]+(.bam)","\\3",colnames(counts.nolow))),
@@ -268,8 +268,8 @@ outlier<-c(
   Oy_0_outlier
 )
 # eliminate outlier libraries
-system("mkdir ../../Nozue2016_SAStranscriptome_output/output/edgeR")
-system("mkdir ../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h")
+# system("mkdir ../../Nozue2016_SAStranscriptome_output/output/edgeR")
+# system("mkdir ../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h")
 samples.nolow5<-samples.nolow4[!samples.nolow4$file %in% outlier,]
 dge.nolow5<-dge.nolow4[,!samples.nolow4$file %in% outlier]
 Genotype<-levels(as.factor(samples.nolow5$genotype))
@@ -408,8 +408,12 @@ for(i in Genotype) { # why I eliminate genotype 1 and 10???
   pdf(file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h",paste("BCV_MDS_with_genotype_wo_outlier_wo16h",i,".pdf",sep="")),width=11,height=8) # fine name fixed (122214)
   par(mfrow=c(1,2))
   plotBCV(dge.nolow.s.batch.glm,main=paste("genotype",i))
-  plotMDS(dge.nolow.s.batch.glm,main=paste("genotype",i))
-  dev.off() 
+  mds.dge<-plotMDS(dge.nolow.s.batch.glm,main=paste("genotype",i))
+  mds.dge
+  # for ggplot2 plotting of MDSplot (100417)
+  save(mds.dge,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h",paste("MDS_with_genotype_wo_outlier_wo16h",i,".RData",sep="")))
+  dev.off() # the end of normal plotting
+  #
   dge.nolow.s.batch.glm.fit <- glmFit(dge.nolow.s.batch.glm,design.nolow.s.batch)
   dge.nolow.s.batch.glm.lrt <- glmLRT(dge.nolow.s.batch.glm.fit,coef=c("trtL","time4:trtL","time25:trtL","time49:trtL"))
   DE.batch.anytime<-topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table[topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table$FDR<0.05,]
@@ -419,7 +423,24 @@ for(i in Genotype) { # why I eliminate genotype 1 and 10???
     save(DE.batch.anytime,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("DE.batch.anytime_genotype_wo_outlier_wo16h",i,".Rdata",sep=""))) # file name fixed (122114) , (092617)   
 }
 ```
+# MDS plot by ggplot2 (100417)
+```{r}
+mds.files<-list.files(pattern="^MDS_with_genotype_wo_outlier_wo16h",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h"))
+for(i in mds.files) {
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h",i))
+x.mds.dge.DF<-as.data.frame(mds.dge$x)
+y.mds.dge.DF<-as.data.frame(mds.dge$y)
+distance_matrix.mds.dge<-merge(x.mds.dge.DF,y.mds.dge.DF,by="row.names")
+distance_matrix.mds.dge$group<-gsub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)(A.merged.bam)","\\2\\3",distance_matrix.mds.dge$Row.names)
+distance_matrix.mds.dge$genotype<-gsub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)(A.merged.bam)","\\2",distance_matrix.mds.dge$Row.names)
+distance_matrix.mds.dge$trt<-gsub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)(A.merged.bam)","\\3",distance_matrix.mds.dge$Row.names)
+distance_matrix.mds.dge$time<-gsub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)(A.merged.bam)","\\4",distance_matrix.mds.dge$Row.names)
+distance_matrix.mds.dge$batch<-gsub("(C|D|E)([[:digit:]]+)(L|H)(1|4|16|25|49)(A.merged.bam)","\\1",distance_matrix.mds.dge$Row.names)
+p.distance_matrix.mds.dge <- ggplot(data = distance_matrix.mds.dge)+ geom_label(aes(mds.dge$x, mds.dge$y, color=factor(trt),fill=factor(time),label=paste(batch,time,sep="_"),size=0.3,alpha=0.5)) + labs(title=paste("genotype",vlookup(gsub("(MDS_with_genotype_wo_outlier_wo16h)([[:digit:]]+)(.RData)","\\2",i),conversion.table,2)))
+ggsave(p.distance_matrix.mds.dge, filename =file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h",paste("p.distance_matrix.mds.dge.",vlookup(gsub("(MDS_with_genotype_wo_outlier_wo16h)([[:digit:]]+)","\\2",i),conversion.table,2),".png",sep="")), height = 11, width = 25) 
+}
 
+```
 # summary of DE genes 
 * (053014 - 053114): revised version (081514 - );more revision (060415 - ); more (092617)
 ```{r eval=FALSE}
@@ -623,8 +644,7 @@ temp<-merge(newdata.vst[newdata.vst$gt==x,],TAIR10_gene_descriptions[!duplicated
 SOMclusters.description<-rbind(SOMclusters.description,temp)
 }
 #write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3_SOMclusters.description.csv") #090116
-write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3_SOMclusters.description092617.csv") #090116
-
+write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS2_SOMclusters.description092617.csv") #090116, 100517
 
 ```
 ## drawing bloxplot for each cluster
@@ -751,7 +771,7 @@ for(x in 1:12) {
   } 
 }
 ```
-# write summary of GOseq analsyis of SOM clusters (022215; 092617)
+# write summary of GOseq analsyis of SOM clusters (022215; 100617)
 ```{r eval=FALSE}
 #rm(list=ls())
 SOM.Col.cluster.GOseq.files<-list.files(pattern="SOM.Col.cluster.",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"))
@@ -765,7 +785,7 @@ for(i in SOM.Col.cluster.GOseq.files[-1]) {
   temp<-rbind(temp,temp.GOseq)
 }
 SOM.Col.cluster.GOseq.summary<-temp
-write.csv(SOM.Col.cluster.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS2_GO_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes092617.csv")) # 091016,092617
+write.csv(SOM.Col.cluster.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_GO_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes092617.csv")) # 091016,092617, 100617
 ```
 # SOM analysis only with Col DE genes and non-scaling (112616)
 ```{r}
@@ -1071,13 +1091,14 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
                  axis.ticks = element_line(size=0,color="white"))
 q4b <- q4b + geom_text(aes(label=count),size=5)
 q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2)
+ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_092817.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") 
 ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_092817.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") 
 q4b 
 ```
 # Overlap analysis with custome categories (SOM)
 ## making summary table/dataset 
 ```{r eval=FALSE}
-options(stringsAsFactors = FALSE) # for WGCNA
+#options(stringsAsFactors = FALSE) # for WGCNA
 conversion.table
 # custom categories
 # load("../../Nozue2016_SAStranscriptome_data/input/hormone.responsiveness4.Rdata") #new version. check if new version is identical to this. copy the file to this location
@@ -1835,26 +1856,15 @@ p.plum1<-expression.pattern.graph5(summary.vst.kazu,plum1$AGI) #plum1, Col.
 q<-expression.pattern.graph2b(summary.vst.response.kazu,target.genes=plum1$AGI[1:10])
 p.plum1<-expression.pattern.graph5b(summary.vst.kazu,plum1$AGI) #plum1, Col. 
 
-
-
 ```
-# GOseq analysis of misexpressed geens in phyB (sun) and public available phytochrome mutnats (exposed to long light condition) (060815) 
+# GOseq analysis of misexpressed geens in phyB (sun) and public available phytochrome mutnats (exposed to long light condition) (060815) (100517)
 ```{r eval=FALSE}
 # my timecourse RNAseq data
-setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
-load("./edgeR/outlier_wo16h/genotype_specific5/DE.genotype.batch.sun.gt.wo16h6.Rdata") # sun, phyB vs Col any timepoints
-# load functions for GOseq
-# source("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/function_RNAseq_time_course.R")
-# ###Read in AtGO
-#   Atgo <- toTable(org.At.tairGO)
-#   #head(Atgo)
-#   BP <- TRUE #only keep BP go TERMS
-#   if (BP) Atgo <- Atgo[Atgo$Ontology=="BP",]
-#   #convert to list
-#   Atgo.list <- tapply(Atgo$go_id,Atgo$gene_id,c)
-# #
+#setwd("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp_output")
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h","genotype_specific5","DE.genotype.batch.sun.gt.wo16h6.Rdata"))# sun, phyB vs Col any timepoints
 temp.GOseq<-GOseq.ORA(gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(DE.batch3.gt))) # JA and SA pathways enriched, no auxin?! as I expected.
-write.csv(temp.GOseq,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS5_GOseq.phyB.sun.csv")
+write.csv(temp.GOseq,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS5_GOseq.phyB.sun.csv")) # no matter how PHYB regulate (either up or down)
+
 temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(DE.batch3.gt)),category.table=Atgo.list) 
 
 # predFC (061015)
@@ -1864,62 +1874,46 @@ tail(predFC.phyB[rownames(predFC.phyB) %in% rownames(DE.batch3.gt),]) #
 hist(predFC.phyB[,1]) # I do not understand why there are -15.... 
 
 # plot 
-load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.Rdata")
-summary.vst.kazu<-summary.vst[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst)) %in% 1:19]
-# larger gene sets
-SAS.expression.vst.large<-read.csv("/Volumes/Data8/NGS_related/Arabidopsis_analysis/SAS_muts_time_course_RNAseq2_mycomp/kazu.SAS.expression.VST.112614.csv") # new transformed data by DEseq2 (done by J, see VST.R)
-rownames(SAS.expression.vst.large)<-SAS.expression.vst.large$X
-# calculate mean value among replicates
-load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
-samples.nolow5$sample<-with(samples.nolow5,paste(genotype,trt,time,sep=""))
-samples.nolow5$sample<-factor(samples.nolow5$sample) #where this is used? (122214)
-SAS.expression.vst.large.s<-SAS.expression.vst.large[,names(SAS.expression.vst.large) %in% samples.nolow5$file]
-Genotype<-levels(as.factor(samples.nolow5$genotype))
-Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
-temp<-SAS.expression.vst.large.s[,names(SAS.expression.vst.large.s) %in% samples.nolow5[samples.nolow5$genotype==1,"file"]]
-summary.vst.large<-expression.mean(temp)　# custom function
-for(i in Genotype[-1]) {
-  temp<-SAS.expression.vst.large.s[,names(SAS.expression.vst.large.s) %in% samples.nolow5[samples.nolow5$genotype==i,"file"]]
-	temp<-as.data.frame(temp)
-	temp2<-expression.mean(temp)
-	summary.vst.large<-cbind(summary.vst.large,temp2)
-}
-#head(summary.vst,3)
-rownames(summary.vst.large)<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.large$X)
-save(summary.vst.large,file="../../Nozue2016_SAStranscriptome_output/output/summary.vst.large.Rdata") #
-###
-load("../../Nozue2016_SAStranscriptome_output/output/summary.vst.large.Rdata")
-summary.vst.large.kazu<-summary.vst.large[,gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",names(summary.vst.large)) %in% 1:19]
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.Rdata"))
 
-p<-expression.pattern.graph3(summary.vst.large.kazu,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt)[1:10]))
-p
-# downregulated in phyB
-p<-expression.pattern.graph3(summary.vst.large.kazu,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[order(DE.batch3.gt[,1]),][1:20,]))) # downregulated in phyB at time=1h (logFC.genotype6<0)
-p<-p + labs(title="phyB logFC.genotype6 <0 top 20")
+# downregulated by PHYB (higher in phyB mutant)
+## expression pattern
+p.down<-expression.pattern.graph3(summary.vst,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,1]>1,]))[1:10]) # downregulated in phyB at time=1h (logFC.genotype6<0)
+p.down<-p.down + labs(title="phyB logFC.genotype6 <0 top 20")
 #ggsave("phyB_down_expression_pattern.pdf",height=20,width=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-# GOseq with down regulated in phyB
+# GOseq 
 phyBdown.GOseq<-GOseq.ORA(gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,1]>1,]))) # JA and SA pathways enriched, no auxin?! as I expected.
-write.csv(phyBdown.GOseq,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS1_phyBdown.GOseq.csv")
-# upregulated in phyB
-q<-expression.pattern.graph3(summary.vst.large.kazu,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[order(DE.batch3.gt[,1],decreasing=TRUE),][1:20,])) # upregulated in phyB at time=1h
-q
-# GOseq up in phyB
-phyBup.GOseq<-GOseq.ORA(gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,1]< -0.5,]))) # JA and SA pathways enriched, no auxin?! as I expected.
-write.csv(phyBup.GOseq,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS1_phyBup.GOseq.csv")
-#
-p<-expression.pattern.graph3(summary.vst.large.kazu,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,"logCPM"]< -1,]))) # logCPM is "average log2-counts per million, the average taken over all libraries in y." (help file of glmLRT)
+#write.csv(phyBdown.GOseq,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS1_phyBdown.GOseq.csv")
+
+# upregulated by PHYB (lower in phyB mutant)
+p.up<-expression.pattern.graph3(summary.vst,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,1]< -1,]))[1:10]) # downregulated in phyB at time=1h (logFC.genotype6<0)
+p.up
+## GOseq
+phyBup.GOseq<-GOseq.ORA(gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,1]< -1,]))) # JA and SA pathways enriched, no auxin?! as I expected.
+#write.csv(phyBup.GOseq,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS1_phyBup.GOseq.csv")
+# GOseq up or down phyB combined table (TAble S1;100517)
+phyBup.GOseq$updown<-"up"
+phyBdown.GOseq$updown<-"down"
+phyBupdown.GOseq<-rbind(phyBup.GOseq,phyBdown.GOseq)
+write.csv(phyBupdown.GOseq,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_phyBupdown.GOseq.100517.csv"))
+
+#p<-expression.pattern.graph3(summary.vst.large.kazu,gsub("([[:print:]]+)(.[[:digit:]])","\\1",rownames(DE.batch3.gt[DE.batch3.gt[,"logCPM"]< -1,]))) # logCPM is "average log2-counts per million, the average taken over all libraries in y." (help file of glmLRT)
+
+```
+# phyABDE seedlings DE analysis (microarray)
+```{r}
 # high-order phytochrome muntat seedlings (microarray)
 # download some cel file from E-GEOD-31587 - Expression data of Arabidopsis thaliana (Ler accession) phytochrome phyABCDE quintuple mutant and phyABDE quadruple mutant in response to red light, and their comparison to WT expression data (http://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-31587/samples/?query=phytochrome&sortby=organism&sortorder=ascending)
 # under construction #
-setwd("/Volumes/Data8/E-GEOD-31587_RAW")
+#setwd("/Volumes/Data8/E-GEOD-31587_RAW")
 library(affy)
 #Data <- ReadAffy(widget=T) # error
-CEL.filename<-list.files(pattern=".CEL$")
+CEL.filename<-list.files(pattern=".CEL$",path=file.path("/Volumes","data_work","Data8","E-GEOD-31587_RAW"))
 CEL.filename
-Data <- ReadAffy(filenames=CEL.filename)
+Data <- ReadAffy(filenames=file.path("/Volumes","data_work","Data8","E-GEOD-31587_RAW",CEL.filename))
 Data
 eset <- rma(Data) # normalize chips 
-affyData <- read.csv("/Volumes/Data6/bioconductor_R/affy_ATH1_array_elements-2010-12-20.csv") #read TAIR annotation data from file (TAIR10)
+affyData <- read.csv(file.path("/Volumes","data_work","Data6","bioconductor_R","affy_ATH1_array_elements-2010-12-20.csv")) #read TAIR annotation data from file (TAIR10)
 affyData2<-affyData[,c("array_element_name","is_control","locus","description","chromosome","start","stop")]
 names(affyData2) <- c("element","is.control","locus","description","chromosome","start","stop")#get rid of underlines
 head(affyData2)
@@ -1930,12 +1924,13 @@ head(exp.values)
 exp.values <- cbind(affyMatch,exp.values) #add annotation to same frame as expression values
 head(exp.values)
 
-write.csv(exp.values,file="/Volumes/Data8/E-GEOD-31587_RAW/exp.values.csv")
+write.csv(exp.values,file=file.path("/Volumes","data_work","Data8","E-GEOD-31587_RAW","exp.values.csv"))
 ######## RP analysis
 library(RankProd)
-exp.values<-exp.values[,-1]
+exp.values<-read.csv(file.path("/Volumes","data_work","Data8","E-GEOD-31587_RAW","exp.values.csv"),row.names=1)
+#exp.values<-exp.values[,-1]
 names(exp.values)
-names(exp.values)[c(8:12)]
+names(exp.values)[c(8:12)] # should be six "CEL" file names
 RP.E_GEOD_31587.phyABDE <- RP(exp.values[,c(8:12)], rep(c(1,0),c(3,2)), num.perm=100) #  0 (class 1) = Col, 1 (class 2)= phyABDE
 topgene.RP.E_GEOD_31587.phyABDE<-topGene(RP.E_GEOD_31587.phyABDE,cutoff=0.01,gene.names=exp.values$element,logged=TRUE,logbase=2)
 #  repressed genes in phyABDE
@@ -1956,11 +1951,13 @@ topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value<-topgene.RP.E_GEOD_31587.phyABDE.
 
 # summary
 topgene.RP.RP.E_GEOD_31587.phyABDE.summary<-rbind(topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value,topgene.RP.E_GEOD_31587.phyABDE.T2.m.exp.value)
-write.csv(topgene.RP.RP.E_GEOD_31587.phyABDE.summary,file="/Volumes/Data8/E-GEOD-31587_RAW/topgene.RP.RP.E_GEOD_31587.phyABDE.summary.csv")
+write.csv(topgene.RP.RP.E_GEOD_31587.phyABDE.summary,file=file("/Volumes","data_work","Data8","E-GEOD-31587_RAW","topgene.RP.RP.E_GEOD_31587.phyABDE.summary.csv"))
 # GOseq
 topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus<-topgene.RP.RP.E_GEOD_31587.phyABDE.summary[nchar(topgene.RP.RP.E_GEOD_31587.phyABDE.summary$locus)==9,"locus"]
 phyABDE.seedlings.GOseq<-GOseq.ORA(topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus)
-phyABDE.seedlings.GOseq.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus],category.table=Atgo.list) #  no auxin?! as I expected.
+# write
+write.csv(phyABDE.seedlings.GOseq,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS1_phyABDE.GOseq.summary.csv"))
+phyABDE.seedlings.GOseq.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus,category.table=Atgo.list) #  no auxin?! as I expected.
 ```
 
 # misc
@@ -1968,9 +1965,8 @@ phyABDE.seedlings.GOseq.genes<-genes.in.enriched.category(enrich.result=temp.GOs
 # SA related genes are shade-responsive? (071115)
 load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") 
 newdata.vst$gt2<-""
-
 for(i in 1:27){
-  newdata.vst[newdata.vst$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])  
+  newdata.vst[newdata.vst$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
 }
 newdata.vst[newdata.vst$AGI %in% c("AT3G48090","AT4G35580","AT1G74710","AT5G08330","AT3G52430","AT3G26830","AT5G26920","AT2G46970"),c("1h","4h","25h","49h","ssom3.4.unit.classif","gt2","AGI")] 
 # NTL9 (AT4G35580), CHE (AT5G08330), ICS1(AT1G74710, SID2), PAD4 (AT3G52430), PAD3 (AT3G26830), CBP60g (AT5G26920), PIL1 (AT2G46970) as a positive control for this script. 
