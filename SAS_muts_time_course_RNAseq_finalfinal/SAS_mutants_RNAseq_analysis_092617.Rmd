@@ -117,10 +117,6 @@ samples
 counts.nolow <- counts[,colSums(counts,na.rm=TRUE) > 1000000]
 samples.low<-samples[samples$file %in% names(counts)[colSums(counts,na.rm=TRUE) < 1000000],]
 samples.low$counts<-colSums(counts,na.rm=TRUE)[colSums(counts,na.rm=TRUE) < 1000000]
-# samples.low$genotype2<-""
-# for(i in 1:27){
-#   samples.low[samples.low$genotype==conversion.table[i,1],"genotype2"]<-as.character(conversion.table[i,2])  
-# } 
 names(counts.nolow)
 counts.nolow[is.na(counts.nolow)]<-0
 save(counts.nolow,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","counts.nolow.Rdata"))
@@ -379,17 +375,10 @@ min(Y) # AGI ... highly correlated, but not identical... (092617)
 ## differentially expressed gene analysis
 1.DE (treatment, ie, shade responsiveness) at any time point within given genotype
 ```{r eval=FALSE}
-# load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/samples.nolow5.Rdata")
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","samples.nolow5.Rdata"))
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","dge.nolow5.Rdata"))
-# needs to fix Genotype part (083016)
-# Genotype<-levels(as.factor(samples.nolow5$genotype))
-# Genotype<-Genotype[!(Genotype=="11"|Genotype=="12"|Genotype=="18"|Genotype=="16")]
-# SAS.expression.vst<-read.csv("../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (082016)
-SAS.expression.vst<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_data","input","kazu.SAS.expression.VST.092517.csv"),row.names=1) # new transformed data by DEseq2 (082016), (092617)
-
-#rownames(SAS.expression.vst)<-SAS.expression.vst$X
-Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)))) # 13 genotypes inclucing Col
+SAS.expression.vst<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_data","input","kazu.SAS.expression.VST.092517.csv"),row.names=1) # new transformed data by DEseq2 (082016), (092617). Only Genotype info is used here
+Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)))) # 13 genotypes inclucing Col. better to use samples.nolow5.Rdata info (confusing)
 #
 for(i in Genotype) { # why I eliminate genotype 1 and 10???
   print(paste("Genotype is ",i))
@@ -404,7 +393,6 @@ for(i in Genotype) { # why I eliminate genotype 1 and 10???
   dge.nolow.s.batch.glm <- estimateGLMCommonDisp(dge.nolow.s,design.nolow.s.batch, verbose=TRUE) 
   dge.nolow.s.batch.glm <- estimateGLMTrendedDisp(dge.nolow.s.batch.glm,design.nolow.s.batch, verbose=TRUE)
   dge.nolow.s.batch.glm <- estimateGLMTagwiseDisp(dge.nolow.s.batch.glm,design.nolow.s.batch) # why this is not included in original Julin's script?
-  #pdf(file=paste("BCV_MDS_with_genotype_w_outlier_wo16h",i,".pdf",sep=""),width=11,height=8)
   pdf(file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h",paste("BCV_MDS_with_genotype_wo_outlier_wo16h",i,".pdf",sep="")),width=11,height=8) # fine name fixed (122214)
   par(mfrow=c(1,2))
   plotBCV(dge.nolow.s.batch.glm,main=paste("genotype",i))
@@ -418,8 +406,6 @@ for(i in Genotype) { # why I eliminate genotype 1 and 10???
   dge.nolow.s.batch.glm.lrt <- glmLRT(dge.nolow.s.batch.glm.fit,coef=c("trtL","time4:trtL","time25:trtL","time49:trtL"))
   DE.batch.anytime<-topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table[topTags(dge.nolow.s.batch.glm.lrt,n=2000)$table$FDR<0.05,]
   dim(DE.batch.anytime) # 
-  #save(DE.batch.anytime,file=paste("DE.batch.anytime_genotype_w_outlier_wo16h",i,".Rdata",sep=""))  
-  #save(DE.batch.anytime,file=paste("../../Nozue2016_SAStranscriptome_output/output/DE.batch.anytime_genotype_wo_outlier_wo16h",i,".Rdata",sep="")) # file name fixed (122114)   
     save(DE.batch.anytime,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("DE.batch.anytime_genotype_wo_outlier_wo16h",i,".Rdata",sep=""))) # file name fixed (122114) , (092617)   
 }
 ```
@@ -473,14 +459,9 @@ for(i in 1:13){ # only for Genotype
 } 
 
 ## summary of DE gene numbers
-#setwd(homedir)
-#setwd("../../Nozue2016_SAStranscriptome_output/output/")
-#load(DEfiles[1]) #"DE.batch.anytime_genotype_wo_outlier_wo16h1.Rdata"
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output",DEfiles[1]))
-
 DEgenes.summary<-data.frame(genotype=gsub("(DE.batch.anytime_genotype_wo_outlier_wo16h)([[:digit:]]+)(.Rdata)","\\2",DEfiles))
 for(i in 1:length(DEfiles)) {
-  #load(DEfiles[i])
   load(file.path("..","..","Nozue2016_SAStranscriptome_output","output",DEfiles[i]))
 
   DEgenes.summary$DEgenes_num[i]<-dim(DE.batch.anytime)[1]
@@ -492,13 +473,7 @@ DEgenes.summary # summary
 ```
 ## select genes with largeCV and calculate responsiveness for SOM analysis, updated 082016, 092617
 ```{r eval=FALSE}
-#setwd(homedir)
-# read vst transformed data
-#SAS.expression.vst<-read.csv("../../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.070516.csv") # new transformed data by DEseq2 (070416)
-#SAS.expression.vst<-read.csv("../../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (082016)
 SAS.expression.vst<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_data","input","kazu.SAS.expression.VST.092517.csv"),row.names=1) # new transformed data by DEseq2 (092617)
-
-#rownames(SAS.expression.vst)<-SAS.expression.vst$X
 # calculate mean value among replicates
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","samples.nolow5.Rdata"))
 
@@ -517,8 +492,6 @@ for(i in Genotype[-1]) {
 	temp2<-expression.mean(temp)
 	summary.vst<-cbind(summary.vst,temp2)
 }
-#head(summary.vst,3)
-#rownames(summary.vst)<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst$X)
 rownames(summary.vst)<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(SAS.expression.vst))
 
 save(summary.vst,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.Rdata")) #
@@ -529,10 +502,8 @@ summary.vst.response<-as.data.frame((2^summary.vst[,gsub("(.+)(H|L)(1|4|16|25|49
 rownames(summary.vst.response)<-rownames(summary.vst)
 names(summary.vst.response)<-paste(gsub("(.+)(H|L)(1|4|16|25|49)","\\1_\\3",names(summary.vst.response)),"hrA",sep="") #
 save(summary.vst.response,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata"))
-# # select only Kazu's samples (eliminating Palmer's NAM parents)
-# SAS.expression.vst.s.kazu<-SAS.expression.vst.s[,gsub("([C|D|E])([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",colnames(SAS.expression.vst.s)) %in% 1:19]
+# # rename as only Kazu's samples 
 SAS.expression.vst.s.kazu<-SAS.expression.vst.s
-# dim(SAS.expression.vst.s.kazu) # 18540   402
 dim(SAS.expression.vst.s.kazu) # 30533   287
 # select genes with higher CV
 co.var.df <- function(x) ( 100*apply(x,1,sd)/rowMeans(x) )
@@ -549,17 +520,13 @@ sum(as.integer(SAS.expression.vst.s.kazu$cv>5))/dim(SAS.expression.vst.s.kazu)[1
 SAS.expression.vst.s.kazu.largeCV<-SAS.expression.vst.s.kazu[SAS.expression.vst.s.kazu$cv>4.5,] 
 dim(SAS.expression.vst.s.kazu.largeCV) #[1] 7438  403 > 18379   264 > 11057   288 > 7025 288
 save(SAS.expression.vst.s.kazu.largeCV,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SAS.expression.vst.s.kazu.largeCV.Rdata"))
-
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SAS.expression.vst.s.kazu.largeCV.Rdata"))
 dim(SAS.expression.vst.s.kazu.largeCV) # this is not response
-#
-
 # response value of genes with largeCV 
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata")) #summary.vst.response is object name
 summary.vst.response.kazu<-summary.vst.response # where does this come from? 120116
 dim(summary.vst.response.kazu) #30533    52
 summary.vst.response.kazu.largeCV<-summary.vst.response.kazu[rownames(summary.vst.response.kazu) %in% gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",rownames(SAS.expression.vst.s.kazu.largeCV)),]
-
 dim(summary.vst.response.kazu.largeCV) # 7438   60 > 18379    48 > 11057    52
 save(summary.vst.response.kazu.largeCV,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.kazu.largeCV.Rdata"))
 ```
@@ -570,10 +537,7 @@ summary.vst.response.kazu.largeCV[summary.vst.response.kazu.largeCV=="Inf"]<-0 #
 summary.vst.response.kazu.largeCV[summary.vst.response.kazu.largeCV=="-Inf"]<-0 # arbitral
 summary.vst.response.kazu.largeCV[is.na(summary.vst.response.kazu.largeCV)]<-0 # arbitral
 load("../../Nozue2016_SAStranscriptome_output/output/DGEsummary.edgeR.response.Rdata") #"AT1G33925
-
-#DGEgenelist.edgeRglm<-unique(gsub("([[:print:]]+)(.)([[:digit:]]+)(.DE.batch.anytime_genotype_wo_outlier_wo16h)([[:print:]]+)","\\1",rownames(DGEsummary.edgeR.response))) # 
 DGEgenelist.edgeRglm<-unique(gsub("([[:print:]]+)(.)([[:digit:]]+)([[:print:]]+)","\\1",rownames(DGEsummary.edgeR.response))) # 
-
 length(DGEgenelist.edgeRglm) # 418 > 363 (092817)
 # 
 DGE.summary.vst.response.kazu.largeCV<-summary.vst.response.kazu.largeCV[rownames(summary.vst.response.kazu.largeCV) %in% DGEgenelist.edgeRglm,]
@@ -584,9 +548,7 @@ DGE.summary.vst.response.kazu.largeCV[rownames(DGE.summary.vst.response.kazu.lar
 ## SOM analysis (with Yasu's help)
 ```{r eval=TRUE}
 library(ggplot2);library(class);library(MASS);library(kohonen);library(reshape2);library(plyr)
-#load("../../Nozue2016_SAStranscriptome_output/output/edgeR/outlier_wo16h/DGE.summary.vst.response.kazu.largeCV.Rdata") # this was updated... (052916; 082016)
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.kazu.largeCV.Rdata")) # 092517
-
 genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(DGE.summary.vst.response.kazu.largeCV)))))
 DGE.summary.vst.response.kazu.largeCV<-log2(DGE.summary.vst.response.kazu.largeCV) # log2 transformation of fold change. error (092617)
 i<-1
@@ -643,9 +605,7 @@ for(x in levels(newdata.vst$gt)[-1]) {
 temp<-merge(newdata.vst[newdata.vst$gt==x,],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 SOMclusters.description<-rbind(SOMclusters.description,temp)
 }
-#write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3_SOMclusters.description.csv") #090116
 write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS2_SOMclusters.description092617.csv") #090116, 100517
-
 ```
 ## drawing bloxplot for each cluster
 ```{r eval=FALSE, ggplot, fig.width=11, fig.height=8}
@@ -690,7 +650,6 @@ p <- p + facet_grid(gt2~ssom3.4.unit.classif,space="free") #+ facet_wrap(ssom3.4
 p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none") #
 p <- p + coord_flip()
 p
-# TO DO: draw y=0 line (thick red)
 ggsave("boxplot.node.genotype3.4.noscaling_similarto2014ASPB.pdf",width=15,height=8,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 ```
 ### only Col and yucQ
@@ -754,9 +713,7 @@ ggsave("Fig2_Coexpression_clusters_of_shade-responsive_genes_092617.pdf",width=1
 newdata.vst$gt2<-vlookup(newdata.vst$gt,conversion.table,2)
 cluster3.Col.AGI<-newdata.vst[newdata.vst$gt==1 & newdata.vst$ssom3.4.unit.classif==3,"AGI"]
 ftable(newdata.vst[newdata.vst$AGI %in% cluster3.Col.AGI,c("gt2","ssom3.4.unit.classif")])
-
 ```
-
 # GOseq anaysis of SOM clusters (022215; 092617)
 ```{r eval=FALSE}
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.Rdata")) #
