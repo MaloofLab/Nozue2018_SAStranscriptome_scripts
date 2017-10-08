@@ -980,7 +980,7 @@ names(DE.genotype.batch.genes.unique.DF)
 # remove splicing variant info in AGI
 #DE.genotype.batch.genes.unique.DF[DE.genotype.batch.genes.unique.DF==0]<-""
 DE.genotype.batch.genes.unique.DF$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",DE.genotype.batch.genes.unique.DF$AGI)
-DE.genotype.batch.genes.unique.DF
+dim(DE.genotype.batch.genes.unique.DF) #3360 25 (100717)
 save(DE.genotype.batch.genes.unique.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","DE.genotype.batch.genes.unique.DF.Rdata")) 
 ```
 
@@ -1612,13 +1612,15 @@ head(SAS.expression.vst.s.kazu.largeCV.modules)
 table(SAS.expression.vst.s.kazu.largeCV.modules$"1") # OK purple and salmon switched
 
 save(SAS.expression.vst.s.kazu.largeCV.modules,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SAS.expression.vst.s.kazu.largeCV.modules092817.Rdata"))
+
 ```
 
 # overlap between WGCNA Col modules and mutation affected genes 
 ```{r,eval=FALSE}
 #setwd(homedir)
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","DE.genotype.batch.genes.unique.DF.Rdata")) #[1] 3350   25
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","DE.genotype.batch.genes.unique.DF.Rdata")) #[1] 3350   25 > 3360 25 (100717)
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SAS.expression.vst.s.kazu.largeCV.modules092817.Rdata"))
+
 dim(SAS.expression.vst.s.kazu.largeCV.modules)# [1] 7025   14
 table(SAS.expression.vst.s.kazu.largeCV.modules$"1") # OK purple and salmon switched
 SAS.expression.vst.s.kazu.largeCV.modules[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),]
@@ -1633,10 +1635,14 @@ table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules) # "salmon" should be 15
 length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) #
 # adding gene description
 DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_092817.csv")) #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316), 092817
+#write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_092817.csv")) #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316), 092817
+write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_100717.csv")) #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316), 092817
+
 
 # in whitney
-test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_092817.csv"),row.names=1) # does  work (092717)
+#test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_092817.csv"),row.names=1) # does  work (092717)
+test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_100717.csv"),row.names=1) # does  work (092717)
+taset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_vis
 
 test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),] # OK
 
@@ -1649,12 +1655,12 @@ for(i in 2:25) { #
   overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
   overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
   #overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
-  save(overlap.GOseq.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.GOseq.melt.WGCNA.mut.",i,".Rdata",sep="")))
+  save(overlap.GOseq.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.GOseq.melt.WGCNA.mut.PLoSGenetics2015mutants.errrDE.",i,".Rdata",sep="")))
 }
 ```
 # combine 
 ```{r}
-overlap.GOseq.melt.WGCNA.mut.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.WGCNA.mut")
+overlap.GOseq.melt.WGCNA.mut.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.WGCNA.mut.PLoSGenetics2015mutants.errrDE")
 #overlap.GOseq.melt.summary.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.mut.files),load)
 # load(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.mut.files[1])) # works for one RData file
 overlap.GOseq.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.WGCNA.mut.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see https://stackoverflow.com/questions/29398630/load-data-frames-into-list
@@ -1667,6 +1673,8 @@ overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-""
 save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.mut.092817.Rdata") )
+save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.mut.100717.Rdata") )
+
 
 #save(overlap.melt.summary,file="../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") # 110816, 121316, 091817
 ```
