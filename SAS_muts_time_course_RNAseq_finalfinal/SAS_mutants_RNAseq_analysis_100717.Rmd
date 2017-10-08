@@ -1638,16 +1638,14 @@ DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.
 #write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_092817.csv")) #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316), 092817
 write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_100717.csv")) #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316), 092817
 
-
 # in whitney
 #test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_092817.csv"),row.names=1) # does  work (092717)
-test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_100717.csv"),row.names=1) # does  work (092717)
-taset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_vis
+test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_100717.csv"),row.names=1) # does  work (100717)
 
-test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),] # OK
+test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),] # OK they are salmon
 
 #test<-test[,-1]
-dim(test) # 17985   28 > 8156   28
+dim(test) # 17985   28 > 8156   28 > 8150 28 (100717)
 # overlap table (revsised into GOseq.overlapTable; 052616; 092817; 092917)
 for(i in 2:25) { #
   overlap.GOseq<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
@@ -1679,9 +1677,10 @@ save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscri
 #save(overlap.melt.summary,file="../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.WGCNA.mut.GOseq.Rdata") # 110816, 121316, 091817
 ```
 
-# reading and cleaning overlap table and graph (WGCNA vs mut)
+# reading and cleaning overlap table and graph (WGCNA vs mut; 100817 updated)
 ```{r}
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.mut.092817.Rdata"))
+#load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.mut.092817.Rdata"))
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.mut.100717.Rdata"))
 
 overlap.GOseq.melt.summary
 overlap.GOseq.melt.summary.ss<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var1=="0",]
@@ -1708,8 +1707,10 @@ q4 <- q4 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modu
 # ggsave(q4,file="Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 # ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111816.pdf",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
 # ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq111816.png",width=11,height=8,path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq092817.pdf",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq092817.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq092817.pdf",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq092817.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq100717.pdf",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(q4,file="Fig7_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq100717.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
 
 q4 # magenta indicates pvalue is smaller than 0.01.
 # #### only "salmon","pink" (=JA),"purple" (=auxin) for job application 2015 - 2016 ###
