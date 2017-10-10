@@ -104,6 +104,44 @@ expression.pattern.graph3<-function(data.cpm,target.genes,plot.order){# require 
   #  q<-q + scale_y_continuous(trans=log2_trans())
   return(q)
 }
+#
+expression.pattern.graph3b<-function(data.mean,data.expression,target.genes,plot.order){# require ggplot2, reshape2 packages, this is only for SAS timecourse data (jitter and mean)
+  temp.data<-as.data.frame(t(data.mean[rownames(data.mean) %in% target.genes,]))
+  print(temp.data)
+  temp.data$genotype<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\1",rownames(temp.data))
+  temp.data$trt<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\2",rownames(temp.data))
+  temp.data$time<-gsub("([[:digit:]]+)(H|L)(1|4|16|25|49)","\\3",rownames(temp.data))
+  # convert genotype number into actual name
+  conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
+  temp.data$genotype<-as.character(temp.data$genotype)
+  # for(i in 1:27) {
+  #   conversion.table[i,]
+  #   temp.data[temp.data$genotype==conversion.table[i,"num"],"genotype"]<-rep(as.character(conversion.table[i,"genotype"]),sum(as.integer(temp.data$genotype==conversion.table[i,"num"])))
+  # }
+  temp.data$genotype<-vlookup(temp.data$genotype,conversion.table,2)
+  #
+  temp.data.melt<-melt(temp.data,id=c("trt","time","genotype"))
+  print(temp.data.melt)
+  #temp.data.samples.melt$time<-factor(temp.data.samples.melt$time,levels=c("1","4","16","25","49"))
+  temp.data.melt$time<-factor(temp.data.melt$time,levels=c("1","4","25","49"))
+  temp.data.melt$variable<-factor(temp.data.melt$variable,levels=plot.order)
+  # for individual library 
+  temp.data.idv<-as.data.frame(t(data.expression[rownames(data.expression) %in% target.genes,]))
+  temp.data.idv$genotype<-gsub("(C|D|E)([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\2",rownames(temp.data.idv))
+  temp.data.idv$trt<-gsub("(C|D|E)([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\3",rownames(temp.data.idv))
+  temp.data.idv$time<-gsub("(C|D|E)([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\4",rownames(temp.data.idv))
+  temp.data.idv$rep<-gsub("(C|D|E)([[:digit:]]+)(H|L)(1|4|16|25|49)(A.merged.bam)","\\1",rownames(temp.data.idv))
+  temp.data.idv$genotype<-vlookup(temp.data.idv$genotype,conversion.table,2)
+  temp.data.idv.melt<-melt(temp.data.idv,id=c("trt","time","genotype","rep"))
+  
+  q<-ggplot(temp.data.melt) + geom_bar(aes(x=time,y=value,color=trt), stat="identity",position=position_dodge(),alpha = 0.5) + geom_jitter(data=temp.data.idv.melt,aes(x=time,y=value,color=trt),position=position_jitterdodge(jitter.width=0.3))
+  q<-q + facet_grid(variable~genotype) + theme(strip.text.y=element_text(angle=0))
+  #  q<-q + scale_y_continuous(trans=log2_trans())
+  return(q)
+}
+
+
+
 
 expression.pattern.logFC.graph4<-function(data.cpm,target.genes,logFC){# require ggplot2, reshape2 packages, this is only for SAS timecourse data (mean type, eg. "summary4")
   temp.data<-as.data.frame(t(data.cpm[rownames(data.cpm) %in% target.genes,]))
@@ -704,7 +742,7 @@ genes.in.enriched.category<-function(enrich.result,gene.list,category.table=horm
 #   #### the end of temp
 #   
 # }
-## new version (052716)
+## new version (052716;modified 101017)
 my.category.heatmap5<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname,h=5,w=5*4/3,path,save.plot=T,legend.fill=F) { # gt.num (num), gt2 (gt name), for w/o 16h data, newdata.Col.wGO.selected should have "AGI" and "my.category"
   # voom transformed data has been transformd into log2
   ### for temp 
@@ -746,15 +784,17 @@ my.category.heatmap5<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.sele
   print(summary.table)
   summary.table$my.category<-factor(rownames(summary.table),levels=levels(summary3.response.log2.temp.selected.noINF.melt$my.category))
   
-  sumamry.table.melt<-melt(summary.table,id="my.category")
+  summary.table.melt<-melt(summary.table,id="my.category")
   #names(summary.table)
   #summary.table
   # additional part in this function
-  sumamry.table.melt$variable<-factor(sumamry.table.melt$variable,levels=c("49","25","4","1"))
-  sumamry.table.melt$my.category<-factor(sumamry.table.melt$my.category,levels=rev(levels(sumamry.table.melt$my.category)))
+  summary.table.melt$variable<-factor(summary.table.melt$variable,levels=c("49","25","4","1"))
+  summary.table.melt$my.category<-factor(summary.table.melt$my.category,levels=rev(levels(summary.table.melt$my.category)))
   
+  save(summary.table.melt,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("FigS2.absolute.summary.table.melt",gt.num,".Rdata",sep="")))
+  # drawing heatmap
   #p.selected <- ggplot() + geom_tile(sumamry.table.melt,aes(x=variable,y=my.category,fill=value),size=0.3,colour="black") # does not work (052816)
-  p.selected <- ggplot(sumamry.table.melt,aes(x=variable,y=my.category)) + geom_tile(size=0.3,colour="black",aes(fill=value)) 
+  p.selected <- ggplot(summary.table.melt,aes(x=variable,y=my.category)) + geom_tile(size=0.3,colour="black",aes(fill=value)) 
   
   library(scales) # for muted
   #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
@@ -782,7 +822,7 @@ my.category.heatmap5<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.sele
   else {return(p.selected)}
   #### the end of temp
 }
-# calculating diff
+# calculating diff (wrong version? 100717)
 my.category.diff<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname,h=5,w=5*4/3,path,save.plot=T,legend.fill=F,max.min.value=c(-1,1)) { # gt.num (num), gt2 (gt name), for w/o 16h data, newdata.Col.wGO.selected should have "AGI" and "my.category"
   # voom transformed data has been transformd into log2
   ### for temp 
@@ -796,7 +836,7 @@ my.category.diff<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected
   print(head(summary3.response.log2.mut))
   # differences (new)
   summary3.response.log2.temp<-summary3.response.log2.mut[,1:4]-summary3.response.log2.Col
-  
+  # change sign according to Col value (accoridng to biological meaming of up and regulation)
   summary3.response.log2.temp[,1]<-(summary3.response.log2.temp[,1])*sign(summary3.response.log2.Col[,1])
   summary3.response.log2.temp[,2]<-(summary3.response.log2.temp[,2])*sign(summary3.response.log2.Col[,2])
   summary3.response.log2.temp[,3]<-(summary3.response.log2.temp[,3])*sign(summary3.response.log2.Col[,3])
@@ -840,9 +880,16 @@ my.category.diff<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected
   sumamry.table.melt$my.category<-factor(sumamry.table.melt$my.category,levels=rev(levels(sumamry.table.melt$my.category)))
   return(sumamry.table.melt)
 }
-
+## calculation of diff ver2 (improving bug)
+## key is 
+## x<-2; y< -1
+##if((x>0 & y<0)||(x<0&y>0)) {print("negative")} else {print("positive")}
+##if(x*y<0) {print("negative")} else {print("positive")} # this is simple
+## ifelse(x*y<0, print("negative")) # this behaves wired
+# formula5<-function(x,y) {if(x>0) {y-x} else {-(y-x)}} # this is the right one
 
 ## diff version (061816)
+## calculate diff at gene level and calculate mean value of the diff among each category
 my.category.diff.heatmap1<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname,h=5,w=5*4/3,path,save.plot=T,legend.fill=F,max.min.value=c(-1,1)) { # gt.num (num), gt2 (gt name), for w/o 16h data, newdata.Col.wGO.selected should have "AGI" and "my.category"
   # voom transformed data has been transformd into log2
   ### for temp 
