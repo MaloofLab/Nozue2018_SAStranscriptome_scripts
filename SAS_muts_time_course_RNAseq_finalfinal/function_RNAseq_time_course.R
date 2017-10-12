@@ -596,7 +596,9 @@ my.category.heatmap5<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.sele
           plot.title=element_text(size=40),
           axis.line=element_blank())
   if(legend.fill==TRUE) {
-    p.selected <- p.selected  + labs(fill="log2\n fold change",legend.text=element_text(size=20)) 
+    #p.selected <- p.selected  + labs(fill="log2\n fold change",legend.text=element_text(size=20)) 
+    p.selected <- p.selected  + labs(fill="") + theme(legend.title=element_text(size=40),legend.text=element_text(size=40),legend.key.height=unit(1, "cm")) 
+    
   } else {p.selected <- p.selected + theme(legend.position="none")}
   #,strip.background=element_rect(fill=c("red","blue")))
   #p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2,fill="log2\n fold change")
@@ -696,6 +698,46 @@ my.category.diff.heatmap1<-function(summary3.response,gt.num,gt2,newdata.Col.wGO
   else {return(p.selected)}
   #### the end of temp
 } # the end of my.category.diff.heatmap1
+
+# diff ver2 (101117)
+my.category.diff.heatmap2<-function(summary3.response.diff,gt.num,gt2,newdata.Col.wGO.selected,plotname,h=5,w=5*4/3,path,save.plot=T,legend.fill=F,max.min.value=c(-1,1)) { # gt.num (num), gt2 (gt name), for w/o 16h data, newdata.Col.wGO.selected should have "AGI" and "my.category"
+  # voom transformed data has been transformd into log2
+  # melt  
+  summary3.response.diff.melt<-melt(summary3.response.diff,id=c("time","my.category"))
+  # select genotype by gt.num
+  summary3.response.diff.melt.s<-summary3.response.diff.melt[summary3.response.diff.melt$variable==gt.num,]
+  
+  #summary3.response.diff.melt$my.category<-factor(rownames(summary3.response.diff.melt),levels=levels(summary3.response.diff.melt$my.category))
+  summary3.response.diff.melt.s$time<-factor(summary3.response.diff.melt.s$time,levels=c("49","25","4","1"))
+  # plotting data (heatmap)
+  #p.selected <- ggplot() + geom_tile(summary.table.melt,aes(x=variable,y=my.category,fill=value),size=0.3,colour="black") # does not work (052816)
+  p.selected <- ggplot(summary3.response.diff.melt.s,aes(x=time,y=my.category)) + geom_tile(size=0.3,colour="black",aes(fill=value)) 
+  
+  library(scales) # for muted
+  #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
+  p.selected <- p.selected + scale_fill_gradient2(limits=max.min.value,low=muted("green"), high=muted("magenta")) #,guide=guide_legend("none")) 
+  p.selected <- p.selected  + 
+    theme(axis.text.x=element_text(size=30,angle=90),
+          axis.text.y=element_text(size=30),
+          axis.title=element_text(size=40),
+          axis.ticks = element_blank(),
+          panel.background = element_rect(fill = "white"),
+          plot.title=element_text(size=40),
+          axis.line=element_blank())
+  if(legend.fill==TRUE) {
+    p.selected <- p.selected  + labs(fill="Relative to Col",legend.text=element_text(size=20)) 
+  } else {p.selected <- p.selected + theme(legend.position="none")}
+  #,strip.background=element_rect(fill=c("red","blue")))
+  p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2)
+  
+  # flip xy
+  p.selected<-p.selected + coord_flip() 
+  if(save.plot==T)   {
+    ggsave(file=paste(gt2,plotname,sep="."),p.selected,height=h,width=w,path=path)
+  } 
+  else {return(p.selected)}
+  #### the end of temp
+} # the end of my.category.diff.heatmap2
 
 
 # overlapTable GOseq version (from 082515)

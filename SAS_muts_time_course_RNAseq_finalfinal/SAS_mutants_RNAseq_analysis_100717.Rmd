@@ -23,6 +23,7 @@ output: html_document
 * SAS.expression.vst<-read.csv("../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (082016) is not reproducible (092617). Probably due to updated DESeq2?
 * Use kazu.SAS.expression.VST.092517.csv (092617) for rest of analysis
 * Replace "samples.nolow5" into "PLoSGenetics2015mutants.errrDE" (100717)
+* 
 
 
 ## preparation
@@ -1282,7 +1283,7 @@ summary(categories)
 head(categories)
 table(categories$my.category)
 #categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","SAup_24h"))) # 120116
-categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","ABAdown","MJup"))) # 120116
+categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","MJup","ABAdown"))) # 120116
 
 # summary.vst.response.kazu
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata")) # response (092917)
@@ -1292,7 +1293,7 @@ head(summary.vst.response.kazu)
 # for Fig5A, Col
 my.category.heatmap.graph<-list()
 for(i in c(1,17,19,3,4,5,14,10,6,13,7,8,9)) { # 
-my.category.heatmap.graph[[i]]<-my.category.heatmap5(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=T) # error
+my.category.heatmap.graph[[i]]<-my.category.heatmap5(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=F) #  legend.fill=F to T for new Fig5 (all absolute value, previously called FigS2)
 }
 # summerize data in one data frame
 FigS2.absolute.summary.table.melt.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="FigS2.absolute.summary.table.melt") # (101017)
@@ -1307,9 +1308,11 @@ write.csv(FigS2.absolute.summary.table.melt.DF,file=file.path("..","..","Nozue20
 
 # calculate diff (using mean value; not used; 101017)
 FigS2.absolute.summary.table.melt.DF.diff<-FigS2.absolute.summary.table.melt.DF[,-(1:3)]-FigS2.absolute.summary.table.melt.DF[,3]
+## considering biological meaning of negative value in Col
 FigS2.absolute.summary.table.melt.DF.diff[FigS2.absolute.summary.table.melt.DF[,3]<0,]<- -(FigS2.absolute.summary.table.melt.DF.diff[FigS2.absolute.summary.table.melt.DF[,3]<0,])
 FigS2.absolute.summary.table.melt.DF.diff$my.category<-FigS2.absolute.summary.table.melt.DF$"1.my.category"
 FigS2.absolute.summary.table.melt.DF.diff$time<-FigS2.absolute.summary.table.melt.DF$"1.variable"
+colnames(FigS2.absolute.summary.table.melt.DF.diff)<-gsub(".value","",colnames(FigS2.absolute.summary.table.melt.DF.diff))
 write.csv(FigS2.absolute.summary.table.melt.DF.diff,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","FigS2.absolute.summary.table.melt.DF.diff.csv")) # # I did not use this.
 # drawing heatmap graph (difference): Fig5B 
 ### Is this difference correct? compare absolute data (100717)
@@ -1321,12 +1324,12 @@ write.csv(FigS2.absolute.summary.table.melt.DF.diff,file=file.path("..","..","No
 max.value<-max(FigS2.absolute.summary.table.melt.DF.diff[,grep(".value",colnames(FigS2.absolute.summary.table.melt.DF.diff))])
 min.value<-min(FigS2.absolute.summary.table.melt.DF.diff[,grep(".value",colnames(FigS2.absolute.summary.table.melt.DF.diff))])
 max.min<-c(round(min.value,2),round(max.value,2))
-##
-my.category.diff.heatmap.graph<-list()
-# 
-for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
-my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap1(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917mutsv1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=T,max.min.value=max.min) # make specialized for difference heatmap function
-} # this is not consistent with FigS2.absolute.summary.table.melt.DF.diff above (101017)
+# ## I decided not to use this version (10117)
+# my.category.diff.heatmap.graph<-list()
+# #  
+# for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
+# my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap1(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917mutsv1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=T,max.min.value=max.min) # make specialized for difference heatmap function
+# } # this is not consistent with FigS2.absolute.summary.table.melt.DF.diff above (101017)
 # summerize data in one data frame
 Fig5B.diff.summary.table.melt.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="Fig5B.diff.summary.table.melt") # (101017)
 Fig5B.diff.summary.table.melt.files<-grep(".Rdata",Fig5B.diff.summary.table.melt.files,value=TRUE)
@@ -1336,14 +1339,24 @@ Fig5B.diff.summary.table.melt.DF<-do.call(cbind,Fig5B.diff.summary.table.melt.li
 # remove redundant columns 
 colnames(Fig5B.diff.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/Fig5B.diff.summary.table.melt)([[:digit:]]+)(.Rdata.summary.table.melt.)(my.category|variable|value)","\\2.\\4",colnames(Fig5B.diff.summary.table.melt.DF))
 Fig5B.diff.summary.table.melt.DF<-Fig5B.diff.summary.table.melt.DF[,c("10.my.category","10.variable" ,grep("value",colnames(Fig5B.diff.summary.table.melt.DF),value=TRUE))]
-write.csv(Fig5B.diff.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","Fig5B.diff.summary.table.melt.DF.csv")) # data used in Fig5B heatmap
+write.csv(Fig5B.diff.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","Fig5B.diff.summary.table.melt.DF.csv")) # data used in Fig5B heatmap, which is quite different from FigS2.absolute.summary.table.melt.DF.diff.csv (calculated from absolute mean value). eg. phyB MJup. Why does this happen? 
+
+# calculating mut - Col with individual gene adjusted biological meaning may not good.
+# use subtraction of mean value 
+my.category.diff.heatmap.graph.ver2<-list()
+for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
+my.category.diff.heatmap.graph.ver2[[i]]<-
+  my.category.diff.heatmap2(summary3.response.diff=FigS2.absolute.summary.table.melt.DF.diff,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917mutsv1.png",w=5,h=5*4/3,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=T,max.min.value=max.min)
+} # (FigS2.absolute.summary.table.melt.DF.diff (101117)
 
 ```
 
 # significance calculation
 ```{r}
 summary.vst.response.kazu$AGI <- row.names(summary.vst.response.kazu)
-response.melt <- melt(summary.vst.response.kazu,id.vars= "AGI",variable.name = "sample", value.name = "log2.dif")
+response.melt <- melt(summary.vst.response.kazu,id.vars= "AGI",variable.name = "sample", value.name = "log2.dif") # this value is not log transformed. This is just ratio (responsiveness to shade; 101117)
+hist(response.melt$log2.dif)
+response.melt$log2.dif<-log2(response.melt$log2.dif)
 head(response.melt)
 response.melt$gt <- as.factor(regmatches(response.melt$sample,regexpr("^[0-9]{1,2}",response.melt$sample)))
 response.melt$time <- as.factor(regmatches(response.melt$sample,regexpr("[0-9]{1,2}hr",response.melt$sample)))
@@ -1389,15 +1402,30 @@ colnames(results.df.adj) <- colnames(results.df)
 results.df.adj
 #write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v3.csv"))
 #write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v4.csv"))
-write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v5.csv")) #101017 three categories
+write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v6.log2.csv")) #101017 three categories
 
 
 ```
 # add p value in heatmap 
 ```{r}
-response.p.values<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v5.csv"),row.names=1) # from modified Julin's script (copied from Kazu_test_v2.R) (100717)
+response.p.values<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v6.log2.csv"),row.names=1) # from modified Julin's script (copied from Kazu_test_v2.R) (100717)
+#response.p.values<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v5.csv"),row.names=1) # from modified Julin's script (copied from Kazu_test_v2.R) (100717)
+
 response.p.values.melt<-melt(response.p.values,id="gt") #
 my.categories<-grep("gt",colnames(response.p.values),invert=TRUE,value=TRUE)
+##  my.category.diff.heatmap.graph (not used 101117)
+# for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
+# significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="")
+# response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]  
+# significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level 
+#   significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt)
+#   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt)
+# 
+# # add significance to heatmap
+# my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
+# rm(significant.position)
+# }
+# add significant to absolute value heatmap
 for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
 significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="")
 response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]  
@@ -1406,25 +1434,56 @@ significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.pos
   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt)
 
 # add significance to heatmap
-my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
+my.category.heatmap.graph[[i]]<-my.category.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
 rm(significant.position)
 }
-### use geom_blank() for blank plot
-library(cowplot)
-my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geom_blank(),ggplot()+geom_blank(),my.category.diff.heatmap.graph[[17]],my.category.diff.heatmap.graph[[19]],my.category.diff.heatmap.graph[[3]],my.category.diff.heatmap.graph[[4]],my.category.diff.heatmap.graph[[5]],my.category.diff.heatmap.graph[[14]],my.category.diff.heatmap.graph[[10]],my.category.diff.heatmap.graph[[6]],my.category.diff.heatmap.graph[[13]],my.category.diff.heatmap.graph[[7]],my.category.diff.heatmap.graph[[8]],my.category.diff.heatmap.graph[[9]],
-                      labels=c("A","","","B","","","","","","","","","","",""),
-                      vjust = 1.1, hjust=-0.5,
-                      ncol=3,nrow=5,
-                      label_size = 50)
-#setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_all.my.category.diff.expression.pattern.v9.101017.FDR0.01.png"), my.category.heatmap.all,
-          ncol = 3, # we're saving a grid plot of 2 columns
-          nrow = 5, # and 2 rows
-          base_aspect_ratio = 2.5,
-          base_height=6,
-          limitsize = FALSE
-)
-# supplement Fig2 (absolute value)
+
+# 
+# ### use geom_blank() for blank plot
+# library(cowplot)
+# my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geom_blank(),ggplot()+geom_blank(),my.category.diff.heatmap.graph[[17]],my.category.diff.heatmap.graph[[19]],my.category.diff.heatmap.graph[[3]],my.category.diff.heatmap.graph[[4]],my.category.diff.heatmap.graph[[5]],my.category.diff.heatmap.graph[[14]],my.category.diff.heatmap.graph[[10]],my.category.diff.heatmap.graph[[6]],my.category.diff.heatmap.graph[[13]],my.category.diff.heatmap.graph[[7]],my.category.diff.heatmap.graph[[8]],my.category.diff.heatmap.graph[[9]],
+#                       labels=c("A","","","B","","","","","","","","","","",""),
+#                       vjust = 1.1, hjust=-0.5,
+#                       ncol=3,nrow=5,
+#                       label_size = 50)
+# #setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
+# save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_all.my.category.diff.expression.pattern.v9.101017.FDR0.01.png"), my.category.heatmap.all,
+#           ncol = 3, # we're saving a grid plot of 2 columns
+#           nrow = 5, # and 2 rows
+#           base_aspect_ratio = 2.5,
+#           base_height=6,
+#           limitsize = FALSE
+# )
+# Fig5B ver2: diff calculated from absolute mean value 
+# for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
+# significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="")
+# response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]  
+# significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level 
+#   significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt)
+#   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt)
+# 
+# # add significance to heatmap
+# my.category.diff.heatmap.graph.ver2[[i]]<-my.category.diff.heatmap.graph.ver2[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
+# rm(significant.position)
+# }
+# library(cowplot)
+# my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geom_blank(),ggplot()+geom_blank(),my.category.diff.heatmap.graph.ver2[[17]],my.category.diff.heatmap.graph.ver2[[19]],my.category.diff.heatmap.graph.ver2[[3]],my.category.diff.heatmap.graph.ver2[[4]],my.category.diff.heatmap.graph.ver2[[5]],my.category.diff.heatmap.graph.ver2[[14]],my.category.diff.heatmap.graph.ver2[[10]],my.category.diff.heatmap.graph.ver2[[6]],my.category.diff.heatmap.graph.ver2[[13]],my.category.diff.heatmap.graph.ver2[[7]],my.category.diff.heatmap.graph.ver2[[8]],my.category.diff.heatmap.graph.ver2[[9]],
+#                       labels=c("A","","","B","","","","","","","","","","",""),
+#                       vjust = 1.1, hjust=-0.5,
+#                       ncol=3,nrow=5,
+#                       label_size = 50)
+# #setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
+# save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_all.my.category.diff.expression.pattern.ver2.101117.FDR0.01.png"), my.category.heatmap.all,
+#           ncol = 3, # we're saving a grid plot of 2 columns
+#           nrow = 5, # and 2 rows
+#           base_aspect_ratio = 2.5,
+#           base_height=6,
+#           limitsize = FALSE
+# )
+
+
+
+# supplement Fig2 (absolute value), which will become new Fig5 (101117)
 # extract legend
 # since Col with legend is different in size from others. I need to extract legend and plot it in different space.
 # see http://stackoverflow.com/questions/12041042/how-to-plot-just-the-legends-in-ggplot2
@@ -1443,7 +1502,7 @@ my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]]+theme(legend
                       label_size = 50)
 #
 #setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig_S2_all.my.category.expression.pattern.v14.101017.png"), my.category.heatmap.all,
+save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_oldFig_S2_all.my.category.expression.pattern.v16.log2.signif.101117.png"), my.category.heatmap.all,
           ncol = 3, # we're saving a grid plot of 2 columns
           nrow = 5, # and 2 rows
           base_aspect_ratio = 2.5,
