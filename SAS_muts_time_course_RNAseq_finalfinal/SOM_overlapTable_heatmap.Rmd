@@ -46,20 +46,24 @@ SOMcluster<-function(data5=data,name) {
 ## SOM
 set.seed(2) # Set a random seed so that SOM results are reproducible
   for(i in 1:10) {
-ssom1.7 <- som(as.matrix(data5), somgrid(1,7,"hexagonal")) 
-pdf(paste("SOMset",i,"pdf",sep="."));plot(ssom1.7, type = "codes")
-ssom2.4 <- som(as.matrix(data5), somgrid(2,4,"hexagonal")) 
-plot(ssom2.4, type = "codes")
-ssom3.3 <- som(as.matrix(data5), somgrid(3,3,"hexagonal")) 
-plot(ssom3.3,type="codes")
-ssom2.5 <- som(as.matrix(data5), somgrid(2,5,"hexagonal")) 
-plot(ssom2.5, type = "codes") #
-ssom3.4 <- som(as.matrix(data5), somgrid(3,4,"hexagonal")) 
-plot(ssom3.4) 
-ssom4.4 <- som(as.matrix(data5), somgrid(4,4,"hexagonal")) 
-plot(ssom4.4) ;dev.off()
-# save objects
-save(ssom1.7,ssom2.4,ssom3.3,ssom2.5,ssom3.4,ssom4.4,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste("ssom.set",i,"Rdata",sep=".")))
+    ssom1.5 <- som(as.matrix(data5), somgrid(1,5,"hexagonal"))
+    pdf(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste("SOMset",i,"pdf",sep=".")));plot(ssom1.5, type = "codes")
+    ssom2.3 <- som(as.matrix(data5), somgrid(2,3,"hexagonal")) 
+    plot(ssom2.3, type = "codes")
+    ssom1.7 <- som(as.matrix(data5), somgrid(1,7,"hexagonal")) 
+    plot(ssom1.7, type = "codes")
+    ssom2.4 <- som(as.matrix(data5), somgrid(2,4,"hexagonal")) 
+    plot(ssom2.4, type = "codes")
+    ssom3.3 <- som(as.matrix(data5), somgrid(3,3,"hexagonal")) 
+    plot(ssom3.3,type="codes")
+    ssom2.5 <- som(as.matrix(data5), somgrid(2,5,"hexagonal")) 
+    plot(ssom2.5, type = "codes") #
+    ssom3.4 <- som(as.matrix(data5), somgrid(3,4,"hexagonal")) 
+    plot(ssom3.4) 
+    ssom4.4 <- som(as.matrix(data5), somgrid(4,4,"hexagonal")) 
+    plot(ssom4.4) ;dev.off()
+    # save objects
+    save(ssom1.5,ssom2.3,ssom1.7,ssom2.4,ssom3.3,ssom2.5,ssom3.4,ssom4.4,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste("ssom.set",i,"Rdata",sep=".")))
   }
 }
 SOMcluster(data5)
@@ -71,7 +75,9 @@ ssom.set.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_outpu
 for(i in 1:10) {
   load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",ssom.set.files[i]))
   
-som.summary<-data.frame(ssom1.7=ssom1.7$unit.classif,
+som.summary<-data.frame(ssom1.5=ssom1.5$unit.classif,
+                        ssom2.3=ssom2.3$unit.classif,
+                        ssom1.7=ssom1.7$unit.classif,
                         ssom2.4=ssom2.4$unit.classif,
                         ssom3.3=ssom3.3$unit.classif,
                         ssom2.5=ssom2.5$unit.classif,
@@ -158,9 +164,9 @@ save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_
 ```{r}
   overlap.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE.summary.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap"),pattern="overlap.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE.summary")
 
-for(y in overlap.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE.summary.files) {
+for(y in overlap.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE.summary.files) 
+  {
   load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",y))
-  
 # graph
 overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
 #overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))# 100717
@@ -182,7 +188,36 @@ title<-gsub("(overlap.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE.summary)
 q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title=title,fill="-log10\n p-value")
 ggsave(q4b,file=paste("Fig3_Col.SOM.clusters.vs.my.category.table.s.2.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap"))
 }
+```
+# GOseq anaysis of SOM clusters (som1.5.set1 sepecific)
+```{r}
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap","ssom.summary.set.files.DF.Rdata"))
+ssom.summary.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",ssom.summary.set.files.DF$AGI)
+ssom.summary.set.files.DF.Col<-ssom.summary.set.files.DF[ssom.summary.set.files.DF$gt==1,]
+ssom.summary.set.files.DF.Col$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",ssom.summary.set.files.DF.Col$AGI)
 
-
-
+clusters<-as.numeric(levels(as.factor(ssom.summary.set.files.DF.Col$"1.5.set.1")))
+# modify GOseq.ORA if there is no enriched GO ("return" instead of "stop") (070716)
+for(x in clusters) {  
+  temp.GOseq<-GOseq.ORA(ssom.summary.set.files.DF.Col[ssom.summary.set.files.DF.Col$"1.5.set.1"==x,"AGI"])
+  if(temp.GOseq=="no enriched GO") {next} else {
+     temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=ssom.summary.set.files.DF.Col[ssom.summary.set.files.DF.Col$"1.5.set.1"==x,"AGI"],category.table=Atgo.list)
+  save(temp.GOseq,temp.genes,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste("1.5.set.1","SOM.Col.cluster.",x,".GOseq.PLoSGenetics2015mutants.errrDE.Rdata",sep="")))
+  } 
+}
+```
+# write summary of GOseq analsyis of SOM clusters 
+```{r}
+SOM.Col.cluster.GOseq.files<-list.files(pattern="SOM.Col.cluster.",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap"))
+SOM.Col.cluster.GOseq.files<-grep(".GOseq.PLoSGenetics2015mutants.errrDE.Rdata",SOM.Col.cluster.GOseq.files,value=TRUE)
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",SOM.Col.cluster.GOseq.files[1]))
+temp.GOseq$clusters<-gsub("(1.5.set.1SOM.Col.cluster.)([[:print:]]+)(.GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\2",SOM.Col.cluster.GOseq.files[1])
+temp<-temp.GOseq
+for(i in SOM.Col.cluster.GOseq.files[-1]) {
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",i))
+temp.GOseq$clusters<-gsub("(1.5.set.1SOM.Col.cluster.)([[:print:]]+)(.GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\2",i)
+  temp<-rbind(temp,temp.GOseq)
+}
+SOM.Col.cluster.GOseq.summary<-temp
+write.csv(SOM.Col.cluster.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap","som1.5.set.1.GO.csv")) 
 ```
