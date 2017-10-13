@@ -189,6 +189,60 @@ q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title=title,fill
 ggsave(q4b,file=paste("Fig3_Col.SOM.clusters.vs.my.category.table.s.2.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap"))
 }
 ```
+# GOseq analysis of SOM clusters (generic function)
+```{r}
+GOseq.SOM<-function(som="2.4",set="1") {
+# load SOM cluster summary and format it
+  load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap","ssom.summary.set.files.DF.Rdata"))
+ssom.summary.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",ssom.summary.set.files.DF$AGI)
+ssom.summary.set.files.DF.Col<-ssom.summary.set.files.DF[ssom.summary.set.files.DF$gt==1,]
+ssom.summary.set.files.DF.Col$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",ssom.summary.set.files.DF.Col$AGI)
+# select column and calculate cluster numers
+
+clusters<-as.numeric(levels(as.factor(ssom.summary.set.files.DF.Col[,colnames(ssom.summary.set.files.DF.Col)==paste(som,"set",set,sep=".")] )))
+print(clusters)  
+
+# calculate GO ORA using GOseq
+for(x in clusters) {  
+  temp.GOseq<-GOseq.ORA(ssom.summary.set.files.DF.Col[ssom.summary.set.files.DF.Col[colnames(ssom.summary.set.files.DF.Col)==paste(som,"set",set,sep=".")]==x,"AGI"])
+  if(temp.GOseq=="no enriched GO") {next} else {
+     temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=ssom.summary.set.files.DF.Col[ssom.summary.set.files.DF.Col[,colnames(ssom.summary.set.files.DF.Col)==paste(som,"set",set,sep=".")]==x,"AGI"],category.table=Atgo.list)
+  save(temp.GOseq,temp.genes,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste(som,"set",set,"SOM.Col.cluster",x,"GOseq.PLoSGenetics2015mutants.errrDE.Rdata",sep=".")))
+  } 
+}
+# summary of GO ORA
+SOM.Col.cluster.GOseq.files<-list.files(pattern=paste(som,"set",set,"SOM.Col.cluster",sep="."),path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap"))
+SOM.Col.cluster.GOseq.files<-grep(".GOseq.PLoSGenetics2015mutants.errrDE.Rdata",SOM.Col.cluster.GOseq.files,value=TRUE)
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",SOM.Col.cluster.GOseq.files[1]))
+temp.GOseq$clusters<-gsub("([[:digit:]]\\.[[:digit:]]\\.)(set\\.[[:digit:]]+)(\\.)(SOM.Col.cluster)(\\.)([[:digit:]]+)(\\.)(GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\6",SOM.Col.cluster.GOseq.files[1])
+temp<-temp.GOseq
+for(i in SOM.Col.cluster.GOseq.files[-1]) {
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",i))
+temp.GOseq$clusters<-gsub("([[:digit:]]\\.[[:digit:]]\\.)(set\\.[[:digit:]]+)(\\.)(SOM.Col.cluster)(\\.)([[:digit:]]+)(\\.)(GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\6",i)
+  temp<-rbind(temp,temp.GOseq)
+}
+SOM.Col.cluster.GOseq.summary<-temp
+write.csv(SOM.Col.cluster.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste(som,"set",set,"GO.csv",sep=".")) )
+
+} # the end of function
+
+```
+# GO ORA
+```{r}
+# set1
+GOseq.SOM(som="1.5",set="1")
+GOseq.SOM(som="2.3",set="1")
+GOseq.SOM(som="1.7",set="1")
+GOseq.SOM(som="2.4",set="1")
+GOseq.SOM(som="3.3",set="1")
+GOseq.SOM(som="2.5",set="1")
+GOseq.SOM(som="3.4",set="1")
+GOseq.SOM(som="4.4",set="1")
+
+
+```
+
+
 # GOseq anaysis of SOM clusters (som1.5.set1 sepecific)
 ```{r}
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap","ssom.summary.set.files.DF.Rdata"))
