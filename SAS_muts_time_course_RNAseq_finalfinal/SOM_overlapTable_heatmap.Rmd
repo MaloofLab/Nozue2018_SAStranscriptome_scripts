@@ -17,7 +17,12 @@ knitr::opts_chunk$set(echo = TRUE)
 * Evaluating those SOM clusters with overlapTable with custom made categories (use default fisher's exact test version, not GOseq version due to fast computation)
 * Extract signifiantly overlapped gene sets and set them
 * For Fig5, (a) extract genes belong to one category, (b) extract genes belong to two categories (eg. IAAup and BLup) = "core" category? (Julin's suggestion)
-
+# prerequisite
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+homedir<-getwd()
+source("function_RNAseq_time_course.R")
+```
 
 ## SOM analysis 
 ```{r eval=TRUE}
@@ -46,26 +51,27 @@ SOMcluster<-function(data5=data,name) {
 ## SOM
 set.seed(2) # Set a random seed so that SOM results are reproducible
   for(i in 1:10) {
-    ssom1.5 <- som(as.matrix(data5), somgrid(1,5,"hexagonal"))
+    ssom1.5 <- som(as.matrix(data5), somgrid(1,5,"hexagonal"),rlen=10000)
     pdf(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste("SOMset",i,"pdf",sep=".")));plot(ssom1.5, type = "codes")
-    ssom2.3 <- som(as.matrix(data5), somgrid(2,3,"hexagonal")) 
+    ssom2.3 <- som(as.matrix(data5), somgrid(2,3,"hexagonal"),rlen=10000) 
     plot(ssom2.3, type = "codes")
-    ssom1.7 <- som(as.matrix(data5), somgrid(1,7,"hexagonal")) 
+    ssom1.7 <- som(as.matrix(data5), somgrid(1,7,"hexagonal"),rlen=10000) 
     plot(ssom1.7, type = "codes")
-    ssom2.4 <- som(as.matrix(data5), somgrid(2,4,"hexagonal")) 
+    ssom2.4 <- som(as.matrix(data5), somgrid(2,4,"hexagonal"),rlen=10000) 
     plot(ssom2.4, type = "codes")
-    ssom3.3 <- som(as.matrix(data5), somgrid(3,3,"hexagonal")) 
+    ssom3.3 <- som(as.matrix(data5), somgrid(3,3,"hexagonal"),rlen=10000) 
     plot(ssom3.3,type="codes")
-    ssom2.5 <- som(as.matrix(data5), somgrid(2,5,"hexagonal")) 
+    ssom2.5 <- som(as.matrix(data5), somgrid(2,5,"hexagonal"),rlen=10000) 
     plot(ssom2.5, type = "codes") #
-    ssom3.4 <- som(as.matrix(data5), somgrid(3,4,"hexagonal")) 
+    ssom3.4 <- som(as.matrix(data5), somgrid(3,4,"hexagonal"),rlen=10000) 
     plot(ssom3.4) 
-    ssom4.4 <- som(as.matrix(data5), somgrid(4,4,"hexagonal")) 
+    ssom4.4 <- som(as.matrix(data5), somgrid(4,4,"hexagonal"),rlen=10000) 
     plot(ssom4.4) ;dev.off()
     # save objects
     save(ssom1.5,ssom2.3,ssom1.7,ssom2.4,ssom3.3,ssom2.5,ssom3.4,ssom4.4,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste("ssom.set",i,"Rdata",sep=".")))
   }
 }
+# run the function
 SOMcluster(data5)
 ```
 # summerize cluster data in each set
