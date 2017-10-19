@@ -26,6 +26,7 @@ moreSAmutSASdata.ftable
 # select only setE, F, G, H, and J (new light condition since Feb 2017)
 moreSAmutSASdata<-moreSAmutSASdata[moreSAmutSASdata$set %in% c("E","F","G","H","J"),]
 moreSAmutSASdata$set<-as.factor(as.character(moreSAmutSASdata$set))
+moreSAmutSASdata$treatment<-as.factor(moreSAmutSASdata$treatment)
 moreSAmutSASdata.ftable<-ftable(moreSAmutSASdata[,c("petioleLength","treatment","set","plant")],col.vars=c("set"),row.vars=c("plant","treatment"))
 # rename sid1 into eds5 (083017): use library(stringi)
 moreSAmutSASdata %>% mutate(plant=stri_replace_all_regex(plant,"sid1","eds5")) -> moreSAmutSASdata
@@ -33,7 +34,6 @@ class(moreSAmutSASdata$plant)
 moreSAmutSASdata$plant<-as.factor(moreSAmutSASdata$plant)
 moreSAmutSASdata$plant<-relevel(moreSAmutSASdata$plant,ref="Col")
 moreSAmutSASdata.ftable<-ftable(moreSAmutSASdata[,c("petioleLength","treatment","set","plant")],col.vars=c("set"),row.vars=c("plant","treatment"))
-
 
 moreSAmutSASdata.ftable# OK
 # PBL
@@ -60,7 +60,7 @@ moreSAmutSASdataleaf3_6.rawdataplot.PL<-ggplot(moreSAmutSASdata.leaf3_6, aes(x=t
 moreSAmutSASdata.leaf3_6.rawdataplot.PBL<-ggplot(moreSAmutSASdata.leaf3_6, aes(x=treatment,y=petiole_bladeLength,color=treatment)) + geom_jitter() + facet_grid(plant~leaf)
 # 
 ###
-moreSAmutSASdata.setE.leaf3_6[moreSAmutSASdata.setE.leaf3_6$petioleLength<1,] #none
+#moreSAmutSASdata.setE.leaf3_6[moreSAmutSASdata.setE.leaf3_6$petioleLength<1,] #none
 ### reference is "sun"
 # PL
 moreSAmutSASdata.leaf3_6$plant<-relevel(moreSAmutSASdata.leaf3_6$plant,ref="Col")
@@ -182,7 +182,6 @@ summary.table.PBL.rCol.rShade.SASdata.part<-model2e.lmer("PBL",SASdata.part,"Col
 summary.table.BA.rCol.rShade.SASdata.part<-model2e.lmer("BA",SASdata.part,"Col","shade",lmer(bladeArea~plant*treatment  + (1 | leaf)+ (1|rep2),data=SASdata.part),saveplot=T) 
 
 # hypocotyl
-
 ### reference plant is "Col"
 # rep2
 hyp.data$rep2<-paste(hyp.data$exp, hyp.data$plate,hyp.data$rep,sep="_")
@@ -251,6 +250,18 @@ if(identical(plot.traits,c("PL","PBL","BA","bolted days","hyp"))) {
   )
   save_plot(file=file.name, plot.all, ncol = 4, nrow = 1,base_aspect_ratio = 0.8)
   return(plot.all)
+} else if(identical(plot.traits,c("PL","PBL","bolted days","hyp"))) {
+    plot.all<-plot_grid(
+    PL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="") + theme(strip.text.x=element_text(face="italic",size=12)),
+  PBL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)), 
+  FT.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)),
+    hyp+theme(axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)),
+  #legend,
+  #ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1.28),
+  ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1)
+  )
+  save_plot(file=file.name, plot.all, ncol = 2, nrow = 2,base_aspect_ratio = 0.8)
+    return(plot.all)
 } else print("nothing plotted.")
 
 }
@@ -271,6 +282,11 @@ plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=8,plot.traits=c("PL
 
 plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.7.PL.PBL.hyp.v2.png")
 plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.8.PL.PBL.hyp.v2.png")
+# for publication (101717). npr2 was not published.
+moreSAmutSASdata<-moreSAmutSASdata %>% filter(!plant=="npr2/3/4")
+floweringtime.data<-floweringtime.data %>% filter(!plant=="npr2/3/4")
+plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=8,plot.traits=c("PL","PBL","bolted days","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.leaf3.8.PL.PBL.hy.FT.PlantCell.png")
+
 ```
 
 # remove npr2/3/4 (and larger fonts and rename sid1 to eds5)
