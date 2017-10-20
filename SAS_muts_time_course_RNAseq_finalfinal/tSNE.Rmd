@@ -36,6 +36,7 @@ head(temp)
 data5<-temp
 
 ```
+# ver1
 ## clustering
 ```{r,eval=FALSE}
 #iris_unique <- unique(iris) # Remove duplicates
@@ -212,7 +213,7 @@ save(tsne.dbscan.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_ou
 # combine all som.summary into one
 tsne.dbscan.summary.set.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="(tsne.dbscan.summary.set.)([[:digit:]]+)(.Rdata)")
 
-tsne.dbscan.summary.set.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.summary.set.files),function(x) mget(load(x)))
+tsne.dbscan.summary.set.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.summary.set.files),function(x) mget(load(x))) #
 
 tsne.dbscan.summary.set.files.DF<-do.call("cbind",tsne.dbscan.summary.set.files.list) 
 
@@ -348,17 +349,29 @@ for(x in seq(2.2,3.4,0.05)) { # eps
 ```{r}
 tsne.dbscan.eps.MinPts.set.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="(eps)([[:print:]]+)(_MinPts)([[:digit:]]+)(\\.set)([[:digit:]]+)(\\.Rdata)")
 
-tsne.dbscan.eps.MinPts.set.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files),function(x) mget(load(x)))
+#tsne.dbscan.eps.MinPts.set.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files),function(x) {load(x);dbscan_out$cluster}) # does not work
+i<-1
+    load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files[i]))
+tsne.dbscan.eps.MinPts.set.files.DF<-data.frame(eps2.2_MinPts15.set1.Rdata=dbscan_out$cluster)
+for(i in 2:length(tsne.dbscan.eps.MinPts.set.files)) {
+    load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files[i]))
+    tsne.dbscan.eps.MinPts.set.files.DF$temp<-dbscan_out$cluster
+    colnames(tsne.dbscan.eps.MinPts.set.files.DF)<-gsub("temp",tsne.dbscan.eps.MinPts.set.files[i],colnames(tsne.dbscan.eps.MinPts.set.files.DF))
+}
 
-tsne.dbscan.eps.MinPts.set.files.list.DF<-do.call("cbind",tsne.dbscan.eps.MinPts.set.files.list) 
+#tsne.dbscan.eps.MinPts.set.files.list.DF<-do.call("cbind",tsne.dbscan.eps.MinPts.set.files.list) 
+tsne.dbscan.eps.MinPts.set.files.DF[,3]
+colnames(tsne.dbscan.eps.MinPts.set.files.DF)
+colnames(tsne.dbscan.eps.MinPts.set.files.DF)<-gsub("\\.Rdata","",colnames(tsne.dbscan.eps.MinPts.set.files.DF))
 
-colnames(tsne.dbscan.eps.MinPts.set.files.list.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/)(eps[[:print:]]+)(\\_MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.Rdata\\.)([[:print:]]+)","\\2\\3",colnames(tsne.dbscan.eps.MinPts.set.files.list.DF)) # fix this line
+#colnames(tsne.dbscan.eps.MinPts.set.files.list.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/)(eps[[:print:]]+)(\\_MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.Rdata\\.)([[:print:]]+)","\\2\\3",colnames(tsne.dbscan.eps.MinPts.set.files.list.DF)) # fix this line
 
-tsne.dbscan.eps.MinPts.set.files.list.DF$AGI<-rownames(data5)
-save(tsne.dbscan.eps.MinPts.set.files.list.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.summary.set.files.DF.Rdata"))
+tsne.dbscan.eps.MinPts.set.files.DF$AGI<-rownames(data5)
+save(tsne.dbscan.eps.MinPts.set.files.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
 ```
 # Add custom category (fix this)
 ```{r}
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
 ## making summary table/dataset (100717)
 # custom categories
 load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.Rdata")) #corrected version. (113016). file.path (092717)
@@ -372,15 +385,15 @@ summary(hormone.responsiveness6.DF)
 hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF)
 
 # add tsnedbscan clusters
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.summary.set.files.DF.Rdata"))
-tsne.dbscan.summary.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.summary.set.files.DF$AGI) 
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+tsne.dbscan.eps.MinPts.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.files.DF$AGI) 
 
-tsne.dbscan.summary.set.files.DF.Col<-tsne.dbscan.summary.set.files.DF[tsne.dbscan.summary.set.files.DF$gt==1,]
+tsne.dbscan.eps.MinPts.set.files.DF.Col<-tsne.dbscan.eps.MinPts.set.files.DF[tsne.dbscan.eps.MinPts.set.files.DF$gt=="1",]
+dim(tsne.dbscan.eps.MinPts.set.files.DF.Col)
+tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI)
 
-tsne.dbscan.summary.set.files.DF.Col$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",tsne.dbscan.summary.set.files.DF.Col$AGI)
-
-# merge with SOM clusters
-hormone.responsiveness.tsnedbscanclusters<-merge(hormone.responsiveness6.DF,tsne.dbscan.summary.set.files.DF.Col,by="AGI",all=TRUE)
+# merge with tsne clusters
+hormone.responsiveness.tsnedbscanclusters<-merge(hormone.responsiveness6.DF,tsne.dbscan.eps.MinPts.set.files.DF.Col,by="AGI",all=TRUE)
 
 hormone.responsiveness.tsnedbscanclusters[is.na(hormone.responsiveness.tsnedbscanclusters)]<-"0"
 #write.csv(hormone.responsiveness.SOMclusters,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_hormone.responsiveness.SOMclusters100717.csv"))
@@ -404,13 +417,15 @@ for(i in 2:30) { # 2:30
 # summerize overlapTable
 ```{r}
   overlap.melt.file<-list.files(file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.")
-overlap.melt.file<-overlap.melt.file[grep("set.[[:digit:]].Rdata",overlap.melt.file,invert=TRUE)]
+overlap.melt.file<-overlap.melt.file[grep("set.[[:digit:]].Rdata",overlap.melt.file,invert=TRUE)] #
+table(gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\8",overlap.melt.file)) # should be 1 to 20 (=sets)
+
 for(n in 1:10) {
-  overlap.melt.file.set<-overlap.melt.file[gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set\\.)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\8",overlap.melt.file)==n] # revise
-  eps.MinPts<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set\\.)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\3\\4\\5",overlap.melt.file.set) # revise
+  overlap.melt.file.set<-overlap.melt.file[gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\8",overlap.melt.file)==n] # revise
+  eps.MinPts<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\3\\4\\5",overlap.melt.file.set) # revise
   
   eps.MinPts.levels<-levels(as.factor(eps.MinPts))
-  for(x in eps.MinPts.levels) { # sometype
+  for(x in eps.MinPts.levels) { # eps & MinPts
 overlap.melt.file.set.eps.MinPts<-overlap.melt.file.set[eps.MinPts==x]
       overlap.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",overlap.melt.file.set.eps.MinPts),function(x) mget(load(x))) 
 names(overlap.melt.summary.list2)
@@ -452,6 +467,203 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4b <- q4b + geom_text(aes(label=count),size=5) 
 title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\7\\8",y)
 q4b <- q4b + labs(y="custom categories",x="tsnedbscan clusters in Col",title=title,fill="-log10\n p-value")
-ggsave(q4b,file=paste("Fig3_Col.tsnedbscan.clusters.vs.my.category.table.s.2.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+ggsave(q4b,file=paste("Fig3_Col.tsnedbscan.clusters.vs.my.category.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # renamed (101917)
 }
 ```
+# ver3. for reproducibility and narrowed range (101917)
+```{r}
+ # Sets seed for reproducibility
+for(n in 42:51) { # set
+    set.seed(n)
+    tsne_out <- Rtsne(as.matrix(data5),theta=0.3) # Run TSNE
+    save(tsne_out,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne_out.Rdata"))
+    
+for(x in seq(3.1,3.35,0.05)) { # eps
+  for(y in seq(13,18,1)) { # MinPts
+    load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne_out.Rdata"))
+    print(paste("eps is ",x,". MinPts is ",y,".",sep=""))
+    dbscan_out<-dbscan(tsne_out$Y,eps=x,MinPts=y)
+    #table(dbscan_out$cluster)
+    plot(tsne_out$Y,col=dbscan_out$cluster) 
+    if(length(table(dbscan_out$cluster))>5 && length(table(dbscan_out$cluster))<30 && sum((dbscan_out$cluster==0)*1) <2600) {
+      save(dbscan_out,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("eps",x,"_MinPts",y,".set",n,".Rdata",sep="")))
+    } else {next}
+    }   
+  }
+}
+```
+# combine all into one data.frame
+```{r}
+tsne.dbscan.eps.MinPts.set.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="(eps)([[:print:]]+)(_MinPts)([[:digit:]]+)(\\.set)([[:digit:]]+)(\\.Rdata)")
+
+#tsne.dbscan.eps.MinPts.set.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files),function(x) {load(x);dbscan_out$cluster}) # does not work
+i<-1
+    load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files[i]))
+tsne.dbscan.eps.MinPts.set.files.DF<-data.frame(eps3.1_MinPts13.set42.Rdata=dbscan_out$cluster) # manually edit
+for(i in 2:length(tsne.dbscan.eps.MinPts.set.files)) {
+    load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files[i]))
+    tsne.dbscan.eps.MinPts.set.files.DF$temp<-dbscan_out$cluster
+    colnames(tsne.dbscan.eps.MinPts.set.files.DF)<-gsub("temp",tsne.dbscan.eps.MinPts.set.files[i],colnames(tsne.dbscan.eps.MinPts.set.files.DF))
+}
+
+#tsne.dbscan.eps.MinPts.set.files.list.DF<-do.call("cbind",tsne.dbscan.eps.MinPts.set.files.list) 
+tsne.dbscan.eps.MinPts.set.files.DF[,3]
+colnames(tsne.dbscan.eps.MinPts.set.files.DF)
+colnames(tsne.dbscan.eps.MinPts.set.files.DF)<-gsub("\\.Rdata","",colnames(tsne.dbscan.eps.MinPts.set.files.DF))
+
+#colnames(tsne.dbscan.eps.MinPts.set.files.list.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/)(eps[[:print:]]+)(\\_MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.Rdata\\.)([[:print:]]+)","\\2\\3",colnames(tsne.dbscan.eps.MinPts.set.files.list.DF)) # fix this line
+
+tsne.dbscan.eps.MinPts.set.files.DF$AGI<-rownames(data5)
+save(tsne.dbscan.eps.MinPts.set.files.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+```
+# Add custom category (fix this)
+```{r}
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+## making summary table/dataset (100717)
+# custom categories
+load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.Rdata")) #corrected version. (113016). file.path (092717)
+## change list into data.frame
+attributes(hormone.responsiveness6)
+hormone.responsiveness6.DF<-data.frame(t(sapply(hormone.responsiveness6,c)))
+names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6)$category
+## convert into hormone.responsiveness3.DF (omit "PCC1", "GRF1_3")
+hormone.responsiveness6.DF<-hormone.responsiveness6.DF[,!names(hormone.responsiveness6.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
+summary(hormone.responsiveness6.DF)
+hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF)
+
+# add tsnedbscan clusters
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+tsne.dbscan.eps.MinPts.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.files.DF$AGI) 
+
+tsne.dbscan.eps.MinPts.set.files.DF.Col<-tsne.dbscan.eps.MinPts.set.files.DF[tsne.dbscan.eps.MinPts.set.files.DF$gt=="1",]
+dim(tsne.dbscan.eps.MinPts.set.files.DF.Col)
+tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI)
+
+# merge with tsne clusters
+hormone.responsiveness.tsnedbscanclusters<-merge(hormone.responsiveness6.DF,tsne.dbscan.eps.MinPts.set.files.DF.Col,by="AGI",all=TRUE)
+
+hormone.responsiveness.tsnedbscanclusters[is.na(hormone.responsiveness.tsnedbscanclusters)]<-"0"
+#write.csv(hormone.responsiveness.SOMclusters,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_hormone.responsiveness.SOMclusters100717.csv"))
+hormone.responsiveness.tsnedbscanclusters.description<-merge(hormone.responsiveness.tsnedbscanclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
+write.csv(hormone.responsiveness.tsnedbscanclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset2_Custom_enrichment_tsnedbscan_clusters_of_shade-responsive_genes101917v3.csv") 
+```
+# Run overlapTable
+```{r}
+for(i in 2:30) { # 2:30
+  for(n in grep("set",colnames(hormone.responsiveness.tsnedbscanclusters))) { # addition
+  overlap<-overlapTable(hormone.responsiveness.tsnedbscanclusters[,n],hormone.responsiveness.tsnedbscanclusters[,i])
+  overlap.melt<-melt(overlap$pTable,id=1) #
+  overlap.melt$count<-melt(overlap$countTable,id=1)$value
+  overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
+  sometype.setname<-colnames(hormone.responsiveness.tsnedbscanclusters[n])
+  names(hormone.responsiveness.tsnedbscanclusters[n])
+  save(overlap.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE",sometype.setname,colnames(hormone.responsiveness.tsnedbscanclusters)[i],"Rdata",sep=".")))
+  }
+}
+```
+# summerize overlapTable
+```{r}
+  overlap.melt.file<-list.files(file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.")
+overlap.melt.file<-overlap.melt.file[grep("set.[[:digit:]].Rdata",overlap.melt.file,invert=TRUE)] #
+table(gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\8",overlap.melt.file)) # should be 42 to 51 (=sets)
+
+for(n in 42:51) {
+  overlap.melt.file.set<-overlap.melt.file[gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\8",overlap.melt.file)==n] # revise
+  eps.MinPts<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\3\\4\\5",overlap.melt.file.set) # revise
+  
+  eps.MinPts.levels<-levels(as.factor(eps.MinPts))
+  for(x in eps.MinPts.levels) { # eps & MinPts
+overlap.melt.file.set.eps.MinPts<-overlap.melt.file.set[eps.MinPts==x]
+      overlap.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",overlap.melt.file.set.eps.MinPts),function(x) mget(load(x))) 
+names(overlap.melt.summary.list2)
+overlap.melt.summary<-do.call("rbind",overlap.melt.summary.list2) 
+head(overlap.melt.summary) # make sure those are SOM.customcat files
+rownames(overlap.melt.summary)<-1:nrow(overlap.melt.summary)
+# format overlap.melt.summary
+overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
+overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
+overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
+
+save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.",x,".set.",n,".Rdata",sep="")))
+  }
+}  
+```
+# draw heatmap
+```{r}
+  overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary")
+
+for(y in overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.files) 
+  {
+  load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",y))
+# graph
+overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
+#overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))# 100717
+overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
+overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616)
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616)
+# switching x and y axis
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=rev(levels(overlap.melt.summary.s$Var2)))                                    
+q4b<-ggplot(overlap.melt.summary.s,aes(y=factor(Var2),x=factor(Var1))) 
+q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",midpoint=2,high="magenta")
+#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
+q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_blank(),
+                 axis.ticks = element_line(size=0,color="white"))
+q4b <- q4b + geom_text(aes(label=count),size=5) 
+title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\7\\8",y)
+q4b <- q4b + labs(y="custom categories",x="tsnedbscan clusters in Col",title=title,fill="-log10\n p-value")
+ggsave(q4b,file=paste("Fig3_Col.tsnedbscan.clusters.vs.my.category.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # renamed (101917)
+}
+```
+# 
+```{r}
+GOseq.tsne<-function(tsne.set="eps3.3_MinPts16.set51") {
+# load SOM cluster summary and format it
+  load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+tsne.dbscan.eps.MinPts.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.files.DF$AGI)
+tsne.dbscan.eps.MinPts.set.files.DF.Col<-tsne.dbscan.eps.MinPts.set.files.DF[tsne.dbscan.eps.MinPts.set.files.DF$gt==1,]
+tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI)
+# select column and calculate cluster numbers
+clusters<-as.numeric(levels(as.factor(tsne.dbscan.eps.MinPts.set.files.DF.Col[,colnames(tsne.dbscan.eps.MinPts.set.files.DF.Col)==tsne.set] ))) # for some reasosnes, colnames(tsne.dbscan.eps.MinPts.set.files.DF.Col)[141]==paste(tsne,".set",set,sep="") is false
+print(clusters)  
+
+# calculate GO ORA using GOseq
+for(x in clusters) {  
+  temp.GOseq<-GOseq.ORA(tsne.dbscan.eps.MinPts.set.files.DF.Col[tsne.dbscan.eps.MinPts.set.files.DF.Col[colnames(tsne.dbscan.eps.MinPts.set.files.DF.Col)==tsne.set]==x,"AGI"])
+  if(temp.GOseq=="no enriched GO") {next} else {
+     temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=tsne.dbscan.eps.MinPts.set.files.DF.Col[tsne.dbscan.eps.MinPts.set.files.DF.Col[,colnames(tsne.dbscan.eps.MinPts.set.files.DF.Col)==tsne.set]==x,"AGI"],category.table=Atgo.list)
+  save(temp.GOseq,temp.genes,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste(tsne.set,"tsne.Col.cluster",x,"GOseq.PLoSGenetics2015mutants.errrDE.Rdata",sep=".")))
+  } 
+}
+# summary of GO ORA
+tsne.Col.cluster.GOseq.files<-list.files(pattern=paste(tsne.set,"tsne.Col.cluster",sep="."),path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+tsne.Col.cluster.GOseq.files<-grep(".GOseq.PLoSGenetics2015mutants.errrDE.Rdata",tsne.Col.cluster.GOseq.files,value=TRUE)
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.Col.cluster.GOseq.files[1]))
+temp.GOseq$clusters<-gsub("(eps[[:print:]]+)(_MinPts[[:digit:]]+)(\\.)(set[[:digit:]]+)(\\.)(tsne.Col.cluster)(\\.)([[:print:]]+)(\\.)(GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\8",tsne.Col.cluster.GOseq.files[1])
+
+temp<-temp.GOseq
+for(i in tsne.Col.cluster.GOseq.files[-1]) {
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",i))
+temp.GOseq$clusters<-gsub("(eps[[:print:]]+)(_MinPts[[:digit:]]+)(\\.)(set[[:digit:]]+)(\\.)(tsne.Col.cluster)(\\.)([[:print:]]+)(\\.)(GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\8",i) 
+  temp<-rbind(temp,temp.GOseq)
+}
+tsne.Col.cluster.GOseq.summary<-temp
+write.csv(tsne.Col.cluster.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste(tsne.set,"GO.csv",sep=".")) )
+
+} # the end of function
+
+```
+# GO ORA
+```{r}
+# all sets
+# run on my computer: 
+  load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+
+for(x in grep("eps",colnames(tsne.dbscan.eps.MinPts.set.files.DF),value=T)) {
+GOseq.tsne(x)
+}
+```
+
+
