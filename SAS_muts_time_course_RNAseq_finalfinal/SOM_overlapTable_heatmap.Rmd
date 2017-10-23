@@ -267,6 +267,4 @@ for(somgrid in c("1.5","2.3","1.7","2.4","3.3","2.5","3.4","4.4")) {
   write.csv(temp.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM_overlapTable_heatmap",paste(somgrid,"sets.GO.csv",sep=".")))
 }
 
-
-
 ```

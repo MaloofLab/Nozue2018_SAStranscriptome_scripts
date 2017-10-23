@@ -660,10 +660,113 @@ write.csv(tsne.Col.cluster.GOseq.summary,file=file.path("..","..","Nozue2016_SAS
 # all sets
 # run on my computer: 
   load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
-
 for(x in grep("eps",colnames(tsne.dbscan.eps.MinPts.set.files.DF),value=T)) {
 GOseq.tsne(x)
 }
 ```
+# summarize GO ORA (102017)
+```{r}
+tsne.GO.list.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="(\\.GO.csv)")
+tsne<-gsub("([[:print:]]+)(\\.set[[:digit:]]+)(\\.GO.csv)","\\1",tsne.GO.list.files)
+for(x in tsne) {
+  tsne.GO.list.files.s<-grep(x,tsne.GO.list.files,value=TRUE)
+  temp.list<-lapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.GO.list.files.s),function(x) read.csv(file=x,row.names=1))
+  names(temp.list)<-tsne.GO.list.files.s
+    set<-gsub("([[:print:]]+)(\\.set)([[:digit:]]+)(\\.GO.csv)","\\3",tsne.GO.list.files.s)  
+  for(i in 1:length(tsne.GO.list.files.s)) {
+    temp.list[[tsne.GO.list.files.s[i]]]$"set"<-set[i]
+  }
+  temp.DF<-do.call(rbind,temp.list)
+  write.csv(temp.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste(x,"sets.GO.csv",sep=".")))
+}
+
+```
+# box plot or heatmap of each cluster (102319)
+```{r}
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+
+tsne.dbscan.eps.MinPts.set.files.DF
+tsne.dbscan.eps.MinPts.set.data5<-cbind(data5,tsne.dbscan.eps.MinPts.set.files.DF)
+tsne.dbscan.eps.MinPts.set.data5$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.data5$AGI)
+tsne.dbscan.eps.MinPts.set.data5.Col<-tsne.dbscan.eps.MinPts.set.data5[tsne.dbscan.eps.MinPts.set.data5$gt==1,]
+##### under construction ######
+for(x in grep("eps",colnames(tsne.dbscan.eps.MinPts.set.data5),value=TRUE)) { # begin loop
+  
+tsne.dbscan.eps.MinPts.set.data5.Col.melt<-melt(tsne.dbscan.eps.MinPts.set.data5.Col[,c("1h","4h","25h","49h",x,"gt","AGI")],id.var=c("gt","AGI",x))
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt) 
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$gt2<-vlookup(tsne.dbscan.eps.MinPts.set.data5.Col.melt$gt,conversion.table,2)
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt)
+#newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$variable<-factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
+names(tsne.dbscan.eps.MinPts.set.data5.Col.melt)<-gsub(x,"tsne.cluster",names(tsne.dbscan.eps.MinPts.set.data5.Col.melt))
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster<-as.factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster)
+
+p <- ggplot(tsne.dbscan.eps.MinPts.set.data5.Col.melt,aes(x=variable,y=value,color=value))
+p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0 (060515)
+p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
+p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(tsne.cluster),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+p <- p + facet_grid(gt2~tsne.cluster,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free"
+p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
+p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
+p <- p + coord_flip()
+p 
+# ggsave(paste("Fig2_Coexpression_clusters_of_shade-responsive_genes_PLoSGenetics2015mutants.errrDE_102017",*****,".pdf",sep=""),width=11,height=5,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables")) # 
 
 
+} # end loop
+
+# To which clusters in mutants do genes in Col cluster 3 belong? (useful for looking transition?)
+newdata.vst$gt2<-vlookup(newdata.vst$gt,conversion.table,2)
+cluster3.Col.AGI<-newdata.vst[newdata.vst$gt==1 & newdata.vst$ssom3.4.unit.classif==3,"AGI"]
+ftable(newdata.vst[newdata.vst$AGI %in% cluster3.Col.AGI,c("gt2","ssom3.4.unit.classif")])
+
+
+
+```
+# heatmap version
+```{r}
+#
+# max.value<-max(data5)
+# min.value<-min(data5)
+# max.min<-c(round(min.value,2),round(max.value,2))
+
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+
+tsne.dbscan.eps.MinPts.set.files.DF
+tsne.dbscan.eps.MinPts.set.data5<-cbind(data5,tsne.dbscan.eps.MinPts.set.files.DF)
+tsne.dbscan.eps.MinPts.set.data5$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.data5$AGI)
+tsne.dbscan.eps.MinPts.set.data5.Col<-tsne.dbscan.eps.MinPts.set.data5[tsne.dbscan.eps.MinPts.set.data5$gt==1,]
+for(x in grep("eps",colnames(tsne.dbscan.eps.MinPts.set.data5),value=TRUE)) { # begin loop
+tsne.dbscan.eps.MinPts.set.data5.Col.melt<-melt(tsne.dbscan.eps.MinPts.set.data5.Col[,c("1h","4h","25h","49h",x,"gt","AGI")],id.var=c("gt","AGI",x))
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt) 
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$gt2<-vlookup(tsne.dbscan.eps.MinPts.set.data5.Col.melt$gt,conversion.table,2)
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt)
+#newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$variable<-factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
+names(tsne.dbscan.eps.MinPts.set.data5.Col.melt)<-gsub(x,"tsne.cluster",names(tsne.dbscan.eps.MinPts.set.data5.Col.melt))
+#tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster<-as.factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster)
+
+# sort clusters according to mean expression value in each cluster
+mean.cluster<-tapply(tsne.dbscan.eps.MinPts.set.data5.Col.melt$value,tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster,mean)
+mean.cluster
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster<-factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster,levels=names(sort(mean.cluster,decreasing=T)))
+# plot
+  p.heatmap <- ggplot(tsne.dbscan.eps.MinPts.set.data5.Col.melt,aes(x=variable,y=tsne.cluster)) + geom_tile(size=0.3,colour="black",aes(fill=value)) 
+  
+  library(scales) # for muted
+  #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
+  p.heatmap <- p.heatmap + scale_fill_gradient2(limits=c(-2,2),low=muted("green"), high=muted("magenta")) #,guide=guide_legend("none")) 
+  p.heatmap <- p.heatmap  + 
+    theme(axis.text.x=element_text(size=30,angle=90),
+          axis.text.y=element_text(size=30),
+          axis.title=element_text(size=40),
+          axis.ticks = element_blank(),
+          panel.background = element_rect(fill = "white"),
+          plot.title=element_text(size=40),
+          axis.line=element_blank())
+p.heatmap <- p.heatmap + labs(x="Time (hr)", y="cluster",fill="Log2 fold change\n (shade/sun)",title=x) #
+p.heatmap <- p.heatmap + coord_flip()
+p.heatmap
+ggsave(paste("Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_102317",x,".pdf",sep=""),width=11,height=8,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+}
+```
