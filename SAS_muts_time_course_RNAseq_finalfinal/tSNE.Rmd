@@ -602,9 +602,24 @@ overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616)
 overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616)
 # switching x and y axis
-overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=rev(levels(overlap.melt.summary.s$Var2)))                                    
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=rev(levels(overlap.melt.summary.s$Var2)))                
+# sort clusters according to mean expression value in each cluster (102317)
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+tsne.dbscan.eps.MinPts.set.files.DF
+tsne.dbscan.eps.MinPts.set.data5<-cbind(data5,tsne.dbscan.eps.MinPts.set.files.DF)
+tsne.dbscan.eps.MinPts.set.data5$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.data5$AGI)
+tsne.dbscan.eps.MinPts.set.data5.Col<-tsne.dbscan.eps.MinPts.set.data5[tsne.dbscan.eps.MinPts.set.data5$gt==1,]
+title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)(\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\6\\7\\9",y)
+tsne.dbscan.eps.MinPts.set.data5.Col.melt<-melt(tsne.dbscan.eps.MinPts.set.data5.Col[,c("1h","4h","25h","49h",title,"gt","AGI")],id.var=c("gt","AGI",title))
+names(tsne.dbscan.eps.MinPts.set.data5.Col.melt)<-gsub(title,"tsne.cluster",names(tsne.dbscan.eps.MinPts.set.data5.Col.melt))
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt) 
+mean.cluster<-tapply(tsne.dbscan.eps.MinPts.set.data5.Col.melt$value,tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster,mean)
+mean.cluster
+overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=names(sort(mean.cluster,decreasing=T)))
+overlap.melt.summary.s$Var1<-droplevels(overlap.melt.summary.s$Var1)
+### end sort clusters
 q4b<-ggplot(overlap.melt.summary.s,aes(y=factor(Var2),x=factor(Var1))) 
-q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",midpoint=2,high="magenta")
+q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",midpoint=2,high="magenta") # cut off is p value 0.01
 #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
 q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
                  panel.grid.major = element_blank(),
@@ -612,9 +627,9 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
                  panel.background = element_blank(),
                  axis.ticks = element_line(size=0,color="white"))
 q4b <- q4b + geom_text(aes(label=count),size=5) 
-title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\7\\8",y)
+#title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\7\\8",y)
 q4b <- q4b + labs(y="custom categories",x="tsnedbscan clusters in Col",title=title,fill="-log10\n p-value")
-ggsave(q4b,file=paste("Fig3_Col.tsnedbscan.clusters.vs.my.category.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # renamed (101917)
+ggsave(q4b,file=paste("Fig3_Col.tsnedbscan.clusters.vs.my.category.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # 
 }
 ```
 # 
