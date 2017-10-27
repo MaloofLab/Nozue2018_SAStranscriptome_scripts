@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
+library(tidyverse);library(cowplot)
 ```
 
 # custom category heatmap (Fig. 5)
@@ -110,13 +110,9 @@ names(test.wozero.melt.hormone.significant.s.list)<-gsub("(../../Nozue2016_SAStr
  
 test.wozero.melt.hormone.significant.s.list2<-sapply(test.wozero.melt.hormone.significant.s.list,c)
 test.wozero.melt.hormone.significant.s.list2["AGI",] # compare this with heatmap (Fig3) for double chekcing
-test.wozero.melt.hormone.significant.s.list2["AGI",] %>% sapply(length)
+test.wozero.melt.hormone.significant.s.list2["AGI",] %>% sapply(length) %>% tibble() %>% ggplot(aes(.)) + geom_histogram(binwidth=5)
 
 ```
-# 
-
-
-
 # how to look overlap between categories?
 ```{r}
 dim(test.wozero.melt.hormone.significant.s.summary) # 93 10
@@ -180,47 +176,156 @@ p.table.count.reshape
 
 ######## under construction ######### 102417
 # 
+#write.csv(test.wozero.melt.hormone.significant.ssss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS6_test.wozero.melt.hormone.significant.102417.csv") # This should be TableS6 (101017)
+```
+## draw expression pattern of custom categories (significantly enriched); Fig5A
+# visualize hormone pathway related genes (1213-1214,2015). Updated (052616-)
+```{r}
+test.wozero.melt.hormone.significant.s.files<-list.files(pattern="test.wozero.melt.hormone.significant.s",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
 
+ test.wozero.melt.hormone.significant.s.list<- sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",test.wozero.melt.hormone.significant.s.files),function(x) mget(load(x))) # mget 
+# rename 
+names(test.wozero.melt.hormone.significant.s.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/test.wozero.melt.hormone.significant.s.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set[[:digit:]]+)(.Rdata.test.wozero.melt.hormone.significant.s)","\\2\\3\\4\\5\\6",names(test.wozero.melt.hormone.significant.s.list))
 
-##############
-test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.s[!test.wozero.melt.hormone.significant.s$my.category %in% c("BLup","MJdown","MYC234up","NPR1up","NPR1down","NPR1down_uponSA","NPR1up_uponSA","WRKY33up","WRKY33down","SAup_24h"),] # eliminate those categories
+# summary.vst.response.kazu
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata")) # response (092917)
+summary.vst.response.kazu$AGI <- row.names(summary.vst.response.kazu)
+response.melt <- melt(summary.vst.response.kazu,id.vars= "AGI",variable.name = "sample", value.name = "log2.dif") # this value is not log transformed. This is just ratio (responsiveness to shade; 101117)
+hist(response.melt$log2.dif)
+response.melt$log2.dif<-log2(response.melt$log2.dif)
+head(response.melt)
+response.melt$gt <- as.factor(regmatches(response.melt$sample,regexpr("^[0-9]{1,2}",response.melt$sample)))
+response.melt$time <- as.factor(regmatches(response.melt$sample,regexpr("[0-9]{1,2}hr",response.melt$sample)))
+response.melt$rep <- as.factor(regmatches(response.melt$sample,regexpr("[A-Z]$",response.melt$sample)))
+head(response.melt)
+tail(response.melt)
+manuscript.genotypes <- as.character(c(1,3,4,5,6,7,8,9,10,13,14,17,19) )
+response.melt <- response.melt[response.melt$gt %in% manuscript.genotypes,]
+response.melt <- droplevels(response.melt) # droplevels is useful.
+summary(response.melt)
 
-# remove my.category =="" (092917)
-test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.ss[!test.wozero.melt.hormone.significant.ss$my.category=="",]
-table(test.wozero.melt.hormone.significant.ss$my.category)
- # ABAdown    ABAup    ACCup   BLdown     CKup  IAAdown    IAAup     MJup SARminus  SARplus 
- #       9        4        5        4        2        2       44       20        1        6 
+# making loop or function for drawing Fig5 graph
+for(n in 1:length(names(test.wozero.melt.hormone.significant.s.list))) {
 
-#write.csv(test.wozero.melt.hormone.significant.ss,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS6_test.wozero.melt.hormone.significant.ss.100717.csv")) # 
-#### what genes do belong to multiple categories?
-#reshape(test.wozero.melt.hormone.significant.s,idvar="AGI",timevar="my.category",direction="wide")
-test.wozero.melt.hormone.significant.s.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
-# specific to each category (fixed 101017)
-test.wozero.melt.hormone.significant.s.summary.specific<-test.wozero.melt.hormone.significant.s.summary[rowSums(test.wozero.melt.hormone.significant.s.summary)==1,] # need to merge SA related categories?
-test.wozero.melt.hormone.significant.s.summary.specific 
-duplicated(rownames(test.wozero.melt.hormone.significant.s.summary.specific))
-## 
-reshape(test.wozero.melt.hormone.significant.ss,idvar="AGI",timevar="my.category",direction="wide") #  should be test.wozero.melt.hormone.significant.s.summary.specific
-test.wozero.melt.hormone.significant.ss.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
-test.wozero.melt.hormone.significant.ss.summary # table object
+my.category.diff.heatmap.graph<-list()
+#categories <- read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS6_test.wozero.melt.hormone.significant.ssss.101017.csv"),row.names=1,as.is=TRUE) #  re-normalize data after subsetting in edgeR DE analysis. specific to each category (101017)
+categories<-test.wozero.melt.hormone.significant.s.list[[n]]
+print(categories)
+title<-names(test.wozero.melt.hormone.significant.s.list)[n]
+print(title)
+head(categories)
+table(categories$my.category)
+# select categories larger than three genes
+categories %>% count(my.category) %>% filter(n>3) %>% as.data.frame() -> selected.category
+categories<-categories[categories$my.category %in% selected.category$my.category,]
+categories$my.category<-factor(categories$my.category) # categories$my.category has to be factor
 
-test.wozero.melt.hormone.significant.sss<-test.wozero.melt.hormone.significant.ss[test.wozero.melt.hormone.significant.ss$AGI %in% test.wozero.melt.hormone.significant.ss$AGI,] # 
-test.wozero.melt.hormone.significant.sss<-test.wozero.melt.hormone.significant.ss[test.wozero.melt.hormone.significant.ss$AGI %in% rownames(test.wozero.melt.hormone.significant.s.summary.specific),] # revised. 101017
-dim(test.wozero.melt.hormone.significant.sss) # 48 2
-table(test.wozero.melt.hormone.significant.sss$my.category)
-# ABAdown   ABAup   ACCup  BLdown    CKup IAAdown   IAAup    MJup SARplus 
-#       3       1       2       2       1       1      25       9       2 
-# needs to eliminate categories less than 3 genes
-category.morethan3<-names(table(test.wozero.melt.hormone.significant.sss$my.category))[table(test.wozero.melt.hormone.significant.sss$my.category)>2]
-test.wozero.melt.hormone.significant.ssss<-test.wozero.melt.hormone.significant.sss[test.wozero.melt.hormone.significant.sss$my.category %in% category.morethan3,]
-dim(test.wozero.melt.hormone.significant.ssss) #37 2
-table(test.wozero.melt.hormone.significant.sss$my.category)
-table(test.wozero.melt.hormone.significant.ssss$my.category)
-# ABAdown   IAAup    MJup 
-#       3      25      9 
+#categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","SAup_24h"))) # 120116
+#categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","MJup","ABAdown"))) # 120116
+# # summary.vst.response.kazu
+# load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata")) # response (092917)
+summary.vst.response.kazu<-summary.vst.response
+dim(summary.vst.response.kazu) # [1] 30533    52
+head(summary.vst.response.kazu)
+# for Fig5A, Col
+my.category.heatmap.graph<-list()
+for(i in c(1,17,19,3,4,5,14,10,6,13,7,8,9)) { # 
+my.category.heatmap.graph[[i]]<-my.category.heatmap6(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.102617v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),save.plot=F,legend.fill=F,file.name=title,category.level=levels(categories$my.category)) #  legend.fill=F to T for new Fig5 (all absolute value, previously called FigS2)
+}
+# summerize data in one data frame
+FigS2.absolute.summary.table.melt.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="FigS2.absolute.summary.table.melt") # (102617)
+FigS2.absolute.summary.table.melt.files<-grep(paste(title,".Rdata",sep=""),FigS2.absolute.summary.table.melt.files,value=T)
+FigS2.absolute.summary.table.melt.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",FigS2.absolute.summary.table.melt.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see 
+FigS2.absolute.summary.table.melt.DF<-do.call(cbind,FigS2.absolute.summary.table.melt.list2)
+# remove redundant columns 
+colnames(FigS2.absolute.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/FigS2.absolute.summary.table.melt)([[:print:]]+)(.Rdata.summary.table.melt.)(my.category|variable|value)","\\2.\\4",colnames(FigS2.absolute.summary.table.melt.DF))
+FigS2.absolute.summary.table.melt.DF<-FigS2.absolute.summary.table.melt.DF[,c(paste("1",title,".my.category",sep=""),paste("1",title,".variable",sep="") ,grep("value",colnames(FigS2.absolute.summary.table.melt.DF),value=TRUE))]
+write.csv(FigS2.absolute.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("FigS2.absolute.summary.table.melt.DF",title,".csv",sep=""))) 
 
+# significance calculation (under construction)
+summary(categories)
+table(categories$my.category)
+# select genes in categories
+response.melt.merge <- merge(response.melt,categories,by="AGI",all=FALSE)
+response.melt.merge$gt <- relevel(response.melt.merge$gt,ref="1")
+table(response.melt.merge$gt,response.melt.merge$time)
+mutants <- levels(response.melt.merge$gt)[-1] #1 is Col
+category.names<- unique(response.melt.merge$my.category)
+results <- lapply(mutants,function(gt) {
+  sapply(category.names,function(cat.name) {
+    tmp <- response.melt.merge[(response.melt.merge$gt=="1" | response.melt.merge$gt==gt) & response.melt.merge$my.category==cat.name,]
+    lmer1 <- lmer(log2.dif ~ gt*time + (1|AGI), data=tmp)
+    tmp.results <- anova(lmer1)[, "Pr(>F)"]
+    print(row.names(anova(lmer1)))
+    names(tmp.results) <- row.names(anova(lmer1))
+    min(tmp.results[-2]) # we do not care about time
+    print(min(tmp.results[-2]))
+  })
+} )
+names(results) <- mutants
+results
+results.df <- ldply(results,.id="gt")
+results.df
+colnames(results.df)[-1]<-as.character(category.names)
+results.df
+# calclate adjusted p-value
+results.df.adj <- matrix(
+  p.adjust(unlist(results.df[,-1]),"fdr",n=2*length(unlist(results.df[,-1]))), #multiply by 2 because we took the min value of gt and gt*time
+  nrow=nrow(results.df))
+results.df.adj <- cbind(as.character(results.df[,1]),as.data.frame(results.df.adj))
+colnames(results.df.adj) <- colnames(results.df)
+results.df.adj
+
+# write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v6.log2.csv")) #101017 three categories
+# 
+# add p value in heatmap
+# response.p.values<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v6.log2.csv"),row.names=1) # from modified Julin's script (copied from Kazu_test_v2.R) (100717)
+
+response.p.values<-results.df.adj # due to skipping writing csv (102617)
+response.p.values.melt<-melt(response.p.values,id="gt") #
+#my.categories<-grep("gt",colnames(response.p.values),invert=TRUE,value=TRUE)
+
+# add significant to absolute value heatmap
+for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
+significant.position<-data.frame(category=levels(categories$my.category),x=0,y=1:length(levels(categories$my.category)),symbol.gt="",symbol.gt.time="")
+## uncer construction. order of my.categories in significant.position should be the same as levels of category in heatmap.
+## use category.level paramenter in heatmap function (102617)
+response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]
+significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level
+  significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt)
+  significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt)
+
+# add significance to heatmap
+my.category.heatmap.graph[[i]]<-my.category.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
+rm(significant.position)
 }
 
+# supplement Fig2 (absolute value), which will become new Fig5 (101117)
+# extract legend
+# since Col with legend is different in size from others. I need to extract legend and plot it in different space.
+# see http://stackoverflow.com/questions/12041042/how-to-plot-just-the-legends-in-ggplot2
+# ibrary(gridExtra)
+# g_legend<-function(a.gplot){ 
+#   tmp <- ggplot_gtable(ggplot_build(a.gplot)) 
+#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box") 
+#   legend <- tmp$grobs[[leg]] 
+#   return(legend)} 
+# legend <- g_legend(my.category.heatmap.graph[[1]])  # does not work (102617)
+#
+my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]]+theme(legend.position="none"), 
+                                     ggplot()+geom_blank(), ggplot()+geom_blank(),my.category.heatmap.graph[[17]],my.category.heatmap.graph[[19]],my.category.heatmap.graph[[3]],my.category.heatmap.graph[[4]],my.category.heatmap.graph[[5]],my.category.heatmap.graph[[14]],my.category.heatmap.graph[[10]],my.category.heatmap.graph[[6]],my.category.heatmap.graph[[13]],my.category.heatmap.graph[[7]],my.category.heatmap.graph[[8]],my.category.heatmap.graph[[9]],
+                      labels=c("A","","","B","","","","","","","","","","",""),
+                      vjust = 1.1, hjust=-0.5,
+                      ncol=3,nrow=5,
+                      label_size = 50)
+save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("Fig5_oldFig_S2_all.my.category.expression.pattern.v16.log2.signif.",title,".png",sep="")), my.category.heatmap.all,
+          ncol = 3, # we're saving a grid plot of 2 columns
+          nrow = 5, # and 2 rows
+          base_aspect_ratio = 2.5,
+          base_height=6,
+          limitsize = FALSE
+)
 
-write.csv(test.wozero.melt.hormone.significant.ssss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS6_test.wozero.melt.hormone.significant.102417.csv") # This should be TableS6 (101017)
+} # loop for test.wozero.melt.hormone.significant.s.list
 ```
+# the end of custom category heatmap (shade responsiveness) (Fig. 5)

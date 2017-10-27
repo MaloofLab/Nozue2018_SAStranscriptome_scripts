@@ -612,6 +612,91 @@ my.category.heatmap5<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.sele
   else {return(p.selected)}
   #### the end of temp
 }
+# tsne version
+my.category.heatmap6<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.selected,plotname,h=5,w=5*4/3,path,save.plot=T,legend.fill=F,file.name="",category.level="") { # gt.num (num), gt2 (gt name), for w/o 16h data, newdata.Col.wGO.selected should have "AGI" and "my.category"
+  # voom transformed data has been transformd into log2
+  ### for temp 
+  # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
+  #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
+  if(exists("category.level")) {category.level<-category.level} else { category.level<-levels(newdata.Col.wGO.selected$my.category)} # 102617
+  
+  summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
+  print(head(summary3.response.log2.temp))
+  summary3.response.log2.temp$AGI<-rownames(summary3.response.log2.temp)  
+  print(head(summary3.response.log2.temp$AGI))
+  #### select genes in newdata.Col.wGO.selected and look expression pattern in temp
+  print(newdata.Col.wGO.selected)
+  selected.genes<-newdata.Col.wGO.selected$AGI #
+  print(paste("selected.genes are",selected.genes))
+  summary3.response.log2.temp.selected<-summary3.response.log2.temp[summary3.response.log2.temp$AGI %in% selected.genes,]
+  # not that way. use Col data
+  summary3.response.log2.temp.selected<-merge(summary3.response.log2.temp.selected,newdata.Col.wGO.selected[,c("AGI","my.category")],by="AGI")
+  #
+  names(summary3.response.log2.temp.selected)[2:5]<-as.numeric(gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\3",names(summary3.response.log2.temp.selected)[2:5]))
+  # remove "-Inf" gene
+  #summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:5], 1, Compose(is.finite, all)),]
+  # Error in Compose(is.finite, all) : Argument is not a function
+  # see http://stackoverflow.com/questions/15773189/remove-na-nan-inf-in-a-matrix for repair
+  summary3.response.log2.temp.selected.noINF<-summary3.response.log2.temp.selected[apply(summary3.response.log2.temp.selected[,2:5], 1, function(x) all(is.finite(x))),]
+  
+  print(summary3.response.log2.temp.selected.noINF)
+  # melt
+  summary3.response.log2.temp.selected.noINF.melt<-melt(summary3.response.log2.temp.selected.noINF,id=c("AGI","my.category"))
+  print("summary3.response.log2.temp.selected.noINF.melt is")
+  print(head(summary3.response.log2.temp.selected.noINF.melt)) # OK
+  summary(summary3.response.log2.temp.selected.noINF.melt)
+  summary3.response.log2.temp.selected.noINF.melt$variable<-factor(summary3.response.log2.temp.selected.noINF.melt$variable,levels=c("1","4","25","49"))
+  
+  summary3.response.log2.temp.selected.noINF.melt$my.category<-factor(summary3.response.log2.temp.selected.noINF.melt$my.category,levels=levels(newdata.Col.wGO.selected$my.category))
+  print(head(summary3.response.log2.temp.selected.noINF.melt)) # OK? no.
+  
+  # mean table (= heat map should reflect this table)
+  summary.table<-as.data.frame(tapply(summary3.response.log2.temp.selected.noINF.melt$value,list(summary3.response.log2.temp.selected.noINF.melt$my.category,summary3.response.log2.temp.selected.noINF.melt$variable),mean))
+  print(paste("summary table for ",gt2))
+  print(summary.table)
+  summary.table$my.category<-factor(rownames(summary.table),levels=levels(summary3.response.log2.temp.selected.noINF.melt$my.category))
+  
+  summary.table.melt<-melt(summary.table,id="my.category")
+  #names(summary.table)
+  #summary.table
+  # additional part in this function
+  summary.table.melt$variable<-factor(summary.table.melt$variable,levels=c("49","25","4","1"))
+  #summary.table.melt$my.category<-factor(summary.table.melt$my.category,levels=rev(category.level))
+  summary.table.melt$my.category<-factor(summary.table.melt$my.category,levels=category.level)
+  
+  save(summary.table.melt,file=file.path(path,paste("FigS2.absolute.summary.table.melt",gt.num,file.name,".Rdata",sep=""))) # 102617
+  # drawing heatmap
+  #p.selected <- ggplot() + geom_tile(sumamry.table.melt,aes(x=variable,y=my.category,fill=value),size=0.3,colour="black") # does not work (052816)
+  p.selected <- ggplot(summary.table.melt,aes(x=variable,y=my.category)) + geom_tile(size=0.3,colour="black",aes(fill=value)) 
+  
+  library(scales) # for muted
+  #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
+  p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) #,guide=guide_legend("none")) 
+  p.selected <- p.selected  + 
+    theme(axis.text.x=element_text(size=30,angle=90),
+          axis.text.y=element_text(size=30),
+          axis.title=element_text(size=40),
+          axis.ticks = element_blank(),
+          panel.background = element_rect(fill = "white"),
+          plot.title=element_text(size=40),
+          axis.line=element_blank())
+  if(legend.fill==TRUE) {
+    #p.selected <- p.selected  + labs(fill="log2\n fold change",legend.text=element_text(size=20)) 
+    p.selected <- p.selected  + labs(fill="") + theme(legend.title=element_text(size=40),legend.text=element_text(size=40),legend.key.height=unit(1, "cm")) 
+    
+  } else {p.selected <- p.selected + theme(legend.position="none")}
+  #,strip.background=element_rect(fill=c("red","blue")))
+  #p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2,fill="log2\n fold change")
+  p.selected <- p.selected + labs(x="Time (hr)",y="",title=gt2)
+  
+  # flip xy
+  p.selected<-p.selected + coord_flip() 
+  if(save.plot==T)   {
+    ggsave(file=paste(gt2,plotname,sep="."),p.selected,height=h,width=w,path=path)
+  } 
+  else {return(p.selected)}
+  #### the end of temp
+}
 
 ## diff version (061816)
 ## calculate diff at gene level and calculate mean value of the diff among each category

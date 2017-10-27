@@ -1351,8 +1351,9 @@ my.category.diff.heatmap.graph.ver2[[i]]<-
 
 ```
 
-# significance calculation
+# significance calculation (needs to fix)
 ```{r}
+# how to get summary.vst.response.kazu? (102617)
 summary.vst.response.kazu$AGI <- row.names(summary.vst.response.kazu)
 response.melt <- melt(summary.vst.response.kazu,id.vars= "AGI",variable.name = "sample", value.name = "log2.dif") # this value is not log transformed. This is just ratio (responsiveness to shade; 101117)
 hist(response.melt$log2.dif)
@@ -1369,6 +1370,7 @@ response.melt <- droplevels(response.melt) # droplevels is useful.
 summary(response.melt)
 summary(categories)
 table(categories$my.category)
+# select genes in categories
 response.melt.merge <- merge(response.melt,categories,by="AGI",all=FALSE)
 response.melt.merge$gt <- relevel(response.melt.merge$gt,ref="1")
 table(response.melt.merge$gt,response.melt.merge$time)
@@ -1591,7 +1593,7 @@ for(x in Genotype) {
 # how many modules?
   table(net$colors);length(table(net$colors)) #
 ## recutBlockwiseTrees() is too divide modules further
-## try mergeCloseMOdulesl wutg higher height (0.6) for all Genotype
+## try mergeCloseMOdulesl with higher height (0.6) for all Genotype
 ## resultant "tan" module is SA/JA module but it is too big. (110916)
 ## try 0.55
 ##  cutHeight = 0.55, 27 modules, yellow = SA is too large
