@@ -1,0 +1,54 @@
+---
+title: "triple_interaction"
+author: "Kazu"
+date: "11/3/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","samples.PLoSGenetics2015mutants.errrDE.Rdata")) # 100717
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","dge.PLoSGenetics2015mutants.errrDE.Rdata"))
+  # samples.nolow5.s<-samples.PLoSGenetics2015mutants.errrDE[samples.PLoSGenetics2015mutants.errrDE$genotype=="1"|samples.PLoSGenetics2015mutants.errrDE$genotype==i,] # 100717
+  # samples.nolow5.s<-samples.nolow5.s[samples.nolow5.s$trt=="H",] # only "sun" treatment
+  # samples.nolow5.s$genotype<-as.character(samples.nolow5.s$genotype)
+  # dge.nolow.s<-dge.PLoSGenetics2015mutants.errrDE[,colnames(dge.PLoSGenetics2015mutants.errrDE) %in% samples.nolow5.s$file]
+  #   dge.nolow.s<-dge.PLoSGenetics2015mutants.errrDE[,colnames(dge.PLoSGenetics2015mutants.errrDE) %in% samples.nolow5.s$file]
+dim(samples.PLoSGenetics2015mutants.errrDE)
+  
+  # eliminating low expressed genes in dge.nolow.s
+  dge.nolow.s<-dge.PLoSGenetics2015mutants.errrDE[rowSums(dge.PLoSGenetics2015mutants.errrDE$counts > 5) >= 3,]
+   # recalculate normalization (100717)
+  dge.nolow.s<-calcNormFactors(dge.nolow.s)
+  # design model 
+  design.nolow.s.gt.batch4<- model.matrix(~samples.PLoSGenetics2015mutants.errrDE$genotype*samples.PLoSGenetics2015mutants.errrDE$time*samples.PLoSGenetics2015mutants.errrDE$trt  + samples.PLoSGenetics2015mutants.errrDE$batch) # triple interaction (110317) 
+  colnames(design.nolow.s.gt.batch4) <- gsub("samples.PLoSGenetics2015mutants.errrDE$","",colnames(design.nolow.s.gt.batch4),fixed=TRUE) # nicer column names
+  colnames(design.nolow.s.gt.batch4)
+  print(design.nolow.s.gt.batch4)
+  dge.nolow.s.batch4.glm <- estimateGLMCommonDisp(dge.nolow.s,design.nolow.s.gt.batch4, verbose=TRUE)
+  dge.nolow.s.batch4.glm <- estimateGLMTrendedDisp(dge.nolow.s.batch4.glm,design.nolow.s.gt.batch4, verbose=TRUE)
+  dge.nolow.s.batch4.glm<-estimateGLMTagwiseDisp(dge.nolow.s.batch4.glm,design.nolow.s.gt.batch4)
+  #pdf(file=paste("BCV_MDS_with_genotype.wo16h_gt",i,".pdf",sep=""),width=11,height=8)
+  #par(mfrow=c(1,2))
+  #plotBCV(dge.nolow.s.batch3.glm,main=paste("genotype",i))
+  #plotMDS(dge.nolow.s.batch3.glm,main=paste("genotype",i))
+  #dev.off()  
+  dge.nolow.s.batch4.glm.fit <- glmFit(dge.nolow.s.batch4.glm,design.nolow.s.gt.batch4)
+  Genotype<-levels(as.factor(sub("(C|D|E)([[:digit:]]+)(L|H)(1|4|25|49)(A.merged.bam)","\\2",names(SAS.expression.vst)))) # 13 genotype
+Genotype<-samples.PLoSGenetics2015mutants.errrDE %>% group_by(genotype) %>% dplyr::summarise(sample_count=n()) %>% dplyr::select(genotype) %>% as.data.frame()
+  #### need to revise next line ####
+  #genotype.alltime.coef<-c(paste("genotype",i,sep=""),paste("genotype",i,":time4",sep=""),paste("genotype",i,":time25",sep=""),paste("genotype",i,":time49",sep=""))  
+for(i in Genotype[-1,1]) {# Genotype 17, 3,4,5,6,7,9 exceed 2000 genes. List up 5000 genes
+    genotype.alltime.triple.coef<-c(paste("genotype",i,":trtL",sep=""),paste("genotype",i,":time4:trtL",sep=""),paste("genotype",i,":time25:trtL",sep=""),paste("genotype",i,":time49:trtL",sep=""))  
+
+  dge.nolow.s.batch4.glm.lrt <- glmLRT(dge.nolow.s.batch4.glm.fit,coef=genotype.alltime.triple.coef)
+  DE.batch4.triple.gt<-topTags(dge.nolow.s.batch4.glm.lrt,n=10000)$table[topTags(dge.nolow.s.batch4.glm.lrt,n=10000)$table$FDR<0.001,] # 0.05 for genotype_specific2 which gave me 5000 genes in hy5 (genotype3)
+  dim(DE.batch4.triple.gt) #
+  save(DE.batch4.triple.gt,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h","genotype_specific5",paste("DE.genotype.batch.sun.gt.wo16h.PLoSGenetics2015mutants.errrDE.tripleint.",i,".Rdata",sep="")) )
+  # save  dge.nolow.s.batch3.glm.lrt
+    save(dge.nolow.s.batch4.glm.lrt,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","edgeR","outlier_wo16h","genotype_specific5",paste("dge.nolow.s.batch4.glm.lrt.sun.PLoSGenetics2015mutants.errrDE.tripleint.",i,".Rdata",sep=""))) # added this line (try to use this object for coef, 061715)
+}
+    ```

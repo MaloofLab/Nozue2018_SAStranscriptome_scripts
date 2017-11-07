@@ -1773,6 +1773,11 @@ load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SAS.expre
 dim(SAS.expression.vst.s.kazu.largeCV.modules)# [1] 7025   14
 table(SAS.expression.vst.s.kazu.largeCV.modules$"1") # OK purple and salmon switched
 SAS.expression.vst.s.kazu.largeCV.modules[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),]
+# MYC2 (AT1G32640), MYC3 (AT5G46760), MYC4 (AT4G17880)
+SAS.expression.vst.s.kazu.largeCV.modules[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) %in% c("AT1G32640","AT5G46760","AT4G17880"),] # only MYC2
+# six MYBs that regulate indolic glucosinolates (GSLs): MYB34 AT5G60890, MYB51 AT1G18570, MYB122 AT1G74080, MYB28 AT5G61420, MYB29 AT5G07690, MYB76      AT5G07700
+SAS.expression.vst.s.kazu.largeCV.modules[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) %in% c("AT5G60890","AT1G18570","AT1G74080","AT5G61420","AT5G07690","AT5G07700"),]
+
 #library(WGCNA)
 SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
 # merge with WGCNA modules
@@ -1785,13 +1790,19 @@ length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) #
 # adding gene description
 DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 #write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_092817.csv")) #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316), 092817
-write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_100717.csv")) #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316), 092817
+write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_WGCNA_modules_in_Fig7_100717.csv")) #091616. Column names were screwed up (111616). Orange > "salmon", "salmon" > "orange4" (121316), 092817
 
 # in whitney
 #test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_092817.csv"),row.names=1) # does  work (092717)
-test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_found_in_WGCNA_modules_visualized_in_Fig7_100717.csv"),row.names=1) # does  work (100717)
+test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset5_Complete_gene_list_of_genes_misexpressed_in_mutant_and_WGCNA_modules_in_Fig7_100717.csv"),row.names=1) # does  work (100717)
 
 test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),] # OK they are salmon
+
+# myc2 (AT1G32640), myc3 (AT5G46760), myc4 (AT4G17880)
+test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT1G32640","AT5G46760","AT4G17880"),] # 
+
+# six MYBs that regulate indolic glucosinolates (GSLs): MYB34 AT5G60890, MYB51 AT1G18570, MYB122 AT1G74080, MYB28 AT5G61420, MYB29 AT5G07690, MYB76      AT5G07700
+test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT5G60890","AT1G18570","AT1G74080","AT5G61420","AT5G07690","AT5G07700"),]
 
 #test<-test[,-1]
 dim(test) # 17985   28 > 8156   28 > 8150 28 (100717)
