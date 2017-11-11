@@ -1517,7 +1517,7 @@ save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables",
 ## co-expression analysis by WGCNA
 ```{r eval=FALSE}
 # The following setting is important, do not omit.
-options(stringsAsFactors = FALSE);
+options(stringsAsFactors = FALSE)
 ```
 ## Work in Whitney with multi-threds 
 ```{r eval=FALSE}
@@ -1977,21 +1977,29 @@ for(i in GOCC.WGCNA.Col.module.GOseq.files[-1]) {
 WGCNA.Col.module.GOseq.CC.summary<-temp
 write.csv(WGCNA.Col.module.GOseq.CC.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","WGCNA.Col.module.GOseq.CC.summary.csv")) # not used
 ```
-# overlap analysis with custome categories (WGCNA modules): Fig6  (no need to change, 100717)
+# overlap analysis with custome categories (WGCNA modules): Fig6  (no need to change, 100717). using SAup_combined & SAdown_combined (110917)
 ```{r eval=FALSE}
 # custom categories
-load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6b.Rdata")) # remove PCC1up and PCC1down from hormone.responsiveness6.Rdata and called hormone.responsiveness6b.Rdata
-########################
-## change list into data.frame
-hormone.responsiveness6b.DF<-data.frame(t(sapply(hormone.responsiveness6b,c))) # modified for ver6. removing GRF1_3target, PCC1up, PCC1down
-names(hormone.responsiveness6b.DF)<-attributes(hormone.responsiveness6b)$category
-hormone.responsiveness6b.DF$AGI<-rownames(hormone.responsiveness6b.DF)
-
+load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.DF.s.Rdata")) # using SAup_combined & SAdown_combined
+hormone.responsiveness6.DF.s
+hormone.responsiveness6.DF.s$AGI
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SAS.expression.vst.s.kazu.largeCV.modules092817.Rdata") ) #
+SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(\\.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI)
+test<-merge(hormone.responsiveness6.DF.s,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
 
-SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) # remove .1, .2, etc
-# merge with WGCNA modules
-test<-merge(hormone.responsiveness6b.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
+# ########################
+#load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6b.Rdata")) # remove PCC1up and PCC1down from hormone.responsiveness6.Rdata and called hormone.responsiveness6b.Rdata
+# ## change list into data.frame
+# hormone.responsiveness6b.DF<-data.frame(t(sapply(hormone.responsiveness6b,c))) # modified for ver6. removing GRF1_3target, PCC1up, PCC1down
+# names(hormone.responsiveness6b.DF)<-attributes(hormone.responsiveness6b)$category
+# hormone.responsiveness6b.DF$AGI<-rownames(hormone.responsiveness6b.DF)
+# 
+# load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SAS.expression.vst.s.kazu.largeCV.modules092817.Rdata") ) #
+# 
+# SAS.expression.vst.s.kazu.largeCV.modules$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",SAS.expression.vst.s.kazu.largeCV.modules$AGI) # remove .1, .2, etc
+# 
+# # merge with WGCNA modules
+# test<-merge(hormone.responsiveness6b.DF,SAS.expression.vst.s.kazu.largeCV.modules[,c("AGI","1")],by="AGI",all=TRUE)
 names(test)[names(test)=="1"]<-"WGCNAmodules"
 i <- sapply(test, is.factor)
 test[i]<-lapply(test[i], as.character)
@@ -2007,34 +2015,46 @@ head(hormone.responsiveness.WGCNAmodules)
 # remove GRF1_3target (052616)
 hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,!names(hormone.responsiveness.WGCNAmodules)=="GRF1_3target"]
 
-write.csv(hormone.responsiveness.WGCNAmodules,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset4_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules092817.csv"))
+#write.csv(hormone.responsiveness.WGCNAmodules,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset4_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules092817.csv"))
+write.csv(hormone.responsiveness.WGCNAmodules,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset4_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules110917.csv"))
+
 
 # salmon genes and SA, npr1 responsiveness? (PCC1, XBAT34, AIG1, ACD6,SARD1,cbp60g)
 hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "salmon" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400","AT5G26920","AT1G73805","AT5G26920"), c("AGI","IAAup","IAAdown","SARminus","SARplus","NPR1down","WRKY33down","WRKY33up","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA","WGCNAmodules")]
+
+# salmon genes and SA, npr1 responsiveness? (PCC1, XBAT34, AIG1, ACD6,SARD1,cbp60g)
+hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "salmon" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400","AT5G26920","AT1G73805","AT5G26920"), c("AGI","IAAup","IAAdown","SAup_combined","SAdown_combined","WGCNAmodules")]
+
 # OK. They belong to "salmon" and not IAA responsive.
 # IAA responsive & green
-hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$IAAup %in% "IAAup" & hormone.responsiveness.WGCNAmodules$WGCNAmodules=="green", c("AGI","IAAup","IAAdown","SARminus","SARplus","NPR1down","WRKY33down","WRKY33up","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA","WGCNAmodules")]
+hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$IAAup %in% "IAAup" & hormone.responsiveness.WGCNAmodules$WGCNAmodules=="green", c("AGI","IAAup","IAAdown","SAup_combined","SAdown_combined","WGCNAmodules")]
 
 ```
 # overlapTable for WGCNA module vs custome categories (100417)  (no need to change, 100717)
 ```{r}
-hormone.responsiveness.WGCNAmodules<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules092817.csv"),row.names=1)
-hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "salmon" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"), c("AGI","IAAup","IAAdown","SARminus","SARplus","NPR1down","WRKY33down","WRKY33up","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA","WGCNAmodules")]
-# OK
+#hormone.responsiveness.WGCNAmodules<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules092817.csv"),row.names=1)
+hormone.responsiveness.WGCNAmodules<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset4_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules110917.csv"),row.names=1)
+
+hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "salmon" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"), c("AGI","IAAup","IAAdown","SAup_combined","SAdown_combined","WGCNAmodules")]
+# OK, Salmon module
 test<-hormone.responsiveness.WGCNAmodules
-for(i in 2:32) {
-  overlap.GOseq<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
+for(i in 19:20) { # 2:32 for 092817.csv version. 19 and 20 are new (SAup_combined and SAdown_combined)
+  overlap.GOseq<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI) # all genes
   overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
   overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
   overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
   #overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
-  save(overlap.GOseq.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.GOseq.melt.WGCNA.customcat.",i,".Rdata",sep="")))
-}
+  save(overlap.GOseq.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.GOseq.melt.WGCNA.customcat.110917.",i,".Rdata",sep="")))
+} # renamed
 ```
-# combine files (WGCMA vs customcat)
+# combine files (WGCMA vs customcat): updated 110917 for SAup_combined and SAdown_combined
 ```{r}
 # read files
 overlap.GOseq.melt.WGCNA.customcat.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.WGCNA.customcat")
+select.files<-gsub("(overlap.GOseq.melt.WGCNA.customcat)(\\.)([[:print:]]+)(\\.Rdata)","\\3",overlap.GOseq.melt.WGCNA.customcat.files)
+overlap.GOseq.melt.WGCNA.customcat.files<-overlap.GOseq.melt.WGCNA.customcat.files[select.files %in% c("2","3","4","5","6","7","8","9","10","11","12","13","14","15","26","25","110917.19","110917.20")]
+# select 2:18 from "overlap.GOseq.melt.WGCNA.customcat", 19:20 for "overlap.GOseq.melt.WGCNA.customcat".110917, 26, 25 for WRKY33up and down
+
 # remove unnecessary files
 overlap.GOseq.melt.WGCNA.customcat.files<-overlap.GOseq.melt.WGCNA.customcat.files[!overlap.GOseq.melt.WGCNA.customcat.files %in% c("overlap.GOseq.melt.WGCNA.customcat.27.Rdata","overlap.GOseq.melt.WGCNA.customcat.28.Rdata")]
 
@@ -2048,12 +2068,16 @@ overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10
 overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-""
 
-save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.customcat.092817.Rdata") )
+#save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.customcat.092817.Rdata") )
+save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.customcat.110917.Rdata") )
+
 ```
 
-## cleaning and plotting  (no need to change, 100717)
+## cleaning and plotting  (no need to change, 100717); (changed 110917 due to "SAup_combined" and "SAdown_combined")
 ```{r}
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.customcat.092817.Rdata"))
+#load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.customcat.092817.Rdata"))
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.WGCNA.customcat.110917.Rdata"))
+
 custom.category.overlap.melt.summary.s<-overlap.GOseq.melt.summary
 table(custom.category.overlap.melt.summary.s$Var2)
 custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!custom.category.overlap.melt.summary.s$Var1=="0",]
@@ -2061,13 +2085,19 @@ custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!
 custom.category.overlap.melt.summary.s<-custom.category.overlap.melt.summary.s[!is.na(custom.category.overlap.melt.summary.s$Var2),]
 custom.category.overlap.melt.summary.s[is.na(custom.category.overlap.melt.summary.s$Var2),]
 table(custom.category.overlap.melt.summary.s$Var2)
-custom.category.overlap.melt.summary.s$Var2<-factor(as.character(custom.category.overlap.melt.summary.s$Var2),levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616)
+#custom.category.overlap.melt.summary.s$Var2<-factor(as.character(custom.category.overlap.melt.summary.s$Var2),levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616)
+custom.category.overlap.melt.summary.s$Var2<-factor(as.character(custom.category.overlap.melt.summary.s$Var2),levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_combined","SAdown_combined","MYC234up","MYC234down","WRKY33up","WRKY33down")) # (110917)
+
 table(as.character(custom.category.overlap.melt.summary.s$Var2))
-save(custom.category.overlap.melt.summary.s,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","custom.category.v4.overlap.overlap.melt.summary.s.GOseq092817.Rdata"))
+#save(custom.category.overlap.melt.summary.s,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","custom.category.v4.overlap.overlap.melt.summary.s.GOseq092817.Rdata"))
+save(custom.category.overlap.melt.summary.s,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","custom.category.v4.overlap.overlap.melt.summary.s.GOseq110917.Rdata"))
+
 ```
-# graph  (no need to change, 100717)
+# graph  (no need to change, 100717); chagned 110917 due to "SAup_combined" and "SAdown_combined"
 ```{r}
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","custom.category.v4.overlap.overlap.melt.summary.s.GOseq092817.Rdata")) # 09291717
+#load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","custom.category.v4.overlap.overlap.melt.summary.s.GOseq092817.Rdata")) # 09291717
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","custom.category.v4.overlap.overlap.melt.summary.s.GOseq110917.Rdata")) # 11091717
+
 f6<-ggplot(custom.category.overlap.melt.summary.s,aes(y=factor(Var1),x=factor(Var2))) 
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)
 #q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")
@@ -2088,8 +2118,10 @@ f6 <- f6 + labs(x="custom category",y="WGCNA modules in Col",title="custom categ
 # ggsave(f6,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.121316.pdf",width=11,height=8,path="Nozue2016_SAStranscriptome_output/figs_tables")
 # ggsave(f6,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.121316.png",width=11,height=8,path="Nozue2016_SAStranscriptome_output/figs_tables")
 # needs to work on sorting castum categories (092918)
-ggsave(f6,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.092817.pdf",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(f6,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.092817.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# ggsave(f6,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.092817.pdf",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# ggsave(f6,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.092817.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(f6,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.110917.pdf",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(f6,file="Fig6_Col.WGCNA.modules.vs.my.category.table.s.110917.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
 
 f6 # magenta indicates pvalue is smaller than 0.01.
 ```

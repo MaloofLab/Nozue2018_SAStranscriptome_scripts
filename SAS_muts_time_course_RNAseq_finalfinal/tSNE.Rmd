@@ -542,7 +542,18 @@ hormone.responsiveness6.DF$SAdown_combined[hormone.responsiveness6.DF$SAdown_com
 table(hormone.responsiveness6.DF$SAdown_combined)
 # 
 hormone.responsiveness6.DF.s<-hormone.responsiveness6.DF[,c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","PIFtarget","MYC234up","MYC234down","SAup_combined","SAdown_combined","AGI")] # 110617
-## 
+## for Supplemental Table 5. Supplemental Datasets for custom categories (110817)
+save(hormone.responsiveness6.DF.s,file=file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.DF.s.Rdata"))
+# save hormone.responsiveness6.DF.s in csv file format as Table S5
+hormone.responsiveness6.DF.s.list<-as.list(hormone.responsiveness6.DF.s)
+hormone.responsiveness6.DF.s.list2<-lapply(hormone.responsiveness6.DF.s.list,function(x) hormone.responsiveness6.DF.s.list[["AGI"]][!x==""])
+hormone.responsiveness6.DF.s.list2.DF<-plyr::ldply(hormone.responsiveness6.DF.s.list2, rbind) # works
+hormone.responsiveness6.DF.s.list2.DF2<-as.data.frame(t(hormone.responsiveness6.DF.s.list2.DF[1:19,]))
+hormone.responsiveness6.DF.s.list2.DF2[is.na(hormone.responsiveness6.DF.s.list2.DF2)]<-""
+hormone.responsiveness6.DF.s.list2.DF2<-hormone.responsiveness6.DF.s.list2.DF2[,-1]
+write.csv(hormone.responsiveness6.DF.s.list2.DF2,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Table5S_custom_categories.csv")) # remove 1st column and 1st row in excel.
+
+#########
 # add tsnedbscan clusters
 tsne.dbscan.eps.MinPts.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.files.DF$AGI) 
 
@@ -595,7 +606,7 @@ overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
 overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
 overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
 
-save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v2",x,".set.",n,".Rdata",sep="")))
+save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v2.",x,".set.",n,".Rdata",sep="")))
   }
 }  
 ```
@@ -611,25 +622,30 @@ overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
 #overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))# 100717
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
 overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616)
-overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_combined","SAdown_combined")) # 110717
+table(overlap.melt.summary.s$Var2)
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_combined","SAdown_combined","PIFtarget","MYC234up","MYC234down")) # 110717
 # switching x and y axis
-overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=rev(levels(overlap.melt.summary.s$Var2)))                
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=rev(levels(overlap.melt.summary.s$Var2)))     
+overlap.melt.summary.s$Var1
 # sort clusters according to mean expression value in each cluster (102317)
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
 tsne.dbscan.eps.MinPts.set.files.DF
 tsne.dbscan.eps.MinPts.set.data5<-cbind(data5,tsne.dbscan.eps.MinPts.set.files.DF)
 tsne.dbscan.eps.MinPts.set.data5$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.data5$AGI)
 tsne.dbscan.eps.MinPts.set.data5.Col<-tsne.dbscan.eps.MinPts.set.data5[tsne.dbscan.eps.MinPts.set.data5$gt==1,]
-title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)(\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\6\\7\\9",y)
+title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v2)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)(\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\6\\7\\9",y)
 tsne.dbscan.eps.MinPts.set.data5.Col.melt<-melt(tsne.dbscan.eps.MinPts.set.data5.Col[,c("1h","4h","25h","49h",title,"gt","AGI")],id.var=c("gt","AGI",title))
 names(tsne.dbscan.eps.MinPts.set.data5.Col.melt)<-gsub(title,"tsne.cluster",names(tsne.dbscan.eps.MinPts.set.data5.Col.melt))
 head(tsne.dbscan.eps.MinPts.set.data5.Col.melt) 
 mean.cluster<-tapply(tsne.dbscan.eps.MinPts.set.data5.Col.melt$value,tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster,mean)
 mean.cluster
-overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=names(sort(mean.cluster,decreasing=T)))
-overlap.melt.summary.s$Var1<-droplevels(overlap.melt.summary.s$Var1)
+mean.cluster<-mean.cluster[!names(mean.cluster)=="0"]
+# select clusters only found in Col
+overlap.melt.summary.ss<-overlap.melt.summary.s[overlap.melt.summary.s$Var1 %in% names(mean.cluster),]
+overlap.melt.summary.ss$Var1<-factor(overlap.melt.summary.ss$Var1,levels=names(sort(mean.cluster,decreasing=T)))
+#overlap.melt.summary.s$Var1<-droplevels(overlap.melt.summary.s$Var1)
 ### end sort clusters
-q4b<-ggplot(overlap.melt.summary.s,aes(y=factor(Var2),x=factor(Var1))) 
+q4b<-ggplot(overlap.melt.summary.ss,aes(y=factor(Var2),x=Var1)) 
 q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",midpoint=2,high="magenta") # cut off is p value 0.01
 #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
 q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
@@ -638,7 +654,6 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
                  panel.background = element_blank(),
                  axis.ticks = element_line(size=0,color="white"))
 q4b <- q4b + geom_text(aes(label=count),size=5) 
-#title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\7\\8",y)
 q4b <- q4b + labs(y="custom categories",x="tsnedbscan clusters in Col",title=title,fill="-log10\n p-value")
 ggsave(q4b,file=paste("Fig3_Col.tsnedbscan.clusters.vs.my.category.v2.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # 
 }

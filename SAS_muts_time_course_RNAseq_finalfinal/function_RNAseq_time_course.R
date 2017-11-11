@@ -673,7 +673,7 @@ my.category.heatmap6<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.sele
   #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
   p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) #,guide=guide_legend("none")) 
   p.selected <- p.selected  + 
-    theme(axis.text.x=element_text(size=30,angle=90),
+    theme(axis.text.x=element_text(size=30,angle=90,hjust=0.95,vjust=0.2),
           axis.text.y=element_text(size=30),
           axis.title=element_text(size=40),
           axis.ticks = element_blank(),
