@@ -2595,15 +2595,13 @@ write.csv(topgene.RP.ThibaudNissen.SA.T2.m.limma,file="topgene.RP.ThibaudNissen.
 ```
 # appendix 2 summary of custom category table
 ```{r}
-group_comparison.Ver5<-read.csv("group_comparison.Ver5.csv") #
-# target categories
+group_comparison.Ver5<-read.csv(file.path("","Volumes","data_work","Data8","NGS_related","Arabidopsis_analysis","group_comparison.Ver5.csv")) #
+# target categories (renewd 111417)
 categories<-c("IAAup","IAAdown","BLup","BLdown","GAinga1.3UP","GAinga1.3DOWN","BLup","BLdown","MJup","MJdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SA_UP","SA_DOWN",
-              "SARplus","SARminus","GRF1_3target","PIFtarget","MYC234_up","MYC234_down","NPR1_up","NPR1_down","WRKY33up","WRKY33down","PCC1up","PCC1down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
+              "SARplus","SARminus","PIFtarget","MYC234_up","MYC234_down","NPR1_up","NPR1_down","WRKY33up","WRKY33down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
+
 # rename categories
 group_comparison.Ver5.selected<-group_comparison.Ver5[,names(group_comparison.Ver5[-c(1:3),]) %in% categories]
-#names(group_comparison.Ver5.selected)<-c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown",
-#                                          "SAup_2h","SAdown_2h","SARminus","SARplus","GRF1_3target","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down","WRKY33up","WRKY33down","PCC1up","PCC1down","SAup_24h","SAdown_24h","NPR1up_uponSA","NPR1down_uponSA")
-# "WRKY33up" and "WRKY33donw" are reversed! (correct group_comparison.Ver5.csv)
 names(group_comparison.Ver5.selected)<-gsub("MYC234_","MYC234",names(group_comparison.Ver5.selected))
 names(group_comparison.Ver5.selected)<-gsub("GAinga1.3","GA",names(group_comparison.Ver5.selected))
 names(group_comparison.Ver5.selected)<-gsub("SA_UP","SAup_2h",names(group_comparison.Ver5.selected))
@@ -2613,59 +2611,20 @@ names(group_comparison.Ver5.selected)<-gsub("DOWN","down",names(group_comparison
 names(group_comparison.Ver5.selected)<-gsub("NPR1_","NPR1",names(group_comparison.Ver5.selected))
 names(group_comparison.Ver5.selected)
 
-#dummy.cat2<-data.frame(BLup=rep("",length(bias)),row.names=names(bias))
-dummy.cat2<-as.data.frame(matrix(nrow=length(names(bias)),ncol=length(names(group_comparison.Ver5.selected))))
-dummy.cat2<-as.data.frame(matrix(nrow=length(names(bias)),ncol=1))
-rownames(dummy.cat2)<-names(bias) # use "bias" object from function_RNAseq_time_course.R 
+dummy.cat3<-as.data.frame(matrix(nrow=length(names(bias)),ncol=length(names(group_comparison.Ver5.selected))))
+
+dummy.cat3<-as.data.frame(matrix(nrow=length(names(bias)),ncol=1))
+rownames(dummy.cat3)<-names(bias) # use "bias" object from function_RNAseq_time_course.R 
 for(i in names(group_comparison.Ver5.selected)) {# 
   print(i)
   x.locus<-group_comparison.Ver5.selected[-c(1:3),names(group_comparison.Ver5.selected)==i]
   # clean up x.locus
   x.locus<-x.locus[!x.locus==""]  
   # only single AGI name is extracted (no probe naem, no multiple AGI name, such as "AT1G23900 AT1G23940") 
-  dummy.cat2[rownames(dummy.cat2) %in% toupper(x.locus),i]<-rep(i,sum(as.integer(rownames(dummy.cat2) %in% toupper(x.locus))))
-}
-head(dummy.cat2)
-dummy.cat2<-dummy.cat2[,-1]
-# clean up <NA>
-dummy.cat2[is.na(dummy.cat2)]<-""
-# 
-### convert into list
-temp<-list()
-for(i in 1:dim(dummy.cat2)[1]) {
-  temp[[i]]<-paste(dummy.cat2[i,])
-}
-names(temp)<-rownames(dummy.cat2)   
-hormone.responsiveness6<-temp
-head(hormone.responsiveness6)
-table(hormone.responsiveness6[1:10])
-attributes(hormone.responsiveness6)$category<-names(group_comparison.Ver5.selected)
-setwd(homedir)
-setwd("../../Nozue2016_SAStranscriptome_data/input")
-save(hormone.responsiveness6,file="hormone.responsiveness6.Rdata") # 113016
-
-
-# eliminating GRF1-3, PCC1up, PCC1down tp create hormone.responsiveness6b.Rdata (100217)
-eliminate<-c("GRF1_3target","PCC1up","PCC1down")
-names(group_comparison.Ver5.selected)
-
-group_comparison.Ver5.selected2<-group_comparison.Ver5.selected[,!names(group_comparison.Ver5.selected) %in% eliminate]
-
-names(group_comparison.Ver5.selected2)
-
-dummy.cat3<-as.data.frame(matrix(nrow=length(names(bias)),ncol=length(names(group_comparison.Ver5.selected2))))
-dummy.cat3<-as.data.frame(matrix(nrow=length(names(bias)),ncol=1))
-rownames(dummy.cat3)<-names(bias) # use "bias" object from function_RNAseq_time_course.R 
-for(i in names(group_comparison.Ver5.selected2)) {# 
-  print(i)
-  x.locus<-group_comparison.Ver5.selected2[-c(1:3),names(group_comparison.Ver5.selected2)==i]
-  # clean up x.locus
-  x.locus<-x.locus[!x.locus==""]  
-  # only single AGI name is extracted (no probe naem, no multiple AGI name, such as "AT1G23900 AT1G23940") 
-  dummy.cat2[rownames(dummy.cat2) %in% toupper(x.locus),i]<-rep(i,sum(as.integer(rownames(dummy.cat2) %in% toupper(x.locus))))
+  dummy.cat3[rownames(dummy.cat3) %in% toupper(x.locus),i]<-rep(i,sum(as.integer(rownames(dummy.cat3) %in% toupper(x.locus))))
 }
 head(dummy.cat3)
-dummy.cat3<-dummy.cat2[,-1]
+dummy.cat3<-dummy.cat3[,-1]
 # clean up <NA>
 dummy.cat3[is.na(dummy.cat3)]<-""
 # 
@@ -2678,21 +2637,11 @@ names(temp)<-rownames(dummy.cat3)
 hormone.responsiveness6b<-temp
 head(hormone.responsiveness6b)
 table(hormone.responsiveness6b[1:10])
-attributes(hormone.responsiveness6b)$category<-names(group_comparison.Ver5.selected2)
-#setwd(homedir)
-# setwd("../../Nozue2016_SAStranscriptome_data/input")
-setwd(homedir)
-save(hormone.responsiveness6b,file=file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6b.Rdata")) # 113016, 100317
-######################
-### SAup_combined and SAdown_combined (110917)
-# custom categories
-load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.Rdata")) #corrected version. (113016). file.path (092717)
+attributes(hormone.responsiveness6b)$category<-names(group_comparison.Ver5.selected)
 ## change list into data.frame
-attributes(hormone.responsiveness6)
-hormone.responsiveness6.DF<-data.frame(t(sapply(hormone.responsiveness6,c)))
-names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6)$category
-## convert into hormone.responsiveness3.DF (omit "PCC1", "GRF1_3")
-hormone.responsiveness6.DF<-hormone.responsiveness6.DF[,!names(hormone.responsiveness6.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
+attributes(hormone.responsiveness6b)
+hormone.responsiveness6.DF<-data.frame(t(sapply(hormone.responsiveness6b,c)))
+names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6b)$category
 summary(hormone.responsiveness6.DF)
 hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF)
 # should I combine SA-related categories? (111417)
@@ -2707,6 +2656,8 @@ hormone.responsiveness6.DF$SAdown_combined[hormone.responsiveness6.DF$SAdown_com
 table(hormone.responsiveness6.DF$SAdown_combined)
 # 
 hormone.responsiveness6.DF.s<-hormone.responsiveness6.DF[,c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","PIFtarget","MYC234up","MYC234down","SAup_combined","SAdown_combined","WRKY33up","WRKY33down","AGI")] # 110617
+summary(hormone.responsiveness6.DF.s)
+lapply(hormone.responsiveness6.DF.s[,grep("AGI",colnames(hormone.responsiveness6.DF.s),invert=T)],table)
 ## for Supplemental Table 5. Supplemental Datasets for custom categories (110817)
 save(hormone.responsiveness6.DF.s,file=file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.DF.s.Rdata"))
 # save hormone.responsiveness6.DF.s in csv file format as Table S5
@@ -2716,10 +2667,7 @@ hormone.responsiveness6.DF.s.list2.DF<-plyr::ldply(hormone.responsiveness6.DF.s.
 hormone.responsiveness6.DF.s.list2.DF2<-as.data.frame(t(hormone.responsiveness6.DF.s.list2.DF[1:21,])) # eliminate "AGI" row (22)
 hormone.responsiveness6.DF.s.list2.DF2[is.na(hormone.responsiveness6.DF.s.list2.DF2)]<-""
 hormone.responsiveness6.DF.s.list2.DF2<-hormone.responsiveness6.DF.s.list2.DF2[,-1]
-write.csv(hormone.responsiveness6.DF.s.list2.DF2,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Table5S_custom_categories.csv")) # remove 1st column and 1st row in excel.
-
-
-
+write.csv(hormone.responsiveness6.DF.s.list2.DF2,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset_4_custom_categories.csv")) # remove 1st column and 1st row in excel.
 ```
 # appendix 3  "Should I filter probesets or genes for WGCNA analysis?
 *Probesets or genes may be filtered by mean expression or variance (or their robust analogs such as median and median absolute deviation, MAD) since low-expressed or non-varying genes usually represent noise. Whether it is better to filter by mean expression or variance is a matter of debate; both have advantages and disadvantages, but more importantly, they tend to filter out similar sets of genes since mean and variance are usually related.
