@@ -521,38 +521,7 @@ save(tsne.dbscan.eps.MinPts.set.files.DF,file=file.path("..","..","Nozue2016_SAS
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
 ## making summary table/dataset (100717)
 # custom categories
-load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.Rdata")) #corrected version. (113016). file.path (092717)
-## change list into data.frame
-attributes(hormone.responsiveness6)
-hormone.responsiveness6.DF<-data.frame(t(sapply(hormone.responsiveness6,c)))
-names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6)$category
-## convert into hormone.responsiveness3.DF (omit "PCC1", "GRF1_3")
-hormone.responsiveness6.DF<-hormone.responsiveness6.DF[,!names(hormone.responsiveness6.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
-summary(hormone.responsiveness6.DF)
-hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF)
-# should I combine SA-related categories? (111417)
-hormone.responsiveness6.DF$SAup_combined<-with(hormone.responsiveness6.DF,paste(SAup_2h,SARplus,NPR1down,SAup_24h,NPR1up_uponSA),sep="")
-hormone.responsiveness6.DF$SAup_combined[!hormone.responsiveness6.DF$SAup_combined=="    "]<-"SAup_combined"
-hormone.responsiveness6.DF$SAup_combined[hormone.responsiveness6.DF$SAup_combined=="    "]<-""
-table(hormone.responsiveness6.DF$SAup_combined)
-# SAdown_combined
-hormone.responsiveness6.DF$SAdown_combined<-with(hormone.responsiveness6.DF,paste(SAdown_2h,SARminus,NPR1up,SAdown_24h,NPR1down_uponSA),sep="")
-hormone.responsiveness6.DF$SAdown_combined[!hormone.responsiveness6.DF$SAdown_combined=="    "]<-"SAdown_combined"
-hormone.responsiveness6.DF$SAdown_combined[hormone.responsiveness6.DF$SAdown_combined=="    "]<-""
-table(hormone.responsiveness6.DF$SAdown_combined)
-# 
-hormone.responsiveness6.DF.s<-hormone.responsiveness6.DF[,c("ABAup","ABAdown","ACCup","ACCdown","BLup","BLdown","IAAup","IAAdown","MJup","MJdown","CKup","CKdown","GAup","GAdown","PIFtarget","MYC234up","MYC234down","SAup_combined","SAdown_combined","AGI")] # 110617
-## for Supplemental Table 5. Supplemental Datasets for custom categories (110817)
-save(hormone.responsiveness6.DF.s,file=file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.DF.s.Rdata"))
-# save hormone.responsiveness6.DF.s in csv file format as Table S5
-hormone.responsiveness6.DF.s.list<-as.list(hormone.responsiveness6.DF.s)
-hormone.responsiveness6.DF.s.list2<-lapply(hormone.responsiveness6.DF.s.list,function(x) hormone.responsiveness6.DF.s.list[["AGI"]][!x==""])
-hormone.responsiveness6.DF.s.list2.DF<-plyr::ldply(hormone.responsiveness6.DF.s.list2, rbind) # works
-hormone.responsiveness6.DF.s.list2.DF2<-as.data.frame(t(hormone.responsiveness6.DF.s.list2.DF[1:19,]))
-hormone.responsiveness6.DF.s.list2.DF2[is.na(hormone.responsiveness6.DF.s.list2.DF2)]<-""
-hormone.responsiveness6.DF.s.list2.DF2<-hormone.responsiveness6.DF.s.list2.DF2[,-1]
-write.csv(hormone.responsiveness6.DF.s.list2.DF2,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Table5S_custom_categories.csv")) # remove 1st column and 1st row in excel.
-
+load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.DF.s.Rdata")) 
 #########
 # add tsnedbscan clusters
 tsne.dbscan.eps.MinPts.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.files.DF$AGI) 
