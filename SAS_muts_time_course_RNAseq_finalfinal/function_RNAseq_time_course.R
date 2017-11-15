@@ -11,7 +11,7 @@ library(kohonen) # for SOM analysis
 library(scales) # for muted
 library(WGCNA);library(ShortRead);library(goseq);library(GO.db); library("org.At.tair.db")
 options(stringsAsFactors = FALSE) # for WGCNA
-
+library(Rtsne);library(fpc) # for BH-SNE analysis
 
 # see http://www.bioconductor.org/install/ for installation of these packages 
 #library(ggdendro) # for dendrogram
@@ -619,7 +619,6 @@ my.category.heatmap6<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.sele
   # calculate newdata.SOM.temp (needs to fix becasue changing into gt = 1 did not reproduce above)
   #newdata.SOM.temp<-newdata[newdata$gt==9,] # not all genes were selected. Start from summary3.response
   if(exists("category.level")) {category.level<-category.level} else { category.level<-levels(newdata.Col.wGO.selected$my.category)} # 102617
-  
   summary3.response.log2.temp<-log2(summary3.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)hrA","\\1",names(summary3.response))==gt.num]) # 
   print(head(summary3.response.log2.temp))
   summary3.response.log2.temp$AGI<-rownames(summary3.response.log2.temp)  

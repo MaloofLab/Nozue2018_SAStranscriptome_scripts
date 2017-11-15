@@ -23,7 +23,7 @@ output: html_document
 * SAS.expression.vst<-read.csv("../Nozue2016_SAStranscriptome_data/input/kazu.SAS.expression.VST.082016.csv") # new transformed data by DEseq2 (082016) is not reproducible (092617). Probably due to updated DESeq2?
 * Use kazu.SAS.expression.VST.092517.csv (092617) for rest of analysis
 * Replace "samples.nolow5" into "PLoSGenetics2015mutants.errrDE" (100717)
-* 
+* Replace SOM analysis with BH-SNE anallysis (111517)
 
 
 ## preparation
@@ -482,6 +482,7 @@ DEgenes.summary # summary
 #setwd(homedir)
 ```
 ## select genes with largeCV and calculate responsiveness for SOM analysis, updated 082016, 092617 (no change in 100717)
+## for BH-SNE analysis
 ```{r eval=FALSE}
 SAS.expression.vst<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_data","input","kazu.SAS.expression.VST.092517.csv"),row.names=1) # new transformed data by DEseq2 (092617)
 # calculate mean value among replicates
@@ -557,21 +558,19 @@ save(DGE.summary.vst.response.kazu.largeCV,file=file.path("..","..","Nozue2016_S
 DGE.summary.vst.response.kazu.largeCV[rownames(DGE.summary.vst.response.kazu.largeCV)=="AT4G16780",] #ATHB2 has to be induced in genotype 1 (= Col)
  
 ```
-## SOM analysis (with Yasu's help)
-```{r eval=TRUE}
-#library(ggplot2);library(class);library(MASS);library(kohonen);library(reshape2);library(plyr)
-#load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.kazu.largeCV.Rdata")) # 092517
+## BH-SNE analysis (111517)
+## data prep
+```{r}
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","DGE.summary.vst.response.kazu.largeCV.PLoSGenetics2015mutants.errrDE.Rdata")) # 100717
-
 genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(DGE.summary.vst.response.kazu.largeCV)))))
+# combine all DE genes in each genotype (treat each gene in one genotype as different gene)
 DGE.summary.vst.response.kazu.largeCV<-log2(DGE.summary.vst.response.kazu.largeCV) # log2 transformation of fold change. error (092617)
 i<-1
 temp<-DGE.summary.vst.response.kazu.largeCV[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.kazu.largeCV))==genotypes[i]]
 rownames(temp)<-paste(rownames(temp),genotypes[i],sep=".")
 colnames(temp)<-paste(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\3",colnames(temp)),"h",sep="") ### fix (070914)
 for(i in 2:length(genotypes)) {
-  #temp2<-DGE.summary.vst.response.kazu.largeCV[,grep(genotypes[i],names(DGE.summary.vst.response.kazu.largeCV))]
-  temp2<-DGE.summary.vst.response.kazu.largeCV[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.kazu.largeCV))==genotypes[i]]
+   temp2<-DGE.summary.vst.response.kazu.largeCV[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.kazu.largeCV))==genotypes[i]]
   rownames(temp2)<-paste(rownames(temp2),genotypes[i],sep=".")
   colnames(temp2)<-paste(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\3",colnames(temp2)),"h",sep="") ### fix (070914)  
   temp<-rbind(temp,temp2)
@@ -579,274 +578,316 @@ for(i in 2:length(genotypes)) {
 summary(temp)
 head(temp)
 data5<-temp
-#### no scaling
-## SOM
-set.seed(2) # Set a random seed so that SOM results are reproducible
-#set.seed(123) # I do not like to have cluster 5 mixed with constitutive and 4h peak in set.seed(2) 3x4 version
-ssom1.7.noscaling <- som(as.matrix(data5), somgrid(1,7,"hexagonal")) 
-plot(ssom1.7.noscaling, type = "codes") #
-ssom2.4.noscaling <- som(as.matrix(data5), somgrid(2,4,"hexagonal")) 
-plot(ssom2.4.noscaling, type = "codes") #
-ssom3.3.noscaling <- som(as.matrix(data5), somgrid(3,3,"hexagonal")) 
-plot(ssom3.3.noscaling,type="codes")
-ssom2.5.noscaling <- som(as.matrix(data5), somgrid(2,5,"hexagonal")) 
-plot(ssom2.5.noscaling, type = "codes") #
-ssom3.4.noscaling <- som(as.matrix(data5), somgrid(3,4,"hexagonal")) 
-plot(ssom3.4.noscaling) 
-ssom4.4.noscaling <- som(as.matrix(data5), somgrid(4,4,"hexagonal")) 
-plot(ssom4.4.noscaling) 
-# Selecting ssom3.4 because of (1) sufficient variation among clusters and (2) minimum redundancy among clusters judted from those plot 
 
-## Create and write-out master SOM file
-newdata.vst<-cbind(data5,ssom3.4.noscaling$unit.classif,ssom3.4.noscaling$distances)
-names(newdata.vst)[5]<-"ssom3.4.unit.classif"
-names(newdata.vst)[6]<-"ssom3.4.unit.distances"
-newdata.vst$gt<-as.factor(gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",rownames(newdata.vst)))
-newdata.vst$AGI<-as.factor(gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",rownames(newdata.vst)))
-head(newdata.vst)
-## ATHB2
-newdata.vst[rownames(newdata.vst)=="AT4G16780.1",]
-save(newdata.vst,file="../../Nozue2016_SAStranscriptome_output/output/newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata") # 100717
-#### making complete table (for SOM data) ###
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata")) # 100717
-# replace gt num into gt name
-### convert genotype number into actual genotype name
-newdata.vst$gt2<-vlookup(newdata.vst$gt,conversion.table,2)
-# adding gene description
-SOMclusters.description<-merge(newdata.vst[newdata.vst$gt==levels(newdata.vst$gt)[1],],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-
-for(x in levels(newdata.vst$gt)[-1]) {
-temp<-merge(newdata.vst[newdata.vst$gt==x,],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-SOMclusters.description<-rbind(SOMclusters.description,temp)
+```
+# ver3. for reproducibility and narrowed range (101917)
+```{r}
+ # Sets seed for reproducibility
+for(n in 42:51) { # set
+    set.seed(n)
+    tsne_out <- Rtsne(as.matrix(data5),theta=0.3) # Run TSNE
+    save(tsne_out,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne_out.Rdata"))
+    
+for(x in seq(3.1,3.35,0.05)) { # eps
+  for(y in seq(13,18,1)) { # MinPts
+    load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne_out.Rdata"))
+    print(paste("eps is ",x,". MinPts is ",y,".",sep=""))
+    dbscan_out<-dbscan(tsne_out$Y,eps=x,MinPts=y)
+    #table(dbscan_out$cluster)
+    plot(tsne_out$Y,col=dbscan_out$cluster) 
+    if(length(table(dbscan_out$cluster))>5 && length(table(dbscan_out$cluster))<30 && sum((dbscan_out$cluster==0)*1) <2600) {
+      save(dbscan_out,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("eps",x,"_MinPts",y,".set",n,".Rdata",sep="")))
+    } else {next}
+    }   
+  }
 }
-#write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS2_SOMclusters.description092617.csv") #090116, 100517
-write.csv(SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/TableS2_SOMclusters.description100717.csv") #090116, 100517
+```
+# combine all into one data.frame
+```{r}
+tsne.dbscan.eps.MinPts.set.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="(eps)([[:print:]]+)(_MinPts)([[:digit:]]+)(\\.set)([[:digit:]]+)(\\.Rdata)")
+
+#tsne.dbscan.eps.MinPts.set.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files),function(x) {load(x);dbscan_out$cluster}) # does not work
+i<-1
+    load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files[i]))
+tsne.dbscan.eps.MinPts.set.files.DF<-data.frame(eps3.1_MinPts13.set42.Rdata=dbscan_out$cluster) # manually edit
+for(i in 2:length(tsne.dbscan.eps.MinPts.set.files)) {
+    load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.dbscan.eps.MinPts.set.files[i]))
+    tsne.dbscan.eps.MinPts.set.files.DF$temp<-dbscan_out$cluster
+    colnames(tsne.dbscan.eps.MinPts.set.files.DF)<-gsub("temp",tsne.dbscan.eps.MinPts.set.files[i],colnames(tsne.dbscan.eps.MinPts.set.files.DF))
+}
+
+#tsne.dbscan.eps.MinPts.set.files.list.DF<-do.call("cbind",tsne.dbscan.eps.MinPts.set.files.list) 
+tsne.dbscan.eps.MinPts.set.files.DF[,3]
+colnames(tsne.dbscan.eps.MinPts.set.files.DF)
+colnames(tsne.dbscan.eps.MinPts.set.files.DF)<-gsub("\\.Rdata","",colnames(tsne.dbscan.eps.MinPts.set.files.DF))
+
+#colnames(tsne.dbscan.eps.MinPts.set.files.list.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/)(eps[[:print:]]+)(\\_MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.Rdata\\.)([[:print:]]+)","\\2\\3",colnames(tsne.dbscan.eps.MinPts.set.files.list.DF)) # fix this line
+
+tsne.dbscan.eps.MinPts.set.files.DF$AGI<-rownames(data5)
+save(tsne.dbscan.eps.MinPts.set.files.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+```
+# Add custom category (fix this)
+```{r}
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+## making summary table/dataset (100717)
+# custom categories
+load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.DF.s.Rdata")) 
+#########
+# add tsnedbscan clusters
+tsne.dbscan.eps.MinPts.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.files.DF$AGI) 
+
+tsne.dbscan.eps.MinPts.set.files.DF.Col<-tsne.dbscan.eps.MinPts.set.files.DF[tsne.dbscan.eps.MinPts.set.files.DF$gt=="1",]
+dim(tsne.dbscan.eps.MinPts.set.files.DF.Col)
+tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI)
+
+# merge with tsne clusters
+hormone.responsiveness.tsnedbscanclusters<-merge(hormone.responsiveness6.DF.s,tsne.dbscan.eps.MinPts.set.files.DF.Col,by="AGI",all=TRUE)
+
+hormone.responsiveness.tsnedbscanclusters[is.na(hormone.responsiveness.tsnedbscanclusters)]<-"0"
+#write.csv(hormone.responsiveness.SOMclusters,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_hormone.responsiveness.SOMclusters100717.csv"))
+hormone.responsiveness.tsnedbscanclusters.description<-merge(hormone.responsiveness.tsnedbscanclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
+write.csv(hormone.responsiveness.tsnedbscanclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset2_Custom_enrichment_tsnedbscan_clusters_of_shade-responsive_genes110617.csv") 
+```
+# Run overlapTable (v2. with SAup or down combined)
+```{r}
+for(i in 2:20) { # 2:30
+  for(n in grep("set",colnames(hormone.responsiveness.tsnedbscanclusters))) { # addition
+  overlap<-overlapTable(hormone.responsiveness.tsnedbscanclusters[,n],hormone.responsiveness.tsnedbscanclusters[,i])
+  overlap.melt<-melt(overlap$pTable,id=1) #
+  overlap.melt$count<-melt(overlap$countTable,id=1)$value
+  overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
+  sometype.setname<-colnames(hormone.responsiveness.tsnedbscanclusters)[n]
+  names(hormone.responsiveness.tsnedbscanclusters)[n]
+  save(overlap.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.v2",sometype.setname,colnames(hormone.responsiveness.tsnedbscanclusters)[i],"Rdata",sep=".")))
+  }
+}
+```
+# summerize overlapTable (v2, 110617)
+```{r}
+  overlap.melt.file<-list.files(file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.v2.")
+overlap.melt.file<-overlap.melt.file[grep("set.[[:digit:]].Rdata",overlap.melt.file,invert=TRUE)] #
+table(gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.v2)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\8",overlap.melt.file)) # should be 42 to 51 (=sets)
+
+for(n in 42:51) {
+  overlap.melt.file.set<-overlap.melt.file[gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.v2)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\8",overlap.melt.file)==n] # revise
+  eps.MinPts<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.v2)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)([[:digit:]]+)(\\.)([[:print:]]+)(\\.Rdata)","\\3\\4\\5",overlap.melt.file.set) # revise
+  
+  eps.MinPts.levels<-levels(as.factor(eps.MinPts))
+  for(x in eps.MinPts.levels) { # eps & MinPts
+overlap.melt.file.set.eps.MinPts<-overlap.melt.file.set[eps.MinPts==x]
+      overlap.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",overlap.melt.file.set.eps.MinPts),function(x) mget(load(x))) 
+names(overlap.melt.summary.list2)
+overlap.melt.summary<-do.call("rbind",overlap.melt.summary.list2) 
+head(overlap.melt.summary) # make sure those are SOM.customcat files
+rownames(overlap.melt.summary)<-1:nrow(overlap.melt.summary)
+# format overlap.melt.summary
+overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
+overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
+overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
+
+save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v2.",x,".set.",n,".Rdata",sep="")))
+  }
+}  
+```
+# draw heatmap
+```{r}
+  overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v2")
+
+for(y in overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.files) 
+  {
+  load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",y))
+# graph
+overlap.melt.summary.s<-overlap.melt.summary[!overlap.melt.summary$Var1==0,]
+#overlap.melt.summary.s$Var1<-factor(overlap.melt.summary.s$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))# 100717
+overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="",]
+overlap.melt.summary.s<-overlap.melt.summary.s[!overlap.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616)
+table(overlap.melt.summary.s$Var2)
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_combined","SAdown_combined","PIFtarget","MYC234up","MYC234down")) # 110717
+# switching x and y axis
+overlap.melt.summary.s$Var2<-factor(overlap.melt.summary.s$Var2,levels=rev(levels(overlap.melt.summary.s$Var2)))     
+overlap.melt.summary.s$Var1
+# sort clusters according to mean expression value in each cluster (102317)
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+tsne.dbscan.eps.MinPts.set.files.DF
+tsne.dbscan.eps.MinPts.set.data5<-cbind(data5,tsne.dbscan.eps.MinPts.set.files.DF)
+tsne.dbscan.eps.MinPts.set.data5$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.data5$AGI)
+tsne.dbscan.eps.MinPts.set.data5.Col<-tsne.dbscan.eps.MinPts.set.data5[tsne.dbscan.eps.MinPts.set.data5$gt==1,]
+title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v2)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)(\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\6\\7\\9",y)
+tsne.dbscan.eps.MinPts.set.data5.Col.melt<-melt(tsne.dbscan.eps.MinPts.set.data5.Col[,c("1h","4h","25h","49h",title,"gt","AGI")],id.var=c("gt","AGI",title))
+names(tsne.dbscan.eps.MinPts.set.data5.Col.melt)<-gsub(title,"tsne.cluster",names(tsne.dbscan.eps.MinPts.set.data5.Col.melt))
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt) 
+mean.cluster<-tapply(tsne.dbscan.eps.MinPts.set.data5.Col.melt$value,tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster,mean)
+mean.cluster
+mean.cluster<-mean.cluster[!names(mean.cluster)=="0"]
+# select clusters only found in Col
+overlap.melt.summary.ss<-overlap.melt.summary.s[overlap.melt.summary.s$Var1 %in% names(mean.cluster),]
+overlap.melt.summary.ss$Var1<-factor(overlap.melt.summary.ss$Var1,levels=names(sort(mean.cluster,decreasing=T)))
+#overlap.melt.summary.s$Var1<-droplevels(overlap.melt.summary.s$Var1)
+### end sort clusters
+q4b<-ggplot(overlap.melt.summary.ss,aes(y=factor(Var2),x=Var1)) 
+q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",midpoint=2,high="magenta") # cut off is p value 0.01
+#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
+q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_blank(),
+                 axis.ticks = element_line(size=0,color="white"))
+q4b <- q4b + geom_text(aes(label=count),size=5) 
+q4b <- q4b + labs(y="custom categories",x="tsnedbscan clusters in Col",title=title,fill="-log10\n p-value")
+ggsave(q4b,file=paste("Fig3_Col.tsnedbscan.clusters.vs.my.category.v2.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # 
+}
+```
+# 
+```{r}
+GOseq.tsne<-function(tsne.set="eps3.3_MinPts16.set51") {
+# load SOM cluster summary and format it
+  load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+tsne.dbscan.eps.MinPts.set.files.DF$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.files.DF$AGI)
+tsne.dbscan.eps.MinPts.set.files.DF.Col<-tsne.dbscan.eps.MinPts.set.files.DF[tsne.dbscan.eps.MinPts.set.files.DF$gt==1,]
+tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",tsne.dbscan.eps.MinPts.set.files.DF.Col$AGI)
+# select column and calculate cluster numbers
+clusters<-as.numeric(levels(as.factor(tsne.dbscan.eps.MinPts.set.files.DF.Col[,colnames(tsne.dbscan.eps.MinPts.set.files.DF.Col)==tsne.set] ))) # for some reasosnes, colnames(tsne.dbscan.eps.MinPts.set.files.DF.Col)[141]==paste(tsne,".set",set,sep="") is false
+print(clusters)  
+
+# calculate GO ORA using GOseq
+for(x in clusters) {  
+  temp.GOseq<-GOseq.ORA(tsne.dbscan.eps.MinPts.set.files.DF.Col[tsne.dbscan.eps.MinPts.set.files.DF.Col[colnames(tsne.dbscan.eps.MinPts.set.files.DF.Col)==tsne.set]==x,"AGI"])
+  if(temp.GOseq=="no enriched GO") {next} else {
+     temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=tsne.dbscan.eps.MinPts.set.files.DF.Col[tsne.dbscan.eps.MinPts.set.files.DF.Col[,colnames(tsne.dbscan.eps.MinPts.set.files.DF.Col)==tsne.set]==x,"AGI"],category.table=Atgo.list)
+  save(temp.GOseq,temp.genes,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste(tsne.set,"tsne.Col.cluster",x,"GOseq.PLoSGenetics2015mutants.errrDE.Rdata",sep=".")))
+  } 
+}
+# summary of GO ORA
+tsne.Col.cluster.GOseq.files<-list.files(pattern=paste(tsne.set,"tsne.Col.cluster",sep="."),path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+tsne.Col.cluster.GOseq.files<-grep(".GOseq.PLoSGenetics2015mutants.errrDE.Rdata",tsne.Col.cluster.GOseq.files,value=TRUE)
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.Col.cluster.GOseq.files[1]))
+temp.GOseq$clusters<-gsub("(eps[[:print:]]+)(_MinPts[[:digit:]]+)(\\.)(set[[:digit:]]+)(\\.)(tsne.Col.cluster)(\\.)([[:print:]]+)(\\.)(GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\8",tsne.Col.cluster.GOseq.files[1])
+
+temp<-temp.GOseq
+for(i in tsne.Col.cluster.GOseq.files[-1]) {
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",i))
+temp.GOseq$clusters<-gsub("(eps[[:print:]]+)(_MinPts[[:digit:]]+)(\\.)(set[[:digit:]]+)(\\.)(tsne.Col.cluster)(\\.)([[:print:]]+)(\\.)(GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\8",i) 
+  temp<-rbind(temp,temp.GOseq)
+}
+tsne.Col.cluster.GOseq.summary<-temp
+write.csv(tsne.Col.cluster.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste(tsne.set,"GO.csv",sep=".")) )
+
+} # the end of function
 
 ```
-## drawing bloxplot for each cluster
-```{r eval=FALSE, ggplot, fig.width=11, fig.height=8}
-#load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 122214, 090116
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata")) # 100717
-
-length(unique(newdata.vst$AGI)) # 333 genes (111816) > 213 (100717)
-# boxplot
-newdata.vstmelt<-melt(newdata.vst[,c("1h","4h","25h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
-
-names(newdata.vstmelt)[3]<-"ssom3.4.unit.classif"
-newdata.vstmelt$ssom3.4.unit.classif<-factor(newdata.vstmelt$ssom3.4.unit.classif,levels=c(10, 7,12,1,11,4,2,8,5,9,6,3)) # use this factor for all heatmap. Needs to update.
-newdata.vstmelt$variable<-factor(newdata.vstmelt$variable,levels=c("1h","4h","25h","49h")) # order in graphs was fixed (022115)
-p <- ggplot(newdata.vstmelt,aes(x=variable,y=value,color=value))
-p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) + geom_boxplot(outlier.size=0,aes(fill=factor(ssom3.4.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + facet_grid(ssom3.4.unit.classif~gt,scale="free",space="free") #+ facet_wrap(ssom3.4unit.classif~.)
-p <- p + theme(strip.text.x = element_text(angle=90),axis.text.x=element_text(angle=90))
-#p
-ggsave("boxplot.node.genotype.3.4.noscaling.pdf",width=11,height=20,unit="in", path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-#ggsave("boxplot.node.genotype.png",width=11,height=20,unit="in",dpi=600)
-newdata.vst[rownames(newdata.vst)=="AT4G16780.1",] # ATHB2 cluster 10 in Col
-newdata.vst[rownames(newdata.vst)=="AT2G46970.1",] # PIL1 cluster 10 in Col
+# GO ORA
+```{r}
+# all sets
+# run on my computer: 
+  load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+for(x in grep("eps",colnames(tsne.dbscan.eps.MinPts.set.files.DF),value=T)) {
+GOseq.tsne(x)
+}
 ```
-### landscape format (similar to one used in 2014 ASPB meeting)
-```{r eval=FALSE, ggplot2, fig.width=11, fig.height=8}
-## probably this is better (matching to PIL1 expressio patterns in all genotypes (see plot))
-## Also number of genes in cluster 5 and 6 are increased which is consistent with mutant phenotype
-## do with this. (070814)
-load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 122214
-# boxplot
-newdata.vstmelt<-melt(newdata.vst[,c("1h","25h","4h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
-names(newdata.vstmelt)[3]<-"ssom3.4.unit.classif"
-newdata.vstmelt$variable<-factor(newdata.vstmelt$variable,levels=c("1h","4h","25h","49h")) # order in graphs was fixed (022115)
-newdata.vstmelt$ssom3.4.unit.classif<-factor(newdata.vstmelt$ssom3.4.unit.classif,levels=c(10, 7,12,1,11,4,2,8,5,9,6,3)) # use this factor for all heatmap. Needs to update.
-### convert genotype number into actual genotype name
-newdata.vstmelt$gt2<-vlookup(newdata.vstmelt$gt,conversion.table,2) 
-# head(newdata.vstmelt)
-#draw boxplot with 90 degree orientation for ppt presentation (2014 ASPB)
-p <- ggplot(newdata.vstmelt,aes(x=variable,y=value,color=value))
-p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0
-p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
-p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(ssom3.4.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + facet_grid(gt2~ssom3.4.unit.classif,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free" 
-p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none") #
-p <- p + coord_flip()
-p
-ggsave("boxplot.node.genotype3.4.noscaling_similarto2014ASPB.pdf",width=15,height=8,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables")
+# summarize GO ORA (102017)
+```{r}
+tsne.GO.list.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="(\\.GO.csv)")
+tsne<-gsub("([[:print:]]+)(\\.set[[:digit:]]+)(\\.GO.csv)","\\1",tsne.GO.list.files)
+for(x in tsne) {
+  tsne.GO.list.files.s<-grep(x,tsne.GO.list.files,value=TRUE)
+  temp.list<-lapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",tsne.GO.list.files.s),function(x) read.csv(file=x,row.names=1))
+  names(temp.list)<-tsne.GO.list.files.s
+    set<-gsub("([[:print:]]+)(\\.set)([[:digit:]]+)(\\.GO.csv)","\\3",tsne.GO.list.files.s)  
+  for(i in 1:length(tsne.GO.list.files.s)) {
+    temp.list[[tsne.GO.list.files.s[i]]]$"set"<-set[i]
+  }
+  temp.DF<-do.call(rbind,temp.list)
+  write.csv(temp.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste(x,"sets.GO.csv",sep=".")))
+}
+
 ```
-### only Col and yucQ
-```{r eval=FALSE, ggplot3, fig.width=11, fig.height=4} 
-### plot only Col and yucQ (071214)
-load("../../Nozue2016_SAStranscriptome_output/output/newdata.vst.Rdata") # 122214
-newdata.vst.Col.yucQ<-newdata.vst[newdata.vst$gt==1|newdata.vst$gt==9,c("1h","25h","4h","49h","ssom3.4.unit.classif","gt","AGI")]
-newdata.vst.Col.yucQ.melt<-melt(newdata.vst.Col.yucQ,id.var=c("gt","AGI","ssom3.4.unit.classif"))
-newdata.vst.Col.yucQ.melt$gt<-as.character(newdata.vst.Col.yucQ.melt$gt)
-newdata.vst.Col.yucQ.melt$variable<-factor(newdata.vst.Col.yucQ.melt$variable, levels=c("1h","4h","25h","49h"))
-conversion.table<-data.frame(num=1:27, genotype=c("Col","AT5G02540_1","hy5","jar1","kat1_2","phyB","pif45","spt_11","yuc2589","PAR1_RNAi09","coi1_16","phyAB","pif3","mida9_4","bsk5_1","sto","aos","argos","co_9","Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
-head(newdata.vst.Col.yucQ.melt)
-for(i in 1:27){
-  newdata.vst.Col.yucQ.melt[newdata.vst.Col.yucQ.melt$gt==conversion.table[i,1],"gt2"]<-as.character(conversion.table[i,2])
-} 
-head(newdata.vst.Col.yucQ.melt)
-newdata.vst.Col.yucQ.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.yucQ.melt$ssom3.4.unit.classif,levels=c(10, 7,12,1,11,4,2,8,5,9,6,3)) # use this factor for all heatmap
-names(newdata.vst.Col.yucQ.melt)[3]<-"ssom3.4.unit.classif"
-p <- ggplot(newdata.vst.Col.yucQ.melt,aes(x=variable,y=value,color=value))
+# box plot or heatmap of each cluster (102319)
+```{r}
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
+
+tsne.dbscan.eps.MinPts.set.files.DF
+tsne.dbscan.eps.MinPts.set.data5<-cbind(data5,tsne.dbscan.eps.MinPts.set.files.DF)
+tsne.dbscan.eps.MinPts.set.data5$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.data5$AGI)
+tsne.dbscan.eps.MinPts.set.data5.Col<-tsne.dbscan.eps.MinPts.set.data5[tsne.dbscan.eps.MinPts.set.data5$gt==1,]
+for(x in grep("eps",colnames(tsne.dbscan.eps.MinPts.set.data5),value=TRUE)) { # begin loop
+  
+tsne.dbscan.eps.MinPts.set.data5.Col.melt<-melt(tsne.dbscan.eps.MinPts.set.data5.Col[,c("1h","4h","25h","49h",x,"gt","AGI")],id.var=c("gt","AGI",x))
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt) 
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$gt2<-vlookup(tsne.dbscan.eps.MinPts.set.data5.Col.melt$gt,conversion.table,2)
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt)
+#newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$variable<-factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
+names(tsne.dbscan.eps.MinPts.set.data5.Col.melt)<-gsub(x,"tsne.cluster",names(tsne.dbscan.eps.MinPts.set.data5.Col.melt))
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster<-as.factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster)
+
+p <- ggplot(tsne.dbscan.eps.MinPts.set.data5.Col.melt,aes(x=variable,y=value,color=value))
 p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0 (060515)
 p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
-p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(ssom3.4.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + facet_grid(gt2~ssom3.4.unit.classif,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free"
-p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
-p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
-p <- p + coord_flip()
-p
-ggsave("boxplot.node.genotype3.4.noscaling_vst_ColyucQ.pdf",width=11,height=5,unit="in",path="../../Nozue2016_SAStranscriptome_output/figs_tables")
-```
-### only Col (for explanation) for manuscript
-```{r eval=FALSE, ggplot4, fig.width=11, fig.height=2}
-#only Col (for lab meeting, 091114 version; vst version)
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata")) # 122214, 092617
-newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
-newdata.vst.Col.melt<-melt(newdata.vst.Col[,c("1h","25h","4h","49h","ssom3.4.unit.classif","gt","AGI")],id.var=c("gt","AGI","ssom3.4.unit.classif"))
-head(newdata.vst.Col.melt) 
-newdata.vst.Col.melt$gt2<-vlookup(newdata.vst.Col.melt$gt,conversion.table,2)
-head(newdata.vst.Col.melt)
-newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))
-newdata.vst.Col.melt$variable<-factor(newdata.vst.Col.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
-names(newdata.vst.Col.melt)[3]<-"ssom3.4.unit.classif"
-p <- ggplot(newdata.vst.Col.melt,aes(x=variable,y=value,color=value))
-p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0 (060515)
-p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
-p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(ssom3.4.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + facet_grid(gt2~ssom3.4.unit.classif,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free"
+p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(tsne.cluster),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
+p <- p + facet_grid(gt2~tsne.cluster,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free"
 p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
 p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
 p <- p + coord_flip()
 p 
-ggsave("Fig2_Coexpression_clusters_of_shade-responsive_genes_PLoSGenetics2015mutants.errrDE_
-100717.pdf",width=11,height=5,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables")) # needs to change order of cluster (112816). File name changed (10071716)
+# ggsave(paste("Fig2_Coexpression_clusters_of_shade-responsive_genes_PLoSGenetics2015mutants.errrDE_102017",*****,".pdf",sep=""),width=11,height=5,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables")) # 
+
+
+} # end loop
 
 # To which clusters in mutants do genes in Col cluster 3 belong? (useful for looking transition?)
 newdata.vst$gt2<-vlookup(newdata.vst$gt,conversion.table,2)
 cluster3.Col.AGI<-newdata.vst[newdata.vst$gt==1 & newdata.vst$ssom3.4.unit.classif==3,"AGI"]
 ftable(newdata.vst[newdata.vst$AGI %in% cluster3.Col.AGI,c("gt2","ssom3.4.unit.classif")])
 ```
-# GOseq anaysis of SOM clusters (022215; 092617; 100717 with .PLoSGenetics2015mutants.errrDE)
-```{r eval=FALSE}
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata")) #
-newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
-clusters<-levels(as.factor(newdata.vst.Col$ssom3.4.unit.classif))
-# modify GOseq.ORA if there is no enriched GO ("return" instead of "stop") (070716)
-for(x in 1:12) {  
-  temp.GOseq<-GOseq.ORA(newdata.vst.Col[newdata.vst.Col$ssom3.4.unit.classif==x,"AGI"])
-  if(temp.GOseq=="no enriched GO") {next} else {
-     temp.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=newdata.vst.Col[newdata.vst.Col$ssom3.4.unit.classif==x,"AGI"],category.table=Atgo.list)
-    #save(temp.GOseq,temp.genes,file=paste("../../Nozue2016_SAStranscriptome_output/output/SOM.Col.cluster.",x,".GOseq.Rdata",sep=""))
-  save(temp.GOseq,temp.genes,file=paste("../../Nozue2016_SAStranscriptome_output/output/SOM.Col.cluster.",x,".GOseq.PLoSGenetics2015mutants.errrDE.Rdata",sep=""))
-  } 
-}
-```
-# write summary of GOseq analsyis of SOM clusters (022215; 100617,100717)
-```{r eval=FALSE}
-#rm(list=ls())
-SOM.Col.cluster.GOseq.files<-list.files(pattern="SOM.Col.cluster.",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"))
-SOM.Col.cluster.GOseq.files<-grep(".GOseq.PLoSGenetics2015mutants.errrDE.Rdata",SOM.Col.cluster.GOseq.files,value=TRUE)
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output",SOM.Col.cluster.GOseq.files[1]))
-temp.GOseq$clusters<-gsub("(SOM.Col.cluster.)([[:print:]]+)(.GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\2",SOM.Col.cluster.GOseq.files[1])
-temp<-temp.GOseq
-for(i in SOM.Col.cluster.GOseq.files[-1]) {
-  load(file.path("..","..","Nozue2016_SAStranscriptome_output","output",i))
-  temp.GOseq$clusters<-gsub("(SOM.Col.cluster.)([[:print:]]+)(.GOseq.PLoSGenetics2015mutants.errrDE.Rdata)","\\2",i)
-  temp<-rbind(temp,temp.GOseq)
-}
-SOM.Col.cluster.GOseq.summary<-temp
-write.csv(SOM.Col.cluster.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS3_GO_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes100717.csv")) # 091016,092617, 100617
-
-```
-# SOM analysis only with Col DE genes and non-scaling (112616)
+# heatmap version
 ```{r}
-setwd(homedir)
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","DGEsummary.edgeR.response.Rdata"))
-# select only Col DE genes
-DGEsummary.edgeR.response$gt<-gsub("([[:print:]]+)(.)([[:digit:]]+)(.)([[:print:]]+)","\\5",rownames(DGEsummary.edgeR.response))
-DGEsummary.edgeR.response.Col<-DGEsummary.edgeR.response[DGEsummary.edgeR.response$gt=="1",]
-DGEsummary.edgeR.response.Col$AGI<-gsub("([[:print:]]+)(.)([[:digit:]]+)(.)([[:print:]]+)","\\1",rownames(DGEsummary.edgeR.response.Col))
-# 
-#save(summary.vst.response,file="../../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata")
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata")) # 
-summary.vst.response
-hist(summary.vst.response[,1]) # fold change
-genotypes<-levels(as.factor(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",as.character(names(summary.vst.response)))))
-DGE.summary.vst.response.Col<-summary.vst.response[rownames(summary.vst.response) %in% DGEsummary.edgeR.response.Col$AGI,]
-DGE.summary.vst.response.Col<-log2(DGE.summary.vst.response.Col) # log2 transformation of fold change
+#
+# max.value<-max(data5)
+# min.value<-min(data5)
+# max.min<-c(round(min.value,2),round(max.value,2))
 
-i<-1
-temp<-DGE.summary.vst.response.Col[,gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\1",names(DGE.summary.vst.response.Col))==genotypes[i]]
-rownames(temp)<-paste(rownames(temp),genotypes[i],sep=".")
-colnames(temp)<-paste(gsub("(.+)(_)(1|4|16|25|49)(hrA)","\\3",colnames(temp)),"h",sep="") ### fix (070914)
-summary(temp)
-dim(temp) #[1] 80 4
-head(temp)
-data5<-temp
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","tsne.dbscan.eps.MinPts.set.files.DF.Rdata"))
 
-# under construction #
-#### no scaling
-## SOM
-set.seed(2) # Set a random seed so that SOM results are reproducible
-#set.seed(123) # I do not like to have cluster 5 mixed with constitutive and 4h peak in set.seed(2) 3x4 version
-ssom1.7.noscaling <- som(as.matrix(data5), somgrid(1,7,"hexagonal")) 
-plot(ssom1.7.noscaling, type = "codes") #
-ssom2.4.noscaling <- som(as.matrix(data5), somgrid(2,4,"hexagonal")) 
-plot(ssom2.4.noscaling, type = "codes") #
-ssom3.3.noscaling <- som(as.matrix(data5), somgrid(3,3,"hexagonal")) 
-plot(ssom3.3.noscaling,type="codes")
-ssom2.5.noscaling <- som(as.matrix(data5), somgrid(2,5,"hexagonal")) 
-plot(ssom2.5.noscaling, type = "codes") #
-ssom3.4.noscaling <- som(as.matrix(data5), somgrid(3,4,"hexagonal")) 
-plot(ssom3.4.noscaling) 
-ssom4.4.noscaling <- som(as.matrix(data5), somgrid(4,4,"hexagonal")) 
-plot(ssom4.4.noscaling) 
-# Selecting ssom1.7 because of (1) sufficient variation among clusters and (2) minimum redundancy among clusters judted from those plot 
+tsne.dbscan.eps.MinPts.set.files.DF
+tsne.dbscan.eps.MinPts.set.data5<-cbind(data5,tsne.dbscan.eps.MinPts.set.files.DF)
+tsne.dbscan.eps.MinPts.set.data5$gt<-gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",tsne.dbscan.eps.MinPts.set.data5$AGI)
+tsne.dbscan.eps.MinPts.set.data5.Col<-tsne.dbscan.eps.MinPts.set.data5[tsne.dbscan.eps.MinPts.set.data5$gt==1,]
+for(x in grep("eps",colnames(tsne.dbscan.eps.MinPts.set.data5),value=TRUE)) { # begin loop
+tsne.dbscan.eps.MinPts.set.data5.Col.melt<-melt(tsne.dbscan.eps.MinPts.set.data5.Col[,c("1h","4h","25h","49h",x,"gt","AGI")],id.var=c("gt","AGI",x))
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt) 
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$gt2<-vlookup(tsne.dbscan.eps.MinPts.set.data5.Col.melt$gt,conversion.table,2)
+head(tsne.dbscan.eps.MinPts.set.data5.Col.melt)
+#newdata.vst.Col.melt$ssom3.4.unit.classif<-factor(newdata.vst.Col.melt$ssom3.4.unit.classif,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$variable<-factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
+names(tsne.dbscan.eps.MinPts.set.data5.Col.melt)<-gsub(x,"tsne.cluster",names(tsne.dbscan.eps.MinPts.set.data5.Col.melt))
+#tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster<-as.factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster)
 
-## Create and write-out master SOM file
-SOM.onlyCol.112616<-cbind(data5,ssom1.7.noscaling$unit.classif,ssom1.7.noscaling$distances)
-
-names(SOM.onlyCol.112616)[5]<-"ssom1.7.unit.classif"
-names(SOM.onlyCol.112616)[6]<-"ssom1.7.unit.distances"
-SOM.onlyCol.112616$gt<-as.factor(gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\3",rownames(SOM.onlyCol.112616)))
-SOM.onlyCol.112616$AGI<-as.factor(gsub("(AT[[:alnum:]]+)(\\.)([[:digit:]]+)","\\1",rownames(SOM.onlyCol.112616)))
-head(SOM.onlyCol.112616)
-## ATHB2
-SOM.onlyCol.112616[rownames(SOM.onlyCol.112616)=="AT4G16780.1",]
-save(SOM.onlyCol.112616,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM.onlyCol.112616.Rdata"))
-#### making complete table (for SOM data) ###
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SOM.onlyCol.112616.Rdata") )
-
-# replace gt num into gt name
-### convert genotype number into actual genotype name
-#SOM.onlyCol.112616$gt2<-""
-SOM.onlyCol.112616$gt2<-vlookup(SOM.onlyCol.112616$gt,conversion.table,2)
-
-# adding gene description
-SOM.onlyCol.112616.clusters.description<-merge(SOM.onlyCol.112616[SOM.onlyCol.112616$gt==levels(SOM.onlyCol.112616$gt)[1],],TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-write.csv(SOM.onlyCol.112616.clusters.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS3.SOM.onlyCol.nonscaling.112616.clusters.description.csv")) #090116
-# graph
-SOM.onlyCol.112616.clusters.description<-read.csv("../../Nozue2016_SAStranscriptome_output/figs_tables/TableS3.SOM.onlyCol.112616.clusters.description.csv",check.names=FALSE) # "check.names=F" to avoid "X1h" etc.
-SOM.onlyCol.112616.clusters.description<-SOM.onlyCol.112616.clusters.description[,-1]
-names(SOM.onlyCol.112616.clusters.description) 
-SOM.onlyCol.112616.melt<-melt(SOM.onlyCol.112616.clusters.description[,c("1h","25h","4h","49h","ssom1.7.unit.classif","gt2","AGI")],id.var=c("gt2","AGI","ssom1.7.unit.classif"))
-head(SOM.onlyCol.112616.melt)
-# SOM.onlyCol.112616.melt$ssom1.7.unit.classif<-factor(SOM.onlyCol.112616.melt$ssom1.7.unit.classif,levels=c(****)) # use this factor for all heatmap. *** think order of levels after looking expression pattern
-
-SOM.onlyCol.112616.melt$variable<-factor(SOM.onlyCol.112616.melt$variable,levels=c("49h","25h","4h","1h")) # Julin's request for manuscript fig (092215)
-names(SOM.onlyCol.112616.melt)[3]<-"ssom1.7.unit.classif"
-p <- ggplot(SOM.onlyCol.112616.melt,aes(x=variable,y=value,color=value))
-p <- p + geom_hline(yintercept=0,colour="red",size=1) # adding red line at fold change = 0 (060515)
-p <- p + geom_point(position="jitter",size=1.5,alpha=0.3) 
-p <- p + geom_boxplot(outlier.size=0,aes(fill=factor(ssom1.7.unit.classif),alpha=0.8)) + theme_bw() +xlab("sun/shade treatment (hr)") + scale_colour_gradient2(low="green1",mid="gray",high="magenta")
-p <- p + facet_grid(gt2~ssom1.7.unit.classif,space="free") #+ facet_wrap(ssom3.4unit.classif~.)  ,scale="free"
-p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(angle=0),legend.position="none")
-p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
-p <- p + coord_flip()
-p 
-ggsave("Fig2b_Coexpression_clusters_of_shade-responsive_genes_onlyCol_nonscaling_092617.pdf",width=11,height=5,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables") )# only Col DE genes
-# Note: Col DE genes are mostly auxin related genes. Surprisingly JA related genes which were downregulated were not detected. 
+# sort clusters according to mean expression value in each cluster
+mean.cluster<-tapply(tsne.dbscan.eps.MinPts.set.data5.Col.melt$value,tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster,mean)
+mean.cluster
+tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster<-factor(tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster,levels=names(sort(mean.cluster,decreasing=T)))
+# plot
+  p.heatmap <- ggplot(tsne.dbscan.eps.MinPts.set.data5.Col.melt,aes(x=variable,y=tsne.cluster)) + geom_tile(size=0.3,colour="black",aes(fill=value)) 
+  
+  library(scales) # for muted
+  #p.selected <- p.selected + scale_fill_gradient2(limits=c(-1,1),low=muted("green"), high=muted("magenta")) 
+  p.heatmap <- p.heatmap + scale_fill_gradient2(limits=c(-2,2),low=muted("green"), high=muted("magenta")) #,guide=guide_legend("none")) 
+  p.heatmap <- p.heatmap  + 
+    theme(axis.text.x=element_text(size=30,angle=90),
+          axis.text.y=element_text(size=30),
+          axis.title=element_text(size=40),
+          axis.ticks = element_blank(),
+          panel.background = element_rect(fill = "white"),
+          plot.title=element_text(size=40),
+          axis.line=element_blank())
+p.heatmap <- p.heatmap + labs(x="Time (hr)", y="cluster",fill="Log2 fold change\n (shade/sun)",title=x) #
+p.heatmap <- p.heatmap + coord_flip()
+p.heatmap
+ggsave(paste("Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_102317",x,".pdf",sep=""),width=11,height=8,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+}
 ```
+
+
 ## differentially expressed gene analysis (092617)
 2a.DE at any time point (sun)
 ```{r eval=FALSE}
