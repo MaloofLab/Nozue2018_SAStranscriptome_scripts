@@ -269,42 +269,42 @@ if(identical(plot.traits,c("PL","PBL","BA","bolted days","hyp"))) {
 
 # usage of new function
 ```{r}
-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=6,file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.leaf3.6.alltraits.wosetI.png")
-
-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=7,file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.leaf3.7.alltraits.wosetI.png")
-
-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=8,file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.leaf4.8.alltraits.wosetI.png")
-
-plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=6,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.6.PL.PBL.hyp.v2.png")
-
-plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.7.PL.PBL.hyp.v2.png")
-plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.8.PL.PBL.hyp.v2.png")
-
-plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.7.PL.PBL.hyp.v2.png")
-plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.8.PL.PBL.hyp.v2.png")
+# graph.leafpos.selecttraits(leaf.start = 3,leaf.end=6,file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.leaf3.6.alltraits.wosetI.png")
+# 
+# graph.leafpos.selecttraits(leaf.start = 3,leaf.end=7,file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.leaf3.7.alltraits.wosetI.png")
+# 
+# graph.leafpos.selecttraits(leaf.start = 4,leaf.end=8,file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.leaf4.8.alltraits.wosetI.png")
+# 
+# plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=6,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.6.PL.PBL.hyp.v2.png")
+# 
+# plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.7.PL.PBL.hyp.v2.png")
+# plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.8.PL.PBL.hyp.v2.png")
+# 
+# plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.7.PL.PBL.hyp.v2.png")
+# plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.8.PL.PBL.hyp.v2.png")
 # for publication (101717). npr2 was not published.
 moreSAmutSASdata<-moreSAmutSASdata %>% filter(!plant=="npr2/3/4")
-floweringtime.data<-floweringtime.data %>% filter(!plant=="npr2/3/4")
-plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=8,plot.traits=c("PL","PBL","bolted days","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.leaf3.8.PL.PBL.hy.FT.PlantCell.png")
+floweringtime.data<-floweringtime.data %>% filter(!plant=="npr2/3/4") # npr2 was not published
+plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=8,plot.traits=c("PL","PBL","bolted days","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig5_plot.moreSAmut.leaf3.8.PL.PBL.hy.FT.PlantCell.png") 
 
 ```
 
-# remove npr2/3/4 (and larger fonts and rename sid1 to eds5)
-```{r}
-library(cowplot)
-summary(moreSAmutSASdata %>% filter(!plant=="npr2/3/4"))
-moreSAmutSASdata<-moreSAmutSASdata %>% filter(!plant=="npr2/3/4")
+<!-- # remove npr2/3/4 (and larger fonts and rename sid1 to eds5) -->
+<!-- ```{r} -->
+<!-- library(cowplot) -->
+<!-- summary(moreSAmutSASdata %>% filter(!plant=="npr2/3/4")) -->
+<!-- moreSAmutSASdata<-moreSAmutSASdata %>% filter(!plant=="npr2/3/4") -->
 
 
 
-plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=6,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.6.PL.PBL.hyp.v3.selected.png")
+<!-- plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=6,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.6.PL.PBL.hyp.v3.selected.png") -->
 
-plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.7.PL.PBL.hyp.v3.selected.png")
-plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.8.PL.PBL.hyp.v3.selected.png")
+<!-- plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.7.PL.PBL.hyp.v3.selected.png") -->
+<!-- plot.all<-graph.leafpos.selecttraits(leaf.start = 3,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf3.8.PL.PBL.hyp.v3.selected.png") -->
 
-plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.7.PL.PBL.hyp.v3.selected.png")
-plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.8.PL.PBL.hyp.v3.selected.png")
-```
+<!-- plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=7,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.7.PL.PBL.hyp.v3.selected.png") -->
+<!-- plot.all<-graph.leafpos.selecttraits(leaf.start = 4,leaf.end=8,plot.traits=c("PL","PBL","hyp"),file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/2017PBI_Fig2_plot.moreSAmut.leaf4.8.PL.PBL.hyp.v3.selected.png") -->
+<!-- ``` -->
 
 
 ## not used

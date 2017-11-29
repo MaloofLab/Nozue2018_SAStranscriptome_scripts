@@ -115,70 +115,70 @@ test.wozero.melt.hormone.significant.s.list2["AGI",] %>% sapply(length) %>% tibb
 
 ```
 # how to look overlap between categories?
-```{r}
-dim(test.wozero.melt.hormone.significant.s.summary) # 93 10
-# pTable
-for(i in 2:8) {
-  for(n in (i+1):9) {
-category.overlapTable<-overlapTable(test.wozero.melt.hormone.significant.s.summary[,i],test.wozero.melt.hormone.significant.s.summary[,n])
-category.overlapTable.pTable<-category.overlapTable$pTable
-    save(category.overlapTable.pTable,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("category.overlapTable.pTable",colnames(test.wozero.melt.hormone.significant.s.summary)[i],colnames(test.wozero.melt.hormone.significant.s.summary)[n],"Rdata",sep=".")))
-  }
-}
-# combine pTable
-category.overlapTable.pTable.files<-list.files(pattern="category.overlapTable.pTable",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
-
-category.overlapTable.pTable.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",category.overlapTable.pTable.files),function(x) mget(load(x))) # mget 
-names(category.overlapTable.pTable.files.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/category.overlapTable.pTable.)([[:print:]]+)(.Rdata.category.overlap)","\\2",names(category.overlapTable.pTable.files.list))
-#category.overlapTable.files.DF<-as.data.frame(category.overlapTable.files.list)
-p.table<-data.frame(comparison=rep("",length(names(category.overlapTable.files.list))),signif.overlap="")
-p.table[1,2]<-category.overlapTable.files.list[[1]][2,2]
-p.table[1,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[1])
-
-for(n in 2:length(names(category.overlapTable.files.list))) {
-p.table[n,2]<-category.overlapTable.files.list[[n]][2,2]
-p.table[n,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[n])
-}
-p.table
-# count
-for(i in 1:9) {
-  for(n in (i+1):10) {
-category.overlapTable<-overlapTable(test.wozero.melt.hormone.significant.s.summary[,i],test.wozero.melt.hormone.significant.s.summary[,n])
-category.overlapTable.countTable<-category.overlapTable$countTable
-    save(category.overlapTable.countTable,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("category.overlapTable.count",colnames(test.wozero.melt.hormone.significant.s.summary)[i],colnames(test.wozero.melt.hormone.significant.s.summary)[n],"Rdata",sep=".")))
-  }
-}
-# count
-category.overlapTable.count.files<-list.files(pattern="category.overlapTable.count",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
-
-category.overlapTable.count.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",category.overlapTable.count.files),function(x) mget(load(x))) # mget 
-names(category.overlapTable.count.files.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/category.overlapTable.count.)([[:print:]]+)(.Rdata.category.overlap)","\\2",names(category.overlapTable.count.files.list))
-#category.overlapTable.files.DF<-as.data.frame(category.overlapTable.files.list)
-count.table<-data.frame(comparison=rep("",length(names(category.overlapTable.count.files.list))),count.overlap="")
-count.table[1,2]<-category.overlapTable.count.files.list[[1]][2,2]
-count.table[1,1]<-gsub("([[:print:]]+)(Table.countTable)","\\1",names(category.overlapTable.count.files.list)[1])
-
-for(n in 2:length(names(category.overlapTable.count.files.list))) {
-count.table[n,2]<-category.overlapTable.count.files.list[[n]][2,2]
-count.table[n,1]<-gsub("([[:print:]]+)(Table.countTable)","\\1",names(category.overlapTable.count.files.list)[n])
-}
-count.table
-
-#### combine signif.overlap and count.overlap
-p.table.count<-merge(p.table,count.table,by="comparison")
-p.table.count$x<-gsub("([[:print:]]+)(\\.)([[:print:]]+)","\\1",p.table.count$comparison)
-p.table.count$y<-gsub("([[:print:]]+)(\\.)([[:print:]]+)","\\3",p.table.count$comparison)
-# contingent table format
-p.table.count.reshape<-reshape(data=p.table.count[,c("x","y","count.overlap")],idvar="x",timevar="y",direction="wide")
-colnames(p.table.count.reshape)<-gsub("count.overlap.","",colnames(p.table.count.reshape))
-p.table.count.reshape
-p.table.count.reshape[is.na(p.table.count.reshape)]<-""
-p.table.count.reshape
-
-######## under construction ######### 102417
+# ```{r}
+# dim(test.wozero.melt.hormone.significant.s.summary) # 93 10
+# # pTable
+# for(i in 2:8) {
+#   for(n in (i+1):9) {
+# category.overlapTable<-overlapTable(test.wozero.melt.hormone.significant.s.summary[,i],test.wozero.melt.hormone.significant.s.summary[,n])
+# category.overlapTable.pTable<-category.overlapTable$pTable
+#     save(category.overlapTable.pTable,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("category.overlapTable.pTable",colnames(test.wozero.melt.hormone.significant.s.summary)[i],colnames(test.wozero.melt.hormone.significant.s.summary)[n],"Rdata",sep=".")))
+#   }
+# }
+# # combine pTable
+# category.overlapTable.pTable.files<-list.files(pattern="category.overlapTable.pTable",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
 # 
-#write.csv(test.wozero.melt.hormone.significant.ssss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS6_test.wozero.melt.hormone.significant.102417.csv") # This should be TableS6 (101017)
-```
+# category.overlapTable.pTable.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",category.overlapTable.pTable.files),function(x) mget(load(x))) # mget 
+# names(category.overlapTable.pTable.files.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/category.overlapTable.pTable.)([[:print:]]+)(.Rdata.category.overlap)","\\2",names(category.overlapTable.pTable.files.list))
+# #category.overlapTable.files.DF<-as.data.frame(category.overlapTable.files.list)
+# p.table<-data.frame(comparison=rep("",length(names(category.overlapTable.files.list))),signif.overlap="")
+# p.table[1,2]<-category.overlapTable.files.list[[1]][2,2]
+# p.table[1,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[1])
+# 
+# for(n in 2:length(names(category.overlapTable.files.list))) {
+# p.table[n,2]<-category.overlapTable.files.list[[n]][2,2]
+# p.table[n,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[n])
+# }
+# p.table
+# # count
+# for(i in 1:9) {
+#   for(n in (i+1):10) {
+# category.overlapTable<-overlapTable(test.wozero.melt.hormone.significant.s.summary[,i],test.wozero.melt.hormone.significant.s.summary[,n])
+# category.overlapTable.countTable<-category.overlapTable$countTable
+#     save(category.overlapTable.countTable,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("category.overlapTable.count",colnames(test.wozero.melt.hormone.significant.s.summary)[i],colnames(test.wozero.melt.hormone.significant.s.summary)[n],"Rdata",sep=".")))
+#   }
+# }
+# # count
+# category.overlapTable.count.files<-list.files(pattern="category.overlapTable.count",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+# 
+# category.overlapTable.count.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",category.overlapTable.count.files),function(x) mget(load(x))) # mget 
+# names(category.overlapTable.count.files.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/category.overlapTable.count.)([[:print:]]+)(.Rdata.category.overlap)","\\2",names(category.overlapTable.count.files.list))
+# #category.overlapTable.files.DF<-as.data.frame(category.overlapTable.files.list)
+# count.table<-data.frame(comparison=rep("",length(names(category.overlapTable.count.files.list))),count.overlap="")
+# count.table[1,2]<-category.overlapTable.count.files.list[[1]][2,2]
+# count.table[1,1]<-gsub("([[:print:]]+)(Table.countTable)","\\1",names(category.overlapTable.count.files.list)[1])
+# 
+# for(n in 2:length(names(category.overlapTable.count.files.list))) {
+# count.table[n,2]<-category.overlapTable.count.files.list[[n]][2,2]
+# count.table[n,1]<-gsub("([[:print:]]+)(Table.countTable)","\\1",names(category.overlapTable.count.files.list)[n])
+# }
+# count.table
+# 
+# #### combine signif.overlap and count.overlap
+# p.table.count<-merge(p.table,count.table,by="comparison")
+# p.table.count$x<-gsub("([[:print:]]+)(\\.)([[:print:]]+)","\\1",p.table.count$comparison)
+# p.table.count$y<-gsub("([[:print:]]+)(\\.)([[:print:]]+)","\\3",p.table.count$comparison)
+# # contingent table format
+# p.table.count.reshape<-reshape(data=p.table.count[,c("x","y","count.overlap")],idvar="x",timevar="y",direction="wide")
+# colnames(p.table.count.reshape)<-gsub("count.overlap.","",colnames(p.table.count.reshape))
+# p.table.count.reshape
+# p.table.count.reshape[is.na(p.table.count.reshape)]<-""
+# p.table.count.reshape
+# 
+# ######## under construction ######### 102417
+# # 
+# #write.csv(test.wozero.melt.hormone.significant.ssss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS6_test.wozero.melt.hormone.significant.102417.csv") # This should be TableS6 (101017)
+# ```
 ## draw expression pattern of custom categories (significantly enriched); Fig5A
 # visualize hormone pathway related genes (1213-1214,2015). Updated (052616-)
 ```{r}
@@ -208,7 +208,7 @@ response.melt <- response.melt[response.melt$gt %in% manuscript.genotypes,]
 response.melt <- droplevels(response.melt) # droplevels is useful.
 summary(response.melt)
 
-# making loop or function for drawing Fig5 graph
+# making loop or function for drawing Fig2 graph
 for(n in 1:length(names(test.wozero.melt.hormone.significant.s.list))) { # all eps and MinPts with all sets
 
 my.category.diff.heatmap.graph<-list()
@@ -248,7 +248,7 @@ FigS2.absolute.summary.table.melt.DF<-do.call(cbind,FigS2.absolute.summary.table
 # remove redundant columns 
 colnames(FigS2.absolute.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/FigS2.absolute.summary.table.melt)([[:print:]]+)(.Rdata.summary.table.melt.)(my.category|variable|value)","\\2.\\4",colnames(FigS2.absolute.summary.table.melt.DF))
 FigS2.absolute.summary.table.melt.DF<-FigS2.absolute.summary.table.melt.DF[,c(paste("1v2",title,".my.category",sep=""),paste("1v2",title,".variable",sep="") ,grep("value",colnames(FigS2.absolute.summary.table.melt.DF),value=TRUE))] # v2
-write.csv(FigS2.absolute.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("FigS2.absolute.summary.table.melt.DF.v2",title,".csv",sep="")))  # v2
+#write.csv(FigS2.absolute.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("FigS2.absolute.summary.table.melt.DF.v2",title,".csv",sep="")))  # v2
 
 # significance calculation (under construction)
 summary(categories)
@@ -326,7 +326,7 @@ my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]]+theme(legend
                       vjust = 1.1, hjust=-0.5,
                       ncol=3,nrow=5,
                       label_size = 50)
-save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("Fig5_oldFig_S2_all.my.category.expression.pattern.v16.log2.signif.v2.",title,".png",sep="")), my.category.heatmap.all,
+save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("FigS4_all.my.category.expression.pattern.v16.log2.signif.v2.",title,".png",sep="")), my.category.heatmap.all,
           ncol = 3, # we're saving a grid plot of 2 columns
           nrow = 5, # and 2 rows
           base_aspect_ratio = 2.5,
@@ -336,4 +336,4 @@ save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne
 
 } # loop for test.wozero.melt.hormone.significant.s.list. v2
 ```
-# the end of custom category heatmap (shade responsiveness) (Fig. 5)
+# the end of custom category heatmap (shade responsiveness) (Fig. 2 and Spplemental Dataset 4 (zipped))
