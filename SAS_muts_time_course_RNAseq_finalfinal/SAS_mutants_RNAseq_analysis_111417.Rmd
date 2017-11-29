@@ -737,7 +737,7 @@ ggsave(q4b,file=paste("Supplemental_Dataset3_Col.tsnedbscan.clusters.vs.my.categ
 # archive
 system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset3_ORA_custome_category_BH-SNE_heatmap.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset3_Col.tsnedbscan.clusters.vs.my.category.v2.set.*"),sep=""))
 # rename and transfer representative one
-system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset3_Col.tsnedbscan.clusters.vs.my.category.v2.set.eps3.1_MinPts13.set42.pdf")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Fig3_Col.tsnedbscan.clusters.vs.my.category.v2.set.eps3.1_MinPts13.set42.pdf"),sep=""))
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset3_Col.tsnedbscan.clusters.vs.my.category.v2.set.eps3.3_MinPts13.set47.pdf")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Fig3_Col.tsnedbscan.clusters.vs.my.category.v2.set.eps3.3_MinPts13.set47.pdf"),sep=""))
 
 ```
 # 
@@ -832,9 +832,6 @@ p <- p + theme(axis.text.x=element_text(angle=90),strip.text.y = element_text(an
 p <- p + labs(x="Time (hr)", y="Log2 fold change (shade/sun)") #
 p <- p + coord_flip()
 p 
-# ggsave(paste("Fig2_Coexpression_clusters_of_shade-responsive_genes_PLoSGenetics2015mutants.errrDE_102017",*****,".pdf",sep=""),width=11,height=5,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables")) # 
-
-
 } # end loop
 
 # To which clusters in mutants do genes in Col cluster 3 belong? (useful for looking transition?)
@@ -886,8 +883,14 @@ tsne.dbscan.eps.MinPts.set.data5.Col.melt$tsne.cluster<-factor(tsne.dbscan.eps.M
 p.heatmap <- p.heatmap + labs(x="Time (hr)", y="cluster",fill="Log2 fold change\n (shade/sun)",title=x) #
 p.heatmap <- p.heatmap + coord_flip()
 p.heatmap
-ggsave(paste("Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_102317",x,".pdf",sep=""),width=11,height=8,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
-}
+ggsave(paste("Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_102317",x,".pdf",sep=""),width=11,height=8,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+} 
+# transfer representative one (eps3.3_MinPts13.set42) for Supplemental Fig2
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_102317eps3.3_MinPts13.set47.pdf")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_102317eps3.3_MinPts13.set47.pdf"),sep=""))
+
+# archive (under construction for Supplemental Dataset1) (112917)
+system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset1_BH-SNE_cluster_responsiveness_heatmap.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_102317eps*"),sep=""))
+
 ```
 # custom category heatmap (Fig. 2)
 # Making list of custom catetory genes enriched in shade responsive genes (Fig2)
@@ -1142,6 +1145,9 @@ save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne
 )
 
 } # loop for test.wozero.melt.hormone.significant.s.list. v2
+# transfer eps3.3_MinPts13.set42 for Fig2
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v2.eps3.3_MinPts13.set47.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v2.eps3.3_MinPts13.set47.png"),sep=""))
+
 # archivre Supplemental_Dataset4 files 
 # SupData4.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v2.")
 system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset4.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v2.*"),sep=""))
@@ -1288,534 +1294,536 @@ dim(DE.genotype.batch.genes.unique.DF) #3360 25 (100717)
 save(DE.genotype.batch.genes.unique.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","DE.genotype.batch.genes.unique.DF.Rdata")) 
 ```
 
-# SOM clusters and mutant affected gfenes summary table for making overlapTable
-```{r error=TRUE}
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","DE.genotype.batch.genes.unique.DF.Rdata"))
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata")) # 122214, 092617
-newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]
-# merge with SOM clusters
-test<-merge(DE.genotype.batch.genes.unique.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
-# making this with all AGI genes? (092717)
-bias.DF<-data.frame(AGI=names(bias))
-test2<-merge(bias.DF,test,by="AGI",all=TRUE)
-## the end of adding bias (all genes used in GOseq)
-DE.genotype.batch.genes.SOMclusters<-test2
-DE.genotype.batch.genes.SOMclusters[is.na(DE.genotype.batch.genes.SOMclusters)]<-"0"
-# adding gene description
-head(TAIR10_gene_descriptions)
-TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
-DE.genotype.batch.genes.SOMclusters.description<-merge(DE.genotype.batch.genes.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-write.csv(DE.genotype.batch.genes.SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset3_Complete_list_of_shade-responsive_genes_and_SOM_gene_clusters_and_misexpressed_genes100717.csv")
-```
-# SOM vs mutant affected genes; making overlapTable
-```{r}
-test<-DE.genotype.batch.genes.SOMclusters
-# overlap table has to be against all genes? I used all genes listed in DE.genotype.batch.genes.SOMclusters (071716)
-for(i in 2:(dim(test)[2]-1)) { # the last column is "ssom3.4.unit.classif"
-overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
-overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
-overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
-overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
-#overlap.GOseq.melt.summary<-rbind(overlap.GOseq.melt.summary,overlap.GOseq.melt)
-save(overlap.GOseq.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.GOseq.melt.SOM.mut.all.gene.PLoSGenetics2015mutants.errrDE.",i,".Rdata",sep="")))
-}
-```
-# load all overlap.GOseq.melt files and combine them
-```{r}
-# 
-#overlap.GOseq.melt.SOM.mut.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.SOM.mut.") # for 3000 genes as background (not preferable, 092717)
-overlap.GOseq.melt.SOM.mut.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.SOM.mut.all.gene.PLoSGenetics2015mutants.errrDE") # for all gene as background (92717), .PLoSGenetics2015mutants.errrDE (100717)
-overlap.GOseq.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.mut.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see https://stackoverflow.com/questions/29398630/load-data-frames-into-list
-names(overlap.GOseq.melt.summary.list2)
-overlap.GOseq.melt.summary<-do.call("rbind",overlap.GOseq.melt.summary.list2) 
-head(overlap.GOseq.melt.summary)
-rownames(overlap.GOseq.melt.summary)<-1:nrow(overlap.GOseq.melt.summary)
-# format overlap.GOseq.melt.summary
-overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"])
-overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10
-overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-""
-#save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.DEgenes.092817.Rdata") )
-save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.DEgenes.100717.Rdata") )
+<!-- # SOM clusters and mutant affected gfenes summary table for making overlapTable -->
+<!-- ```{r error=TRUE} -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","DE.genotype.batch.genes.unique.DF.Rdata")) -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata")) # 122214, 092617 -->
+<!-- newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,] -->
+<!-- # merge with SOM clusters -->
+<!-- test<-merge(DE.genotype.batch.genes.unique.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE) -->
+<!-- # making this with all AGI genes? (092717) -->
+<!-- bias.DF<-data.frame(AGI=names(bias)) -->
+<!-- test2<-merge(bias.DF,test,by="AGI",all=TRUE) -->
+<!-- ## the end of adding bias (all genes used in GOseq) -->
+<!-- DE.genotype.batch.genes.SOMclusters<-test2 -->
+<!-- DE.genotype.batch.genes.SOMclusters[is.na(DE.genotype.batch.genes.SOMclusters)]<-"0" -->
+<!-- # adding gene description -->
+<!-- head(TAIR10_gene_descriptions) -->
+<!-- TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name") -->
+<!-- DE.genotype.batch.genes.SOMclusters.description<-merge(DE.genotype.batch.genes.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI") -->
+<!-- write.csv(DE.genotype.batch.genes.SOMclusters.description,"../../Nozue2016_SAStranscriptome_output/figs_tables/Dataset3_Complete_list_of_shade-responsive_genes_and_SOM_gene_clusters_and_misexpressed_genes100717.csv") -->
+<!-- ``` -->
+<!-- # SOM vs mutant affected genes; making overlapTable -->
+<!-- ```{r} -->
+<!-- test<-DE.genotype.batch.genes.SOMclusters -->
+<!-- # overlap table has to be against all genes? I used all genes listed in DE.genotype.batch.genes.SOMclusters (071716) -->
+<!-- for(i in 2:(dim(test)[2]-1)) { # the last column is "ssom3.4.unit.classif" -->
+<!-- overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI) -->
+<!-- overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) # -->
+<!-- overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value -->
+<!-- overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",] -->
+<!-- #overlap.GOseq.melt.summary<-rbind(overlap.GOseq.melt.summary,overlap.GOseq.melt) -->
+<!-- save(overlap.GOseq.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.GOseq.melt.SOM.mut.all.gene.PLoSGenetics2015mutants.errrDE.",i,".Rdata",sep=""))) -->
+<!-- } -->
+<!-- ``` -->
+<!-- # load all overlap.GOseq.melt files and combine them -->
+<!-- ```{r} -->
+<!-- #  -->
+<!-- #overlap.GOseq.melt.SOM.mut.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.SOM.mut.") # for 3000 genes as background (not preferable, 092717) -->
+<!-- overlap.GOseq.melt.SOM.mut.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.SOM.mut.all.gene.PLoSGenetics2015mutants.errrDE") # for all gene as background (92717), .PLoSGenetics2015mutants.errrDE (100717) -->
+<!-- overlap.GOseq.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.mut.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see https://stackoverflow.com/questions/29398630/load-data-frames-into-list -->
+<!-- names(overlap.GOseq.melt.summary.list2) -->
+<!-- overlap.GOseq.melt.summary<-do.call("rbind",overlap.GOseq.melt.summary.list2)  -->
+<!-- head(overlap.GOseq.melt.summary) -->
+<!-- rownames(overlap.GOseq.melt.summary)<-1:nrow(overlap.GOseq.melt.summary) -->
+<!-- # format overlap.GOseq.melt.summary -->
+<!-- overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"]) -->
+<!-- overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10 -->
+<!-- overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-"" -->
+<!-- #save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.DEgenes.092817.Rdata") ) -->
+<!-- save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.DEgenes.100717.Rdata") ) -->
 
-```
-# drawing overlapTable heatmap (SOM vs mutant affected genes) (092717; 100717)
-```{r}
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.DEgenes.100717.Rdata"))
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!is.na(overlap.GOseq.melt.summary$Var2),]
-overlap.GOseq.melt.summary.ss<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var1==0,]
-overlap.GOseq.melt.summary.ss<-overlap.GOseq.melt.summary.ss[!overlap.GOseq.melt.summary.ss$Var2==0,]
-# consistent order of SOM cluster (see Fig2)
-#overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(3,2,12,6,4,9,7,1,5,10,8,11))
-overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))
-# 100717
-overlap.GOseq.melt.summary.ss$Var2<-factor(overlap.GOseq.melt.summary.ss$Var2,levels=paste(rep(conversion.table[-1,"genotype"],2),rep(c("sun","shade"),each=12),sep=".")) 
-# ggplot2
-q4b<-ggplot(overlap.GOseq.melt.summary.ss,aes(y=factor(Var2),x=factor(Var1))) 
-#q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)  #+ ,guide = guide_legend(title="-log10\n p-value")) 
-#q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta") 
-q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2)
-#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
-q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
-                 panel.grid.major = element_blank(),
-                 panel.grid.minor = element_blank(),
-                 panel.background = element_blank(),
-                 axis.ticks = element_line(size=0,color="white"))
-q4b <- q4b + geom_text(aes(label=count),size=5)
-q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2)
-ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_100717.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") 
-ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_100717.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables") 
-q4b 
-```
-# Overlap analysis with custome categories (SOM)
-## making summary table/dataset (100717)
-```{r eval=FALSE}
-#options(stringsAsFactors = FALSE) # for WGCNA
-conversion.table
-# custom categories
-load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.Rdata")) #corrected version. (113016). file.path (092717)
-## change list into data.frame
-attributes(hormone.responsiveness6)
-hormone.responsiveness6.DF<-data.frame(t(sapply(hormone.responsiveness6,c)))
-names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6)$category
-## convert into hormone.responsiveness3.DF (omit "PCC1", "GRF1_3")
-hormone.responsiveness6.DF<-hormone.responsiveness6.DF[,!names(hormone.responsiveness6.DF) %in% c("GRF1_3target","PCC1up","PCC1down")]
-summary(hormone.responsiveness6.DF)
-hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF)
-# SOM clusters
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata")) # 092617, 100717
+<!-- ``` -->
+<!-- # drawing overlapTable heatmap (SOM vs mutant affected genes) (092717; 100717) -->
+<!-- ```{r} -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.DEgenes.100717.Rdata")) -->
+<!-- overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!is.na(overlap.GOseq.melt.summary$Var2),] -->
+<!-- overlap.GOseq.melt.summary.ss<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var1==0,] -->
+<!-- overlap.GOseq.melt.summary.ss<-overlap.GOseq.melt.summary.ss[!overlap.GOseq.melt.summary.ss$Var2==0,] -->
+<!-- # consistent order of SOM cluster (see Fig2) -->
+<!-- #overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(3,2,12,6,4,9,7,1,5,10,8,11)) -->
+<!-- overlap.GOseq.melt.summary.ss$Var1<-factor(overlap.GOseq.melt.summary.ss$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11)) -->
+<!-- # 100717 -->
+<!-- overlap.GOseq.melt.summary.ss$Var2<-factor(overlap.GOseq.melt.summary.ss$Var2,levels=paste(rep(conversion.table[-1,"genotype"],2),rep(c("sun","shade"),each=12),sep="."))  -->
+<!-- # ggplot2 -->
+<!-- q4b<-ggplot(overlap.GOseq.melt.summary.ss,aes(y=factor(Var2),x=factor(Var1)))  -->
+<!-- #q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2)  #+ ,guide = guide_legend(title="-log10\n p-value"))  -->
+<!-- #q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient(low="white", high="magenta")  -->
+<!-- q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) -->
+<!-- #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank()) -->
+<!-- q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1), -->
+<!--                  panel.grid.major = element_blank(), -->
+<!--                  panel.grid.minor = element_blank(), -->
+<!--                  panel.background = element_blank(), -->
+<!--                  axis.ticks = element_line(size=0,color="white")) -->
+<!-- q4b <- q4b + geom_text(aes(label=count),size=5) -->
+<!-- q4b <- q4b + labs(y="genotype specific genes",x="SOM clusters in Col",title="SOM clusters affected in SAS mutants",fill="-log10\n p-value") # chagne legend title (do no use gude_legend in scale_fill_gradient2) -->
+<!-- ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_100717.png",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")  -->
+<!-- ggsave(q4b,file="Fig4_Shade_avoidance_mutants_misexpress_specific_shade-response_SOM_cluster_100717.pdf",width=13,height=6,path="../../Nozue2016_SAStranscriptome_output/figs_tables")  -->
+<!-- q4b  -->
+<!-- ``` -->
+<!-- # Overlap analysis with custome categories (SOM) -->
+<!-- ## making summary table/dataset (100717) -->
+<!-- ```{r eval=FALSE} -->
+<!-- #options(stringsAsFactors = FALSE) # for WGCNA -->
+<!-- conversion.table -->
+<!-- # custom categories -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.Rdata")) #corrected version. (113016). file.path (092717) -->
+<!-- ## change list into data.frame -->
+<!-- attributes(hormone.responsiveness6) -->
+<!-- hormone.responsiveness6.DF<-data.frame(t(sapply(hormone.responsiveness6,c))) -->
+<!-- names(hormone.responsiveness6.DF)<-attributes(hormone.responsiveness6)$category -->
+<!-- ## convert into hormone.responsiveness3.DF (omit "PCC1", "GRF1_3") -->
+<!-- hormone.responsiveness6.DF<-hormone.responsiveness6.DF[,!names(hormone.responsiveness6.DF) %in% c("GRF1_3target","PCC1up","PCC1down")] -->
+<!-- summary(hormone.responsiveness6.DF) -->
+<!-- hormone.responsiveness6.DF$AGI<-rownames(hormone.responsiveness6.DF) -->
+<!-- # SOM clusters -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","newdata.vst.PLoSGenetics2015mutants.errrDE.Rdata")) # 092617, 100717 -->
 
-newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,] 
-# merge with SOM clusters
-test<-merge(hormone.responsiveness6.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE)
-hormone.responsiveness.SOMclusters<-test
-hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"0"
-#write.csv(hormone.responsiveness.SOMclusters,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_hormone.responsiveness.SOMclusters100717.csv"))
-hormone.responsiveness.SOMclusters.description<-merge(hormone.responsiveness.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
-write.csv(hormone.responsiveness.SOMclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables//Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes100717.csv") 
-```
-## overlapTable (SOM vs custom category)
-```{r}
-test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes100717.csv"),row.names=1) # 
-#test<-test[,-1]
-# overlap table 
-for(i in 2:30) { # 3:30
-  overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI)
-  overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) #
-  overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value
-  overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",]
-  #overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
-  save(overlap.GOseq.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.GOseq.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE.",i,".Rdata",sep="")))
-}
-```
-##  load all overlap.GOseq.melt files and combine them (overlap.GOseq.melt.SOM.customcat)
-```{r}
-overlap.GOseq.melt.SOM.customcat.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE")
+<!-- newdata.vst.Col<-newdata.vst[newdata.vst$gt==1,]  -->
+<!-- # merge with SOM clusters -->
+<!-- test<-merge(hormone.responsiveness6.DF,newdata.vst.Col[,c("AGI","ssom3.4.unit.classif")],by="AGI",all=TRUE) -->
+<!-- hormone.responsiveness.SOMclusters<-test -->
+<!-- hormone.responsiveness.SOMclusters[is.na(hormone.responsiveness.SOMclusters)]<-"0" -->
+<!-- #write.csv(hormone.responsiveness.SOMclusters,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_hormone.responsiveness.SOMclusters100717.csv")) -->
+<!-- hormone.responsiveness.SOMclusters.description<-merge(hormone.responsiveness.SOMclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI") -->
+<!-- write.csv(hormone.responsiveness.SOMclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables//Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes100717.csv")  -->
+<!-- ``` -->
+<!-- ## overlapTable (SOM vs custom category) -->
+<!-- ```{r} -->
+<!-- test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes100717.csv"),row.names=1) #  -->
+<!-- #test<-test[,-1] -->
+<!-- # overlap table  -->
+<!-- for(i in 2:30) { # 3:30 -->
+<!--   overlap.GOseq<-GOseq.overlapTable(test[,"ssom3.4.unit.classif"],test[,i],genes=test$AGI) -->
+<!--   overlap.GOseq.melt<-melt(overlap.GOseq$pTable,id=1) # -->
+<!--   overlap.GOseq.melt$count<-melt(overlap.GOseq$countTable,id=1)$value -->
+<!--   overlap.GOseq.melt<-overlap.GOseq.melt[!overlap.GOseq.melt$Var2=="0",] -->
+<!--   #overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt) -->
+<!--   save(overlap.GOseq.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.GOseq.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE.",i,".Rdata",sep=""))) -->
+<!-- } -->
+<!-- ``` -->
+<!-- ##  load all overlap.GOseq.melt files and combine them (overlap.GOseq.melt.SOM.customcat) -->
+<!-- ```{r} -->
+<!-- overlap.GOseq.melt.SOM.customcat.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.GOseq.melt.SOM.customcat.PLoSGenetics2015mutants.errrDE") -->
 
-#overlap.GOseq.melt.summary.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.mut.files),load)
-# load(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.mut.files[1])) # works for one RData file
-overlap.GOseq.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.customcat.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see https://stackoverflow.com/questions/29398630/load-data-frames-into-list
-names(overlap.GOseq.melt.summary.list2)
-overlap.GOseq.melt.summary<-do.call("rbind",overlap.GOseq.melt.summary.list2) 
-head(overlap.GOseq.melt.summary) # make sure those are SOM.customcat files
-rownames(overlap.GOseq.melt.summary)<-1:nrow(overlap.GOseq.melt.summary)
-# format overlap.GOseq.melt.summary
-overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"])
-overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10
-overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-""
-save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.100717.Rdata") )
-```
-## plot graph (SOM vs custome category)
-```{r}
-#load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.113016.Rdata")
-#load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.092817.Rdata"))
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.100717.Rdata"))
-# graph
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var1==0,]
-#overlap.GOseq.melt.summary.s$Var1<-factor(overlap.GOseq.melt.summary.s$Var1,levels=c(3,2,12,6,4,9,7,1,5,10,8,11)) # 092717
-overlap.GOseq.melt.summary.s$Var1<-factor(overlap.GOseq.melt.summary.s$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))
-# 100717
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="",]
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616)
-overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616)
-# switching x and y axis
-overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=rev(levels(overlap.GOseq.melt.summary.s$Var2)))                                    
-q4b<-ggplot(overlap.GOseq.melt.summary.s,aes(y=factor(Var2),x=factor(Var1))) 
-q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",midpoint=2,high="magenta")
-#q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank())
-q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
-                 panel.grid.major = element_blank(),
-                 panel.grid.minor = element_blank(),
-                 panel.background = element_blank(),
-                 axis.ticks = element_line(size=0,color="white"))
-q4b <- q4b + geom_text(aes(label=count),size=5) 
-q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title="custom category enrichment",fill="-log10\n p-value")
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.100717.pdf",width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.100717.png",width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables")) # 
-```
-# custom category heatmap (Fig. 5)
-# Making list of custom catetory genes enriched in shade responsive genes (TableS7 for Fig5)
-```{r}
-## start from this line ## 052616
-# fold chagne (shade responsiveness)
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata") )
-dim(summary.vst.response) #[1] 30533    52
-head(summary.vst.response)
-# find overlap between shade responsive (in Col) and hormone responsive
-#test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_hormone.responsiveness.SOMclusters100717.csv") ,row.names=1) # needs to use updated one (092917)
-test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes100717.csv") ,row.names=1) # needs to use updated one (092917)
+<!-- #overlap.GOseq.melt.summary.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.mut.files),load) -->
+<!-- # load(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.mut.files[1])) # works for one RData file -->
+<!-- overlap.GOseq.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.GOseq.melt.SOM.customcat.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see https://stackoverflow.com/questions/29398630/load-data-frames-into-list -->
+<!-- names(overlap.GOseq.melt.summary.list2) -->
+<!-- overlap.GOseq.melt.summary<-do.call("rbind",overlap.GOseq.melt.summary.list2)  -->
+<!-- head(overlap.GOseq.melt.summary) # make sure those are SOM.customcat files -->
+<!-- rownames(overlap.GOseq.melt.summary)<-1:nrow(overlap.GOseq.melt.summary) -->
+<!-- # format overlap.GOseq.melt.summary -->
+<!-- overlap.GOseq.melt.summary[,"value"]<--log10(overlap.GOseq.melt.summary[,"value"]) -->
+<!-- overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$value>10,"value"]<-10 -->
+<!-- overlap.GOseq.melt.summary[overlap.GOseq.melt.summary$count==0,"count"]<-"" -->
+<!-- save(overlap.GOseq.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.100717.Rdata") ) -->
+<!-- ``` -->
+<!-- ## plot graph (SOM vs custome category) -->
+<!-- ```{r} -->
+<!-- #load("../../Nozue2016_SAStranscriptome_output/output/overlap.melt.summary.SOM.custom.GOseq.113016.Rdata") -->
+<!-- #load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.092817.Rdata")) -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.100717.Rdata")) -->
+<!-- # graph -->
+<!-- overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var1==0,] -->
+<!-- #overlap.GOseq.melt.summary.s$Var1<-factor(overlap.GOseq.melt.summary.s$Var1,levels=c(3,2,12,6,4,9,7,1,5,10,8,11)) # 092717 -->
+<!-- overlap.GOseq.melt.summary.s$Var1<-factor(overlap.GOseq.melt.summary.s$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11)) -->
+<!-- # 100717 -->
+<!-- overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="",] -->
+<!-- overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616) -->
+<!-- overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616) -->
+<!-- # switching x and y axis -->
+<!-- overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=rev(levels(overlap.GOseq.melt.summary.s$Var2)))                                     -->
+<!-- q4b<-ggplot(overlap.GOseq.melt.summary.s,aes(y=factor(Var2),x=factor(Var1)))  -->
+<!-- q4b <- q4b + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",midpoint=2,high="magenta") -->
+<!-- #q4 <- q4 + theme(axis.text.x=element_text(angle=90),axis.title=element_blank()) -->
+<!-- q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1), -->
+<!--                  panel.grid.major = element_blank(), -->
+<!--                  panel.grid.minor = element_blank(), -->
+<!--                  panel.background = element_blank(), -->
+<!--                  axis.ticks = element_line(size=0,color="white")) -->
+<!-- q4b <- q4b + geom_text(aes(label=count),size=5)  -->
+<!-- q4b <- q4b + labs(y="custom categories",x="SOM clusters in Col",title="custom category enrichment",fill="-log10\n p-value") -->
+<!-- ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.100717.pdf",width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables")) -->
+<!-- ggsave(q4b,file="Fig3_Col.SOM.clusters.vs.my.category.table.s.2.GOseq.100717.png",width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables")) #  -->
+<!-- ``` -->
+<!-- # custom category heatmap (Fig. 5) -->
+<!-- # Making list of custom catetory genes enriched in shade responsive genes (TableS7 for Fig5) -->
+<!-- ```{r} -->
+<!-- ## start from this line ## 052616 -->
+<!-- # fold chagne (shade responsiveness) -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata") ) -->
+<!-- dim(summary.vst.response) #[1] 30533    52 -->
+<!-- head(summary.vst.response) -->
+<!-- # find overlap between shade responsive (in Col) and hormone responsive -->
+<!-- #test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_hormone.responsiveness.SOMclusters100717.csv") ,row.names=1) # needs to use updated one (092917) -->
+<!-- test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset2_Custom_enrichment_analysis_of_co-expressed_SOM_clusters_of_shade-responsive_genes100717.csv") ,row.names=1) # needs to use updated one (092917) -->
 
-# reading overlapTable
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.100717.Rdata")) 
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var1==0,]
-overlap.GOseq.melt.summary.s$Var1<-factor(overlap.GOseq.melt.summary.s$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11))
-# 100717
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="",]
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616)
-overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="PIFtarget",] # # remove "PIFtarget" (101017). No sense to discuss IAAup specific and PIFtarget specific genes.
+<!-- # reading overlapTable -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.100717.Rdata"))  -->
+<!-- overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary[!overlap.GOseq.melt.summary$Var1==0,] -->
+<!-- overlap.GOseq.melt.summary.s$Var1<-factor(overlap.GOseq.melt.summary.s$Var1,levels=c(3,2,6,4,12,9,7,1,5,10,8,11)) -->
+<!-- # 100717 -->
+<!-- overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="",] -->
+<!-- overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="GRF1_3target",] # # remove "GRF1_3target" (052616) -->
+<!-- overlap.GOseq.melt.summary.s<-overlap.GOseq.melt.summary.s[!overlap.GOseq.melt.summary.s$Var2=="PIFtarget",] # # remove "PIFtarget" (101017). No sense to discuss IAAup specific and PIFtarget specific genes. -->
 
-overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616)
+<!-- overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_2h","SAdown_2h","SARplus","SARminus","SAup_24h","SAdown_24h","PIFtarget","MYC234up","MYC234down","NPR1up","NPR1down", "NPR1up_uponSA","NPR1down_uponSA" ,"WRKY33up","WRKY33down")) # remove "GRF1_3target" (052616) -->
 
-# switching x and y axis
-overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=rev(levels(overlap.GOseq.melt.summary.s$Var2)))                                    
-# select log10>2 & !Var1==0 
-overlap.GOseq.melt.summary.s.significant<-overlap.GOseq.melt.summary.s[overlap.GOseq.melt.summary.s$value> -log10(0.05),] # pvalue<0.05
-overlap.GOseq.melt.summary.s.significant$category.cluster<-with(overlap.GOseq.melt.summary.s.significant,paste(Var2,Var1,sep="_"))
-test.wozero<-test[!test$ssom3.4.unit.classif=="0",1:31]
-head(test.wozero)
-test.wozero.melt<-melt(test.wozero,id.var=c("AGI","ssom3.4.unit.classif"))
-head(test.wozero.melt)
-test.wozero.melt$category.cluster<-with(test.wozero.melt,paste(variable,ssom3.4.unit.classif,sep="_"))
-test.wozero.melt.hormone.significant<-test.wozero.melt[test.wozero.melt$category.cluster %in% overlap.GOseq.melt.summary.s.significant$category.cluster,]
-head(test.wozero.melt.hormone.significant)
-# # remove small group (less than 3)
-# category.morethan3<-names(table(test.wozero.melt.hormone.significant$value)[table(test.wozero.melt.hormone.significant$value)>3])
-#test.wozero.melt.hormone.significant<-test.wozero.melt.hormone.significant[test.wozero.melt.hormone.significant$value %in% category.morethan3,] # more than 3 genes
-test.wozero.melt.hormone.significant$value<-as.character(test.wozero.melt.hormone.significant$value)
-# test.wozero.melt.hormone.significant.s is my category marker gene list 
-test.wozero.melt.hormone.significant.s<-test.wozero.melt.hormone.significant[,c("AGI","value")]
-names(test.wozero.melt.hormone.significant.s)<-c("AGI","my.category")
-test.wozero.melt.hormone.significant.s.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
-table(test.wozero.melt.hormone.significant.s$my.category)
+<!-- # switching x and y axis -->
+<!-- overlap.GOseq.melt.summary.s$Var2<-factor(overlap.GOseq.melt.summary.s$Var2,levels=rev(levels(overlap.GOseq.melt.summary.s$Var2)))                                     -->
+<!-- # select log10>2 & !Var1==0  -->
+<!-- overlap.GOseq.melt.summary.s.significant<-overlap.GOseq.melt.summary.s[overlap.GOseq.melt.summary.s$value> -log10(0.05),] # pvalue<0.05 -->
+<!-- overlap.GOseq.melt.summary.s.significant$category.cluster<-with(overlap.GOseq.melt.summary.s.significant,paste(Var2,Var1,sep="_")) -->
+<!-- test.wozero<-test[!test$ssom3.4.unit.classif=="0",1:31] -->
+<!-- head(test.wozero) -->
+<!-- test.wozero.melt<-melt(test.wozero,id.var=c("AGI","ssom3.4.unit.classif")) -->
+<!-- head(test.wozero.melt) -->
+<!-- test.wozero.melt$category.cluster<-with(test.wozero.melt,paste(variable,ssom3.4.unit.classif,sep="_")) -->
+<!-- test.wozero.melt.hormone.significant<-test.wozero.melt[test.wozero.melt$category.cluster %in% overlap.GOseq.melt.summary.s.significant$category.cluster,] -->
+<!-- head(test.wozero.melt.hormone.significant) -->
+<!-- # # remove small group (less than 3) -->
+<!-- # category.morethan3<-names(table(test.wozero.melt.hormone.significant$value)[table(test.wozero.melt.hormone.significant$value)>3]) -->
+<!-- #test.wozero.melt.hormone.significant<-test.wozero.melt.hormone.significant[test.wozero.melt.hormone.significant$value %in% category.morethan3,] # more than 3 genes -->
+<!-- test.wozero.melt.hormone.significant$value<-as.character(test.wozero.melt.hormone.significant$value) -->
+<!-- # test.wozero.melt.hormone.significant.s is my category marker gene list  -->
+<!-- test.wozero.melt.hormone.significant.s<-test.wozero.melt.hormone.significant[,c("AGI","value")] -->
+<!-- names(test.wozero.melt.hormone.significant.s)<-c("AGI","my.category") -->
+<!-- test.wozero.melt.hormone.significant.s.summary<-table(test.wozero.melt.hormone.significant.s)[,-1] -->
+<!-- table(test.wozero.melt.hormone.significant.s$my.category) -->
 
-# use only hormone responsive genes and PIFtarget
-# MYC234up is redundant with MJup
-# for SA, use only SAup_24h which is redundant with SARplus, NPR1up_uponSA.
-# NPR1up and down (npr1 vs Col with water control) are difficult to interpret (different from NPR1up/down_uponSA). So omit this time
-# 
-#test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.s[!test.wozero.melt.hormone.significant.s$my.category %in% c("NPR1up","NPR1down","NPR1up_uponSA","SARplus","WRKY33up","MYC234up"),] # eliminate those categories
-# how to look overlap between categories?
-dim(test.wozero.melt.hormone.significant.s.summary) # 213 19
-for(i in 2:18) {
-  for(n in (i+1):19) {
-category.overlapTable<-overlapTable(test.wozero.melt.hormone.significant.s.summary[,i],test.wozero.melt.hormone.significant.s.summary[,n])
-category.overlapTable.pTable<-category.overlapTable$pTable
-    save(category.overlapTable.pTable,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("category.overlapTable",colnames(test.wozero.melt.hormone.significant.s.summary)[i],colnames(test.wozero.melt.hormone.significant.s.summary)[n],"Rdata",sep=".")))
-  }
-}
-# 
-category.overlapTable.files<-list.files(pattern="category.overlapTable",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"))
+<!-- # use only hormone responsive genes and PIFtarget -->
+<!-- # MYC234up is redundant with MJup -->
+<!-- # for SA, use only SAup_24h which is redundant with SARplus, NPR1up_uponSA. -->
+<!-- # NPR1up and down (npr1 vs Col with water control) are difficult to interpret (different from NPR1up/down_uponSA). So omit this time -->
+<!-- #  -->
+<!-- #test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.s[!test.wozero.melt.hormone.significant.s$my.category %in% c("NPR1up","NPR1down","NPR1up_uponSA","SARplus","WRKY33up","MYC234up"),] # eliminate those categories -->
+<!-- # how to look overlap between categories? -->
+<!-- dim(test.wozero.melt.hormone.significant.s.summary) # 213 19 -->
+<!-- for(i in 2:18) { -->
+<!--   for(n in (i+1):19) { -->
+<!-- category.overlapTable<-overlapTable(test.wozero.melt.hormone.significant.s.summary[,i],test.wozero.melt.hormone.significant.s.summary[,n]) -->
+<!-- category.overlapTable.pTable<-category.overlapTable$pTable -->
+<!--     save(category.overlapTable.pTable,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("category.overlapTable",colnames(test.wozero.melt.hormone.significant.s.summary)[i],colnames(test.wozero.melt.hormone.significant.s.summary)[n],"Rdata",sep="."))) -->
+<!--   } -->
+<!-- } -->
+<!-- #  -->
+<!-- category.overlapTable.files<-list.files(pattern="category.overlapTable",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output")) -->
 
-category.overlapTable.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",category.overlapTable.files),function(x) mget(load(x))) # mget 
-names(category.overlapTable.files.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/category.overlapTable.)([[:print:]]+)(.Rdata.category.overlap)","\\2",names(category.overlapTable.files.list))
-#category.overlapTable.files.DF<-as.data.frame(category.overlapTable.files.list)
-TF<-data.frame(comparison=rep("",length(names(category.overlapTable.files.list))),signif.overlap="")
-TF[1,2]<-category.overlapTable.files.list[[1]][2,2]
-TF[1,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[1])
+<!-- category.overlapTable.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",category.overlapTable.files),function(x) mget(load(x))) # mget  -->
+<!-- names(category.overlapTable.files.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/category.overlapTable.)([[:print:]]+)(.Rdata.category.overlap)","\\2",names(category.overlapTable.files.list)) -->
+<!-- #category.overlapTable.files.DF<-as.data.frame(category.overlapTable.files.list) -->
+<!-- TF<-data.frame(comparison=rep("",length(names(category.overlapTable.files.list))),signif.overlap="") -->
+<!-- TF[1,2]<-category.overlapTable.files.list[[1]][2,2] -->
+<!-- TF[1,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[1]) -->
 
-for(n in 2:length(names(category.overlapTable.files.list))) {
-TF[n,2]<-category.overlapTable.files.list[[n]][2,2]
-TF[n,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[n])
-}
-TF[TF$signif.overlap<0.01,]
-#                comparison       signif.overlap
-# 51             BLup.IAAup  0.00689499648909803
-# 88           IAAup.MJdown 0.000190847396048117
-# 109         MJup.MYC234up 0.000206781784225688
-# 136      NPR1down.SARplus 0.000123257188893522
-# 138   NPR1down.WRKY33down  0.00131613250998435
-# 140 NPR1up_uponSA.SARplus 0.000123257188893522
-# 152    SARplus.WRKY33down  0.00196790148023975
-##############
-test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.s[!test.wozero.melt.hormone.significant.s$my.category %in% c("BLup","MJdown","MYC234up","NPR1up","NPR1down","NPR1down_uponSA","NPR1up_uponSA","WRKY33up","WRKY33down","SAup_24h"),] # eliminate those categories
+<!-- for(n in 2:length(names(category.overlapTable.files.list))) { -->
+<!-- TF[n,2]<-category.overlapTable.files.list[[n]][2,2] -->
+<!-- TF[n,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[n]) -->
+<!-- } -->
+<!-- TF[TF$signif.overlap<0.01,] -->
+<!-- #                comparison       signif.overlap -->
+<!-- # 51             BLup.IAAup  0.00689499648909803 -->
+<!-- # 88           IAAup.MJdown 0.000190847396048117 -->
+<!-- # 109         MJup.MYC234up 0.000206781784225688 -->
+<!-- # 136      NPR1down.SARplus 0.000123257188893522 -->
+<!-- # 138   NPR1down.WRKY33down  0.00131613250998435 -->
+<!-- # 140 NPR1up_uponSA.SARplus 0.000123257188893522 -->
+<!-- # 152    SARplus.WRKY33down  0.00196790148023975 -->
+<!-- ############## -->
+<!-- test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.s[!test.wozero.melt.hormone.significant.s$my.category %in% c("BLup","MJdown","MYC234up","NPR1up","NPR1down","NPR1down_uponSA","NPR1up_uponSA","WRKY33up","WRKY33down","SAup_24h"),] # eliminate those categories -->
 
-# remove my.category =="" (092917)
-test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.ss[!test.wozero.melt.hormone.significant.ss$my.category=="",]
-table(test.wozero.melt.hormone.significant.ss$my.category)
- # ABAdown    ABAup    ACCup   BLdown     CKup  IAAdown    IAAup     MJup SARminus  SARplus 
- #       9        4        5        4        2        2       44       20        1        6 
+<!-- # remove my.category =="" (092917) -->
+<!-- test.wozero.melt.hormone.significant.ss<-test.wozero.melt.hormone.significant.ss[!test.wozero.melt.hormone.significant.ss$my.category=="",] -->
+<!-- table(test.wozero.melt.hormone.significant.ss$my.category) -->
+<!--  # ABAdown    ABAup    ACCup   BLdown     CKup  IAAdown    IAAup     MJup SARminus  SARplus  -->
+<!--  #       9        4        5        4        2        2       44       20        1        6  -->
 
-#write.csv(test.wozero.melt.hormone.significant.ss,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS6_test.wozero.melt.hormone.significant.ss.100717.csv")) # 
-#### what genes do belong to multiple categories?
-#reshape(test.wozero.melt.hormone.significant.s,idvar="AGI",timevar="my.category",direction="wide")
-test.wozero.melt.hormone.significant.s.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
-# specific to each category (fixed 101017)
-test.wozero.melt.hormone.significant.s.summary.specific<-test.wozero.melt.hormone.significant.s.summary[rowSums(test.wozero.melt.hormone.significant.s.summary)==1,] # need to merge SA related categories?
-test.wozero.melt.hormone.significant.s.summary.specific 
-duplicated(rownames(test.wozero.melt.hormone.significant.s.summary.specific))
-## 
-reshape(test.wozero.melt.hormone.significant.ss,idvar="AGI",timevar="my.category",direction="wide") #  should be test.wozero.melt.hormone.significant.s.summary.specific
-test.wozero.melt.hormone.significant.ss.summary<-table(test.wozero.melt.hormone.significant.s)[,-1]
-test.wozero.melt.hormone.significant.ss.summary # table object
+<!-- #write.csv(test.wozero.melt.hormone.significant.ss,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS6_test.wozero.melt.hormone.significant.ss.100717.csv")) #  -->
+<!-- #### what genes do belong to multiple categories? -->
+<!-- #reshape(test.wozero.melt.hormone.significant.s,idvar="AGI",timevar="my.category",direction="wide") -->
+<!-- test.wozero.melt.hormone.significant.s.summary<-table(test.wozero.melt.hormone.significant.s)[,-1] -->
+<!-- # specific to each category (fixed 101017) -->
+<!-- test.wozero.melt.hormone.significant.s.summary.specific<-test.wozero.melt.hormone.significant.s.summary[rowSums(test.wozero.melt.hormone.significant.s.summary)==1,] # need to merge SA related categories? -->
+<!-- test.wozero.melt.hormone.significant.s.summary.specific  -->
+<!-- duplicated(rownames(test.wozero.melt.hormone.significant.s.summary.specific)) -->
+<!-- ##  -->
+<!-- reshape(test.wozero.melt.hormone.significant.ss,idvar="AGI",timevar="my.category",direction="wide") #  should be test.wozero.melt.hormone.significant.s.summary.specific -->
+<!-- test.wozero.melt.hormone.significant.ss.summary<-table(test.wozero.melt.hormone.significant.s)[,-1] -->
+<!-- test.wozero.melt.hormone.significant.ss.summary # table object -->
 
-test.wozero.melt.hormone.significant.sss<-test.wozero.melt.hormone.significant.ss[test.wozero.melt.hormone.significant.ss$AGI %in% test.wozero.melt.hormone.significant.ss$AGI,] # 
-test.wozero.melt.hormone.significant.sss<-test.wozero.melt.hormone.significant.ss[test.wozero.melt.hormone.significant.ss$AGI %in% rownames(test.wozero.melt.hormone.significant.s.summary.specific),] # revised. 101017
-dim(test.wozero.melt.hormone.significant.sss) # 48 2
-table(test.wozero.melt.hormone.significant.sss$my.category)
-# ABAdown   ABAup   ACCup  BLdown    CKup IAAdown   IAAup    MJup SARplus 
-#       3       1       2       2       1       1      25       9       2 
-# needs to eliminate categories less than 3 genes
-category.morethan3<-names(table(test.wozero.melt.hormone.significant.sss$my.category))[table(test.wozero.melt.hormone.significant.sss$my.category)>2]
-test.wozero.melt.hormone.significant.ssss<-test.wozero.melt.hormone.significant.sss[test.wozero.melt.hormone.significant.sss$my.category %in% category.morethan3,]
-dim(test.wozero.melt.hormone.significant.ssss) #37 2
-table(test.wozero.melt.hormone.significant.sss$my.category)
-table(test.wozero.melt.hormone.significant.ssss$my.category)
-# ABAdown   IAAup    MJup 
-#       3      25      9 
-write.csv(test.wozero.melt.hormone.significant.ssss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS6_test.wozero.melt.hormone.significant.ssss.101017.csv") # This should be TableS6 (101017)
-```
-# visualize hormone pathway related genes (1213-1214,2015). Updated (052616-)
-# new FDR version (071716)
-# with new SOM clusters (111816)
-# with new SOM clusters (092917)
-# with new SOM clusters (100717)
-```{r}
-my.category.diff.heatmap.graph<-list()
-#categories <- read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS7_test.wozero.melt.hormone.significant.sss.092917.csv"),row.names=1,as.is=TRUE) 
-categories <- read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS6_test.wozero.melt.hormone.significant.ssss.101017.csv"),row.names=1,as.is=TRUE) #  re-normalize data after subsetting in edgeR DE analysis. specific to each category (101017)
-summary(categories)
-head(categories)
-table(categories$my.category)
-#categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","SAup_24h"))) # 120116
-categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","MJup","ABAdown"))) # 120116
+<!-- test.wozero.melt.hormone.significant.sss<-test.wozero.melt.hormone.significant.ss[test.wozero.melt.hormone.significant.ss$AGI %in% test.wozero.melt.hormone.significant.ss$AGI,] #  -->
+<!-- test.wozero.melt.hormone.significant.sss<-test.wozero.melt.hormone.significant.ss[test.wozero.melt.hormone.significant.ss$AGI %in% rownames(test.wozero.melt.hormone.significant.s.summary.specific),] # revised. 101017 -->
+<!-- dim(test.wozero.melt.hormone.significant.sss) # 48 2 -->
+<!-- table(test.wozero.melt.hormone.significant.sss$my.category) -->
+<!-- # ABAdown   ABAup   ACCup  BLdown    CKup IAAdown   IAAup    MJup SARplus  -->
+<!-- #       3       1       2       2       1       1      25       9       2  -->
+<!-- # needs to eliminate categories less than 3 genes -->
+<!-- category.morethan3<-names(table(test.wozero.melt.hormone.significant.sss$my.category))[table(test.wozero.melt.hormone.significant.sss$my.category)>2] -->
+<!-- test.wozero.melt.hormone.significant.ssss<-test.wozero.melt.hormone.significant.sss[test.wozero.melt.hormone.significant.sss$my.category %in% category.morethan3,] -->
+<!-- dim(test.wozero.melt.hormone.significant.ssss) #37 2 -->
+<!-- table(test.wozero.melt.hormone.significant.sss$my.category) -->
+<!-- table(test.wozero.melt.hormone.significant.ssss$my.category) -->
+<!-- # ABAdown   IAAup    MJup  -->
+<!-- #       3      25      9  -->
+<!-- write.csv(test.wozero.melt.hormone.significant.ssss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS6_test.wozero.melt.hormone.significant.ssss.101017.csv") # This should be TableS6 (101017) -->
+<!-- ``` -->
+<!-- # visualize hormone pathway related genes (1213-1214,2015). Updated (052616-) -->
+<!-- # new FDR version (071716) -->
+<!-- # with new SOM clusters (111816) -->
+<!-- # with new SOM clusters (092917) -->
+<!-- # with new SOM clusters (100717) -->
+<!-- ```{r} -->
+<!-- my.category.diff.heatmap.graph<-list() -->
+<!-- #categories <- read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS7_test.wozero.melt.hormone.significant.sss.092917.csv"),row.names=1,as.is=TRUE)  -->
+<!-- categories <- read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS6_test.wozero.melt.hormone.significant.ssss.101017.csv"),row.names=1,as.is=TRUE) #  re-normalize data after subsetting in edgeR DE analysis. specific to each category (101017) -->
+<!-- summary(categories) -->
+<!-- head(categories) -->
+<!-- table(categories$my.category) -->
+<!-- #categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","BLup","BLdown","PIFtarget","ACCup","ABAup","ABAdown","MJup","MJdown","SAup_24h"))) # 120116 -->
+<!-- categories$my.category<-factor(categories$my.category,levels=rev(c("IAAup","MJup","ABAdown"))) # 120116 -->
 
-# summary.vst.response.kazu
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata")) # response (092917)
-summary.vst.response.kazu<-summary.vst.response
-dim(summary.vst.response.kazu) # [1] 30533    52
-head(summary.vst.response.kazu)
-# for Fig5A, Col
-my.category.heatmap.graph<-list()
-for(i in c(1,17,19,3,4,5,14,10,6,13,7,8,9)) { # 
-my.category.heatmap.graph[[i]]<-my.category.heatmap5(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=F) #  legend.fill=F to T for new Fig5 (all absolute value, previously called FigS2)
-}
-# summerize data in one data frame
-FigS2.absolute.summary.table.melt.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="FigS2.absolute.summary.table.melt") # (101017)
-FigS2.absolute.summary.table.melt.files<-grep(".Rdata",FigS2.absolute.summary.table.melt.files,value=T)
+<!-- # summary.vst.response.kazu -->
+<!-- load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata")) # response (092917) -->
+<!-- summary.vst.response.kazu<-summary.vst.response -->
+<!-- dim(summary.vst.response.kazu) # [1] 30533    52 -->
+<!-- head(summary.vst.response.kazu) -->
+<!-- # for Fig5A, Col -->
+<!-- my.category.heatmap.graph<-list() -->
+<!-- for(i in c(1,17,19,3,4,5,14,10,6,13,7,8,9)) { #  -->
+<!-- my.category.heatmap.graph[[i]]<-my.category.heatmap5(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=F) #  legend.fill=F to T for new Fig5 (all absolute value, previously called FigS2) -->
+<!-- } -->
+<!-- # summerize data in one data frame -->
+<!-- FigS2.absolute.summary.table.melt.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="FigS2.absolute.summary.table.melt") # (101017) -->
+<!-- FigS2.absolute.summary.table.melt.files<-grep(".Rdata",FigS2.absolute.summary.table.melt.files,value=T) -->
 
-FigS2.absolute.summary.table.melt.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",FigS2.absolute.summary.table.melt.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see 
-FigS2.absolute.summary.table.melt.DF<-do.call(cbind,FigS2.absolute.summary.table.melt.list2)
-# remove redundant columns 
-colnames(FigS2.absolute.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/FigS2.absolute.summary.table.melt)([[:digit:]]+)(.Rdata.summary.table.melt.)(my.category|variable|value)","\\2.\\4",colnames(FigS2.absolute.summary.table.melt.DF))
-FigS2.absolute.summary.table.melt.DF<-FigS2.absolute.summary.table.melt.DF[,c("1.my.category","1.variable" ,grep("value",colnames(FigS2.absolute.summary.table.melt.DF),value=TRUE))]
-write.csv(FigS2.absolute.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","FigS2.absolute.summary.table.melt.DF.csv")) 
+<!-- FigS2.absolute.summary.table.melt.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",FigS2.absolute.summary.table.melt.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see  -->
+<!-- FigS2.absolute.summary.table.melt.DF<-do.call(cbind,FigS2.absolute.summary.table.melt.list2) -->
+<!-- # remove redundant columns  -->
+<!-- colnames(FigS2.absolute.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/FigS2.absolute.summary.table.melt)([[:digit:]]+)(.Rdata.summary.table.melt.)(my.category|variable|value)","\\2.\\4",colnames(FigS2.absolute.summary.table.melt.DF)) -->
+<!-- FigS2.absolute.summary.table.melt.DF<-FigS2.absolute.summary.table.melt.DF[,c("1.my.category","1.variable" ,grep("value",colnames(FigS2.absolute.summary.table.melt.DF),value=TRUE))] -->
+<!-- write.csv(FigS2.absolute.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","FigS2.absolute.summary.table.melt.DF.csv"))  -->
 
-# calculate diff (using mean value; not used; 101017)
-FigS2.absolute.summary.table.melt.DF.diff<-FigS2.absolute.summary.table.melt.DF[,-(1:3)]-FigS2.absolute.summary.table.melt.DF[,3]
-## considering biological meaning of negative value in Col
-FigS2.absolute.summary.table.melt.DF.diff[FigS2.absolute.summary.table.melt.DF[,3]<0,]<- -(FigS2.absolute.summary.table.melt.DF.diff[FigS2.absolute.summary.table.melt.DF[,3]<0,])
-FigS2.absolute.summary.table.melt.DF.diff$my.category<-FigS2.absolute.summary.table.melt.DF$"1.my.category"
-FigS2.absolute.summary.table.melt.DF.diff$time<-FigS2.absolute.summary.table.melt.DF$"1.variable"
-colnames(FigS2.absolute.summary.table.melt.DF.diff)<-gsub(".value","",colnames(FigS2.absolute.summary.table.melt.DF.diff))
-write.csv(FigS2.absolute.summary.table.melt.DF.diff,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","FigS2.absolute.summary.table.melt.DF.diff.csv")) # # I did not use this.
-# drawing heatmap graph (difference): Fig5B 
-### Is this difference correct? compare absolute data (100717)
-### "my.category.diff.heatmap.graph" function calculate differences between Col and mut at gene by gene base.
-### "FigS2.absolute.summary.table.melt.DF.diff.csv" calculate at category mean base.
-# need to create diff data frame for (mut - Col)
-# calculate max and min for heatmap color grade 
-#summary.vst.response.kazu.diffCol<-as.data.frame(my.category.diff.data)  # under construction
-max.value<-max(FigS2.absolute.summary.table.melt.DF.diff[,grep(".value",colnames(FigS2.absolute.summary.table.melt.DF.diff))])
-min.value<-min(FigS2.absolute.summary.table.melt.DF.diff[,grep(".value",colnames(FigS2.absolute.summary.table.melt.DF.diff))])
-max.min<-c(round(min.value,2),round(max.value,2))
-# ## I decided not to use this version (10117)
-# my.category.diff.heatmap.graph<-list()
-# #  
-# for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
-# my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap1(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917mutsv1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=T,max.min.value=max.min) # make specialized for difference heatmap function
-# } # this is not consistent with FigS2.absolute.summary.table.melt.DF.diff above (101017)
-# summerize data in one data frame
-Fig5B.diff.summary.table.melt.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="Fig5B.diff.summary.table.melt") # (101017)
-Fig5B.diff.summary.table.melt.files<-grep(".Rdata",Fig5B.diff.summary.table.melt.files,value=TRUE)
-Fig5B.diff.summary.table.melt.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",Fig5B.diff.summary.table.melt.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see 
+<!-- # calculate diff (using mean value; not used; 101017) -->
+<!-- FigS2.absolute.summary.table.melt.DF.diff<-FigS2.absolute.summary.table.melt.DF[,-(1:3)]-FigS2.absolute.summary.table.melt.DF[,3] -->
+<!-- ## considering biological meaning of negative value in Col -->
+<!-- FigS2.absolute.summary.table.melt.DF.diff[FigS2.absolute.summary.table.melt.DF[,3]<0,]<- -(FigS2.absolute.summary.table.melt.DF.diff[FigS2.absolute.summary.table.melt.DF[,3]<0,]) -->
+<!-- FigS2.absolute.summary.table.melt.DF.diff$my.category<-FigS2.absolute.summary.table.melt.DF$"1.my.category" -->
+<!-- FigS2.absolute.summary.table.melt.DF.diff$time<-FigS2.absolute.summary.table.melt.DF$"1.variable" -->
+<!-- colnames(FigS2.absolute.summary.table.melt.DF.diff)<-gsub(".value","",colnames(FigS2.absolute.summary.table.melt.DF.diff)) -->
+<!-- write.csv(FigS2.absolute.summary.table.melt.DF.diff,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","FigS2.absolute.summary.table.melt.DF.diff.csv")) # # I did not use this. -->
+<!-- # drawing heatmap graph (difference): Fig5B  -->
+<!-- ### Is this difference correct? compare absolute data (100717) -->
+<!-- ### "my.category.diff.heatmap.graph" function calculate differences between Col and mut at gene by gene base. -->
+<!-- ### "FigS2.absolute.summary.table.melt.DF.diff.csv" calculate at category mean base. -->
+<!-- # need to create diff data frame for (mut - Col) -->
+<!-- # calculate max and min for heatmap color grade  -->
+<!-- #summary.vst.response.kazu.diffCol<-as.data.frame(my.category.diff.data)  # under construction -->
+<!-- max.value<-max(FigS2.absolute.summary.table.melt.DF.diff[,grep(".value",colnames(FigS2.absolute.summary.table.melt.DF.diff))]) -->
+<!-- min.value<-min(FigS2.absolute.summary.table.melt.DF.diff[,grep(".value",colnames(FigS2.absolute.summary.table.melt.DF.diff))]) -->
+<!-- max.min<-c(round(min.value,2),round(max.value,2)) -->
+<!-- # ## I decided not to use this version (10117) -->
+<!-- # my.category.diff.heatmap.graph<-list() -->
+<!-- # #   -->
+<!-- # for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ") -->
+<!-- # my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap1(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917mutsv1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=T,max.min.value=max.min) # make specialized for difference heatmap function -->
+<!-- # } # this is not consistent with FigS2.absolute.summary.table.melt.DF.diff above (101017) -->
+<!-- # summerize data in one data frame -->
+<!-- Fig5B.diff.summary.table.melt.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="Fig5B.diff.summary.table.melt") # (101017) -->
+<!-- Fig5B.diff.summary.table.melt.files<-grep(".Rdata",Fig5B.diff.summary.table.melt.files,value=TRUE) -->
+<!-- Fig5B.diff.summary.table.melt.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",Fig5B.diff.summary.table.melt.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see  -->
 
-Fig5B.diff.summary.table.melt.DF<-do.call(cbind,Fig5B.diff.summary.table.melt.list2)
-# remove redundant columns 
-colnames(Fig5B.diff.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/Fig5B.diff.summary.table.melt)([[:digit:]]+)(.Rdata.summary.table.melt.)(my.category|variable|value)","\\2.\\4",colnames(Fig5B.diff.summary.table.melt.DF))
-Fig5B.diff.summary.table.melt.DF<-Fig5B.diff.summary.table.melt.DF[,c("10.my.category","10.variable" ,grep("value",colnames(Fig5B.diff.summary.table.melt.DF),value=TRUE))]
-write.csv(Fig5B.diff.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","Fig5B.diff.summary.table.melt.DF.csv")) # data used in Fig5B heatmap, which is quite different from FigS2.absolute.summary.table.melt.DF.diff.csv (calculated from absolute mean value). eg. phyB MJup. Why does this happen? 
+<!-- Fig5B.diff.summary.table.melt.DF<-do.call(cbind,Fig5B.diff.summary.table.melt.list2) -->
+<!-- # remove redundant columns  -->
+<!-- colnames(Fig5B.diff.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/Fig5B.diff.summary.table.melt)([[:digit:]]+)(.Rdata.summary.table.melt.)(my.category|variable|value)","\\2.\\4",colnames(Fig5B.diff.summary.table.melt.DF)) -->
+<!-- Fig5B.diff.summary.table.melt.DF<-Fig5B.diff.summary.table.melt.DF[,c("10.my.category","10.variable" ,grep("value",colnames(Fig5B.diff.summary.table.melt.DF),value=TRUE))] -->
+<!-- write.csv(Fig5B.diff.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","Fig5B.diff.summary.table.melt.DF.csv")) # data used in Fig5B heatmap, which is quite different from FigS2.absolute.summary.table.melt.DF.diff.csv (calculated from absolute mean value). eg. phyB MJup. Why does this happen?  -->
 
-# calculating mut - Col with individual gene adjusted biological meaning may not good.
-# use subtraction of mean value 
-my.category.diff.heatmap.graph.ver2<-list()
-for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ")
-my.category.diff.heatmap.graph.ver2[[i]]<-
-  my.category.diff.heatmap2(summary3.response.diff=FigS2.absolute.summary.table.melt.DF.diff,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917mutsv1.png",w=5,h=5*4/3,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=T,max.min.value=max.min)
-} # (FigS2.absolute.summary.table.melt.DF.diff (101117)
+<!-- # calculating mut - Col with individual gene adjusted biological meaning may not good. -->
+<!-- # use subtraction of mean value  -->
+<!-- my.category.diff.heatmap.graph.ver2<-list() -->
+<!-- for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # c("aos","co_9","hy5","jar1","kat1_2","mida9_4","PAR1","phyb","pif3","pif45","spt_11","yucQ") -->
+<!-- my.category.diff.heatmap.graph.ver2[[i]]<- -->
+<!--   my.category.diff.heatmap2(summary3.response.diff=FigS2.absolute.summary.table.melt.DF.diff,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.092917mutsv1.png",w=5,h=5*4/3,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"),save.plot=F,legend.fill=T,max.min.value=max.min) -->
+<!-- } # (FigS2.absolute.summary.table.melt.DF.diff (101117) -->
 
-```
+<!-- ``` -->
 
-# significance calculation (needs to fix)
-```{r}
-# how to get summary.vst.response.kazu? (102617)
-summary.vst.response.kazu$AGI <- row.names(summary.vst.response.kazu)
-response.melt <- melt(summary.vst.response.kazu,id.vars= "AGI",variable.name = "sample", value.name = "log2.dif") # this value is not log transformed. This is just ratio (responsiveness to shade; 101117)
-hist(response.melt$log2.dif)
-response.melt$log2.dif<-log2(response.melt$log2.dif)
-head(response.melt)
-response.melt$gt <- as.factor(regmatches(response.melt$sample,regexpr("^[0-9]{1,2}",response.melt$sample)))
-response.melt$time <- as.factor(regmatches(response.melt$sample,regexpr("[0-9]{1,2}hr",response.melt$sample)))
-response.melt$rep <- as.factor(regmatches(response.melt$sample,regexpr("[A-Z]$",response.melt$sample)))
-head(response.melt)
-tail(response.melt)
-manuscript.genotypes <- as.character(c(1,3,4,5,6,7,8,9,10,13,14,17,19) )
-response.melt <- response.melt[response.melt$gt %in% manuscript.genotypes,]
-response.melt <- droplevels(response.melt) # droplevels is useful.
-summary(response.melt)
-summary(categories)
-table(categories$my.category)
-# select genes in categories
-response.melt.merge <- merge(response.melt,categories,by="AGI",all=FALSE)
-response.melt.merge$gt <- relevel(response.melt.merge$gt,ref="1")
-table(response.melt.merge$gt,response.melt.merge$time)
-mutants <- levels(response.melt.merge$gt)[-1] #1 is Col 
-category.names<- unique(response.melt.merge$my.category)
-results <- lapply(mutants,function(gt) { 
-  sapply(category.names,function(cat.name) {
-    tmp <- response.melt.merge[(response.melt.merge$gt=="1" | response.melt.merge$gt==gt) & response.melt.merge$my.category==cat.name,]
-    lmer1 <- lmer(log2.dif ~ gt*time + (1|AGI), data=tmp)
-    tmp.results <- anova(lmer1)[, "Pr(>F)"]
-    print(row.names(anova(lmer1)))
-    names(tmp.results) <- row.names(anova(lmer1))
-    min(tmp.results[-2]) # we do not care about time
-    print(min(tmp.results[-2]))
-  })
-} )
-names(results) <- mutants 
-results
-results.df <- ldply(results,.id="gt")
-results.df
-colnames(results.df)[-1]<-as.character(category.names)
-results.df
-```
-# calclate adjusted p-value
-```{r}
-results.df.adj <- matrix(
-  p.adjust(unlist(results.df[,-1]),"fdr",n=2*length(unlist(results.df[,-1]))), #multiply by 2 because we took the min value of gt and gt*time
-  nrow=nrow(results.df))
-results.df.adj <- cbind(as.character(results.df[,1]),as.data.frame(results.df.adj))
-colnames(results.df.adj) <- colnames(results.df)
-results.df.adj
-#write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v3.csv"))
-#write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v4.csv"))
-write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v6.log2.csv")) #101017 three categories
-
-
-```
-# add p value in heatmap 
-```{r}
-response.p.values<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v6.log2.csv"),row.names=1) # from modified Julin's script (copied from Kazu_test_v2.R) (100717)
-#response.p.values<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v5.csv"),row.names=1) # from modified Julin's script (copied from Kazu_test_v2.R) (100717)
-
-response.p.values.melt<-melt(response.p.values,id="gt") #
-my.categories<-grep("gt",colnames(response.p.values),invert=TRUE,value=TRUE)
-##  my.category.diff.heatmap.graph (not used 101117)
-# for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
-# significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="")
-# response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]  
-# significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level 
-#   significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt)
-#   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt)
-# 
-# # add significance to heatmap
-# my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
-# rm(significant.position)
-# }
-# add significant to absolute value heatmap
-for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
-significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="")
-response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]  
-significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level 
-  significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt)
-  significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt)
-
-# add significance to heatmap
-my.category.heatmap.graph[[i]]<-my.category.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
-rm(significant.position)
-}
-
-# 
-# ### use geom_blank() for blank plot
-# library(cowplot)
-# my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geom_blank(),ggplot()+geom_blank(),my.category.diff.heatmap.graph[[17]],my.category.diff.heatmap.graph[[19]],my.category.diff.heatmap.graph[[3]],my.category.diff.heatmap.graph[[4]],my.category.diff.heatmap.graph[[5]],my.category.diff.heatmap.graph[[14]],my.category.diff.heatmap.graph[[10]],my.category.diff.heatmap.graph[[6]],my.category.diff.heatmap.graph[[13]],my.category.diff.heatmap.graph[[7]],my.category.diff.heatmap.graph[[8]],my.category.diff.heatmap.graph[[9]],
-#                       labels=c("A","","","B","","","","","","","","","","",""),
-#                       vjust = 1.1, hjust=-0.5,
-#                       ncol=3,nrow=5,
-#                       label_size = 50)
-# #setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-# save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_all.my.category.diff.expression.pattern.v9.101017.FDR0.01.png"), my.category.heatmap.all,
-#           ncol = 3, # we're saving a grid plot of 2 columns
-#           nrow = 5, # and 2 rows
-#           base_aspect_ratio = 2.5,
-#           base_height=6,
-#           limitsize = FALSE
-# )
-# Fig5B ver2: diff calculated from absolute mean value 
-# for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) {
-# significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="")
-# response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]  
-# significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level 
-#   significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt)
-#   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt)
-# 
-# # add significance to heatmap
-# my.category.diff.heatmap.graph.ver2[[i]]<-my.category.diff.heatmap.graph.ver2[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
-# rm(significant.position)
-# }
-# library(cowplot)
-# my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geom_blank(),ggplot()+geom_blank(),my.category.diff.heatmap.graph.ver2[[17]],my.category.diff.heatmap.graph.ver2[[19]],my.category.diff.heatmap.graph.ver2[[3]],my.category.diff.heatmap.graph.ver2[[4]],my.category.diff.heatmap.graph.ver2[[5]],my.category.diff.heatmap.graph.ver2[[14]],my.category.diff.heatmap.graph.ver2[[10]],my.category.diff.heatmap.graph.ver2[[6]],my.category.diff.heatmap.graph.ver2[[13]],my.category.diff.heatmap.graph.ver2[[7]],my.category.diff.heatmap.graph.ver2[[8]],my.category.diff.heatmap.graph.ver2[[9]],
-#                       labels=c("A","","","B","","","","","","","","","","",""),
-#                       vjust = 1.1, hjust=-0.5,
-#                       ncol=3,nrow=5,
-#                       label_size = 50)
-# #setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-# save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_all.my.category.diff.expression.pattern.ver2.101117.FDR0.01.png"), my.category.heatmap.all,
-#           ncol = 3, # we're saving a grid plot of 2 columns
-#           nrow = 5, # and 2 rows
-#           base_aspect_ratio = 2.5,
-#           base_height=6,
-#           limitsize = FALSE
-# )
+<!-- # significance calculation (needs to fix) -->
+<!-- ```{r} -->
+<!-- # how to get summary.vst.response.kazu? (102617) -->
+<!-- summary.vst.response.kazu$AGI <- row.names(summary.vst.response.kazu) -->
+<!-- response.melt <- melt(summary.vst.response.kazu,id.vars= "AGI",variable.name = "sample", value.name = "log2.dif") # this value is not log transformed. This is just ratio (responsiveness to shade; 101117) -->
+<!-- hist(response.melt$log2.dif) -->
+<!-- response.melt$log2.dif<-log2(response.melt$log2.dif) -->
+<!-- head(response.melt) -->
+<!-- response.melt$gt <- as.factor(regmatches(response.melt$sample,regexpr("^[0-9]{1,2}",response.melt$sample))) -->
+<!-- response.melt$time <- as.factor(regmatches(response.melt$sample,regexpr("[0-9]{1,2}hr",response.melt$sample))) -->
+<!-- response.melt$rep <- as.factor(regmatches(response.melt$sample,regexpr("[A-Z]$",response.melt$sample))) -->
+<!-- head(response.melt) -->
+<!-- tail(response.melt) -->
+<!-- manuscript.genotypes <- as.character(c(1,3,4,5,6,7,8,9,10,13,14,17,19) ) -->
+<!-- response.melt <- response.melt[response.melt$gt %in% manuscript.genotypes,] -->
+<!-- response.melt <- droplevels(response.melt) # droplevels is useful. -->
+<!-- summary(response.melt) -->
+<!-- summary(categories) -->
+<!-- table(categories$my.category) -->
+<!-- # select genes in categories -->
+<!-- response.melt.merge <- merge(response.melt,categories,by="AGI",all=FALSE) -->
+<!-- response.melt.merge$gt <- relevel(response.melt.merge$gt,ref="1") -->
+<!-- table(response.melt.merge$gt,response.melt.merge$time) -->
+<!-- mutants <- levels(response.melt.merge$gt)[-1] #1 is Col  -->
+<!-- category.names<- unique(response.melt.merge$my.category) -->
+<!-- results <- lapply(mutants,function(gt) {  -->
+<!--   sapply(category.names,function(cat.name) { -->
+<!--     tmp <- response.melt.merge[(response.melt.merge$gt=="1" | response.melt.merge$gt==gt) & response.melt.merge$my.category==cat.name,] -->
+<!--     lmer1 <- lmer(log2.dif ~ gt*time + (1|AGI), data=tmp) -->
+<!--     tmp.results <- anova(lmer1)[, "Pr(>F)"] -->
+<!--     print(row.names(anova(lmer1))) -->
+<!--     names(tmp.results) <- row.names(anova(lmer1)) -->
+<!--     min(tmp.results[-2]) # we do not care about time -->
+<!--     print(min(tmp.results[-2])) -->
+<!--   }) -->
+<!-- } ) -->
+<!-- names(results) <- mutants  -->
+<!-- results -->
+<!-- results.df <- ldply(results,.id="gt") -->
+<!-- results.df -->
+<!-- colnames(results.df)[-1]<-as.character(category.names) -->
+<!-- results.df -->
+<!-- ``` -->
+<!-- # calclate adjusted p-value -->
+<!-- ```{r} -->
+<!-- results.df.adj <- matrix( -->
+<!--   p.adjust(unlist(results.df[,-1]),"fdr",n=2*length(unlist(results.df[,-1]))), #multiply by 2 because we took the min value of gt and gt*time -->
+<!--   nrow=nrow(results.df)) -->
+<!-- results.df.adj <- cbind(as.character(results.df[,1]),as.data.frame(results.df.adj)) -->
+<!-- colnames(results.df.adj) <- colnames(results.df) -->
+<!-- results.df.adj -->
+<!-- #write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v3.csv")) -->
+<!-- #write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v4.csv")) -->
+<!-- write.csv(results.df.adj,file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v6.log2.csv")) #101017 three categories -->
 
 
+<!-- ``` -->
+<!-- # add p value in heatmap  -->
+<!-- ```{r} -->
+<!-- response.p.values<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v6.log2.csv"),row.names=1) # from modified Julin's script (copied from Kazu_test_v2.R) (100717) -->
+<!-- #response.p.values<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5B_response_p_values.v5.csv"),row.names=1) # from modified Julin's script (copied from Kazu_test_v2.R) (100717) -->
 
-# supplement Fig2 (absolute value), which will become new Fig5 (101117)
-# extract legend
-# since Col with legend is different in size from others. I need to extract legend and plot it in different space.
-# see http://stackoverflow.com/questions/12041042/how-to-plot-just-the-legends-in-ggplot2
-library(gridExtra)
-g_legend<-function(a.gplot){ 
-  tmp <- ggplot_gtable(ggplot_build(a.gplot)) 
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box") 
-  legend <- tmp$grobs[[leg]] 
-  return(legend)} 
-legend <- g_legend(my.category.heatmap.graph[[1]]) 
-#
-my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]]+theme(legend.position="none"),legend ,ggplot()+geom_blank(),my.category.heatmap.graph[[17]],my.category.heatmap.graph[[19]],my.category.heatmap.graph[[3]],my.category.heatmap.graph[[4]],my.category.heatmap.graph[[5]],my.category.heatmap.graph[[14]],my.category.heatmap.graph[[10]],my.category.heatmap.graph[[6]],my.category.heatmap.graph[[13]],my.category.heatmap.graph[[7]],my.category.heatmap.graph[[8]],my.category.heatmap.graph[[9]],
-                      labels=c("A","","","B","","","","","","","","","","",""),
-                      vjust = 1.1, hjust=-0.5,
-                      ncol=3,nrow=5,
-                      label_size = 50)
-#
-#setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_oldFig_S2_all.my.category.expression.pattern.v16.log2.signif.101117.png"), my.category.heatmap.all,
-          ncol = 3, # we're saving a grid plot of 2 columns
-          nrow = 5, # and 2 rows
-          base_aspect_ratio = 2.5,
-          base_height=6,
-          limitsize = FALSE
-)
-```
-# the end of custom category heatmap (shade responsiveness) (Fig. 5)
+<!-- response.p.values.melt<-melt(response.p.values,id="gt") # -->
+<!-- my.categories<-grep("gt",colnames(response.p.values),invert=TRUE,value=TRUE) -->
+<!-- ##  my.category.diff.heatmap.graph (not used 101117) -->
+<!-- # for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { -->
+<!-- # significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="") -->
+<!-- # response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]   -->
+<!-- # significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level  -->
+<!-- #   significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt) -->
+<!-- #   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt) -->
+<!-- #  -->
+<!-- # # add significance to heatmap -->
+<!-- # my.category.diff.heatmap.graph[[i]]<-my.category.diff.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red. -->
+<!-- # rm(significant.position) -->
+<!-- # } -->
+<!-- # add significant to absolute value heatmap -->
+<!-- for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { -->
+<!-- significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="") -->
+<!-- response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]   -->
+<!-- significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level  -->
+<!--   significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt) -->
+<!--   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt) -->
+
+<!-- # add significance to heatmap -->
+<!-- my.category.heatmap.graph[[i]]<-my.category.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red. -->
+<!-- rm(significant.position) -->
+<!-- } -->
+
+<!-- #  -->
+<!-- # ### use geom_blank() for blank plot -->
+<!-- # library(cowplot) -->
+<!-- # my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geom_blank(),ggplot()+geom_blank(),my.category.diff.heatmap.graph[[17]],my.category.diff.heatmap.graph[[19]],my.category.diff.heatmap.graph[[3]],my.category.diff.heatmap.graph[[4]],my.category.diff.heatmap.graph[[5]],my.category.diff.heatmap.graph[[14]],my.category.diff.heatmap.graph[[10]],my.category.diff.heatmap.graph[[6]],my.category.diff.heatmap.graph[[13]],my.category.diff.heatmap.graph[[7]],my.category.diff.heatmap.graph[[8]],my.category.diff.heatmap.graph[[9]], -->
+<!-- #                       labels=c("A","","","B","","","","","","","","","","",""), -->
+<!-- #                       vjust = 1.1, hjust=-0.5, -->
+<!-- #                       ncol=3,nrow=5, -->
+<!-- #                       label_size = 50) -->
+<!-- # #setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/") -->
+<!-- # save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_all.my.category.diff.expression.pattern.v9.101017.FDR0.01.png"), my.category.heatmap.all, -->
+<!-- #           ncol = 3, # we're saving a grid plot of 2 columns -->
+<!-- #           nrow = 5, # and 2 rows -->
+<!-- #           base_aspect_ratio = 2.5, -->
+<!-- #           base_height=6, -->
+<!-- #           limitsize = FALSE -->
+<!-- # ) -->
+<!-- # Fig5B ver2: diff calculated from absolute mean value  -->
+<!-- # for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { -->
+<!-- # significant.position<-data.frame(category=my.categories,x=0,y=1:length(my.categories),symbol.gt="",symbol.gt.time="") -->
+<!-- # response.p.values.melt.gt<-response.p.values.melt[response.p.values.melt$gt==i,]   -->
+<!-- # significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.position$category,response.p.values.melt.gt[,c(2,3)],2,F)))<0.01)*1 # significant level  -->
+<!-- #   significant.position$symbol.gt<-gsub("1","*",significant.position$symbol.gt) -->
+<!-- #   significant.position$symbol.gt<-gsub("0","",significant.position$symbol.gt) -->
+<!-- #  -->
+<!-- # # add significance to heatmap -->
+<!-- # my.category.diff.heatmap.graph.ver2[[i]]<-my.category.diff.heatmap.graph.ver2[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red. -->
+<!-- # rm(significant.position) -->
+<!-- # } -->
+<!-- # library(cowplot) -->
+<!-- # my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geom_blank(),ggplot()+geom_blank(),my.category.diff.heatmap.graph.ver2[[17]],my.category.diff.heatmap.graph.ver2[[19]],my.category.diff.heatmap.graph.ver2[[3]],my.category.diff.heatmap.graph.ver2[[4]],my.category.diff.heatmap.graph.ver2[[5]],my.category.diff.heatmap.graph.ver2[[14]],my.category.diff.heatmap.graph.ver2[[10]],my.category.diff.heatmap.graph.ver2[[6]],my.category.diff.heatmap.graph.ver2[[13]],my.category.diff.heatmap.graph.ver2[[7]],my.category.diff.heatmap.graph.ver2[[8]],my.category.diff.heatmap.graph.ver2[[9]], -->
+<!-- #                       labels=c("A","","","B","","","","","","","","","","",""), -->
+<!-- #                       vjust = 1.1, hjust=-0.5, -->
+<!-- #                       ncol=3,nrow=5, -->
+<!-- #                       label_size = 50) -->
+<!-- # #setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/") -->
+<!-- # save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_all.my.category.diff.expression.pattern.ver2.101117.FDR0.01.png"), my.category.heatmap.all, -->
+<!-- #           ncol = 3, # we're saving a grid plot of 2 columns -->
+<!-- #           nrow = 5, # and 2 rows -->
+<!-- #           base_aspect_ratio = 2.5, -->
+<!-- #           base_height=6, -->
+<!-- #           limitsize = FALSE -->
+<!-- # ) -->
+
+
+
+<!-- # supplement Fig2 (absolute value), which will become new Fig5 (101117) -->
+<!-- # extract legend -->
+<!-- # since Col with legend is different in size from others. I need to extract legend and plot it in different space. -->
+<!-- # see http://stackoverflow.com/questions/12041042/how-to-plot-just-the-legends-in-ggplot2 -->
+<!-- library(gridExtra) -->
+<!-- g_legend<-function(a.gplot){  -->
+<!--   tmp <- ggplot_gtable(ggplot_build(a.gplot))  -->
+<!--   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")  -->
+<!--   legend <- tmp$grobs[[leg]]  -->
+<!--   return(legend)}  -->
+<!-- legend <- g_legend(my.category.heatmap.graph[[1]])  -->
+<!-- # -->
+<!-- my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]]+theme(legend.position="none"),legend ,ggplot()+geom_blank(),my.category.heatmap.graph[[17]],my.category.heatmap.graph[[19]],my.category.heatmap.graph[[3]],my.category.heatmap.graph[[4]],my.category.heatmap.graph[[5]],my.category.heatmap.graph[[14]],my.category.heatmap.graph[[10]],my.category.heatmap.graph[[6]],my.category.heatmap.graph[[13]],my.category.heatmap.graph[[7]],my.category.heatmap.graph[[8]],my.category.heatmap.graph[[9]], -->
+<!--                       labels=c("A","","","B","","","","","","","","","","",""), -->
+<!--                       vjust = 1.1, hjust=-0.5, -->
+<!--                       ncol=3,nrow=5, -->
+<!--                       label_size = 50) -->
+<!-- # -->
+<!-- #setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/") -->
+<!-- save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig5_oldFig_S2_all.my.category.expression.pattern.v16.log2.signif.101117.png"), my.category.heatmap.all, -->
+<!--           ncol = 3, # we're saving a grid plot of 2 columns -->
+<!--           nrow = 5, # and 2 rows -->
+<!--           base_aspect_ratio = 2.5, -->
+<!--           base_height=6, -->
+<!--           limitsize = FALSE -->
+<!-- ) -->
+<!-- ``` -->
+<!-- # the end of custom category heatmap (shade responsiveness) (Fig. 5) -->
+
+
 
 ## co-expression analysis by WGCNA
 ```{r eval=FALSE}
