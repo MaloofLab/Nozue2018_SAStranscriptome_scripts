@@ -1998,11 +1998,6 @@ merge.net32<-mergeCloseModules(
   moduleColors = labels2colors(merge.net32$colors)
   #MEs = merge.net32$MEs # null (120916)
   MEs = merge.net32$newMEs # new one? (120916)
-# # switch "orange" and "salmon" (to keep "salomn" module name) (not applicable to 092817 version)
-# moduleColors.temp<-moduleColors
-# moduleColors.temp<-gsub("^orange","salmon",moduleColors)
-# moduleColors.temp<-gsub("salmon4","orange4",moduleColors.temp)
-# moduleColors<-moduleColors.temp
   geneTree = merge.net32$dendrograms[[1]]
   save(MEs, moduleLabels, moduleColors, geneTree,file = paste("../../Nozue2016_SAStranscriptome_output/output/all",x,".largeCV.merge.net32.RData",sep="")) # "salmon" fixed (121216)
 rm(net)
@@ -2104,7 +2099,7 @@ DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.
 write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset6_Complete_gene_list_misexpressed_in_mutant_and_WGCNA_modules_in_Fig4.csv")) #112817
 
 # in whitney
-test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset7_Complete_gene_list_misexpressed_in_mutant_and_WGCNA_modules_in_Fig4.csv"),row.names=1) # does  work (100717)
+test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset6_Complete_gene_list_misexpressed_in_mutant_and_WGCNA_modules_in_Fig4.csv"),row.names=1) # does  work (100717)
 ## checking test object
 test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),] # OK they are salmon
 
@@ -2113,8 +2108,19 @@ test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT1G32640
 
 # six MYBs that regulate indolic glucosinolates (GSLs): MYB34 AT5G60890, MYB51 AT1G18570, MYB122 AT1G74080, MYB28 AT5G61420, MYB29 AT5G07690, MYB76      AT5G07700
 test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT5G60890","AT1G18570","AT1G74080","AT5G61420","AT5G07690","AT5G07700"),]
+# WRKY
+grep("WRKY",test[test$WGCNAmodules=="salmon","Short_description"],value=TRUE)
 
 dim(test) #  8150 28 (100717)
+table(test$WGCNAmodules)
+#             0         black          blue         brown     darkgreen      darkgrey    darkorange       darkred 
+#          1125           247           826           338            54            46            35            63 
+# darkturquoise         green   greenyellow          grey        grey60     lightcyan   lightyellow       magenta 
+#            52           277           148           706            93           100            65           281 
+#  midnightblue paleturquoise        purple           red     royalblue   saddlebrown        salmon       skyblue 
+#           100            23           169           260            64            27           155            34 
+#     steelblue           tan     turquoise         white        yellow 
+#            23           142          2343            34           320 
 # overlap table (revsised into GOseq.overlapTable; 052616; 092817; 092917)
 for(i in 2:25) { #
   overlap.GOseq<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI)
