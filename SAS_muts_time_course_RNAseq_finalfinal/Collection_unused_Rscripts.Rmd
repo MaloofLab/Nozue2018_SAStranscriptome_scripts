@@ -1,0 +1,134 @@
+---
+title: "Collection_unused_Rscripts"
+author: "Kazu"
+date: "11/30/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# fold chagne (shade responsiveness) of each module (not used; 09**17)
+```{r}
+load("../Nozue2016_SAStranscriptome_output/output/summary.vst.response.Rdata") # response. needs to fix colnames (060515)
+summary.vst.response.kazu<-summary.vst.response[,gsub("([[:digit:]]+)(_)(1|4|16|25|49)(hrA)","\\1",colnames(summary.vst.response)) %in% 1:19]
+dim(summary.vst.response.kazu)
+head(summary.vst.response.kazu)
+q<-expression.pattern.graph2b(summary.vst.response.kazu,"AT2G46970") # PIL1
+# XBATs (120716)
+XBATs<-c("AT2G28840","AT5G57740","AT5G07270","AT4G14365","AT3G23280") # XBAT31, 32, 33, 34, 35
+# plot
+setwd("/Volumes/data_work/Data8/XBAT34")
+p<-expression.pattern.graph3(summary.vst.kazu,XBATs,plot.order=c("AT2G28840","AT5G57740","AT5G07270","AT4G14365","AT3G23280")) 
+p
+ggsave(p, file="XBATs_absolute.expression.pdf")
+# shade response
+q<-expression.pattern.graph2b(summary.vst.response.kazu,XBATs,plot.order=c("AT2G28840","AT5G57740","AT5G07270","AT4G14365","AT3G23280"))
+q
+ggsave(q, file="XBATs_shaderesponsiveness.pdf")
+# salmon module Col absolute value
+# salmon
+#test<-read.csv("../Nozue2016_SAStranscriptome_output/figs_tables/Dataset7.csv")
+DE.genotype.batch.genes.WGCNAmodules.description<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset4_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules092817.csv"),row.names=1)
+#DE.genotype.batch.genes.WGCNAmodules.description<-test[,-1]
+dim(DE.genotype.batch.genes.WGCNAmodules.description) # 17985   28 > [1] 33602    31
+
+salmon<-DE.genotype.batch.genes.WGCNAmodules.description[DE.genotype.batch.genes.WGCNAmodules.description$WGCNAmodules=="salmon",]
+salmon$AGI
+lightgreen<-DE.genotype.batch.genes.WGCNAmodules.description[DE.genotype.batch.genes.WGCNAmodules.description$WGCNAmodules=="lightgreen",]
+lightgreen$AGI
+purple<-DE.genotype.batch.genes.WGCNAmodules.description[DE.genotype.batch.genes.WGCNAmodules.description$WGCNAmodules=="purple",]
+plum1<-DE.genotype.batch.genes.WGCNAmodules.description[DE.genotype.batch.genes.WGCNAmodules.description$WGCNAmodules=="plum1",]
+
+purple$AGI
+# graph
+data.cpm<-summary.vst.kazu
+target.gene<-lightgreen$AGI
+p.Col.lightgreen<-expression.pattern.graph5(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49")],lightgreen$AGI) #lightgreen, Col. 
+
+p.Col.salmon<-expression.pattern.graph5(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49")],salmon$AGI) #lightgreen, Col. 
+
+p.Col.purple<-expression.pattern.graph5(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49")],purple$AGI) #purple, Col
+
+p.Col.purple.b<-expression.pattern.graph5b(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49")],purple$AGI) #purple, Col
+p.Col.purple.abs<-expression.pattern.graph5.abs(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49")],purple$AGI) #purple, Col
+
+p.Col.shade.responsive.abs<-expression.pattern.graph5.abs(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49")],c("AT1G04240","AT1G04310","AT1G18400","AT1G27730","AT1G29440","AT1G29450","AT1G29460","AT1G29490","AT1G29500","AT1G29510","AT1G30700","AT1G52830","AT1G65920","AT1G70940","AT2G18010","AT2G22810","AT2G26710","AT2G39030","AT3G02170","AT3G03830","AT3G03840","AT3G15540","AT3G23030","AT3G42800","AT3G58120")) #Col, a part of IAAup. hard to see the pattern
+
+p.Col.shade.responsive.FC<-expression.pattern.graph5.FC(summary.vst.response.kazu,target.genes=plum1$AGI[1:10]) # this is good.
+
+p.Col.plum1<-expression.pattern.graph5(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49")],plum1$AGI) #plum1, Col
+
+p.Col.plum1.b<-expression.pattern.graph5b(summary.vst.kazu[,c("1H1","1H25","1H4","1H49","1L1","1L25","1L4","1L49")],plum1$AGI) #plum1, Col
+
+p.salmon<-expression.pattern.graph5(summary.vst.kazu,salmon$AGI) #lightgreen, Col. 
+p.lightgreen<-expression.pattern.graph5(summary.vst.kazu,lightgreen$AGI) #lightgreen, Col. 
+p.purple<-expression.pattern.graph5(summary.vst.kazu,purple$AGI) #purple, Col. 
+p.plum1<-expression.pattern.graph5(summary.vst.kazu,plum1$AGI) #plum1, Col. 
+
+q<-expression.pattern.graph2b(summary.vst.response.kazu,target.genes=plum1$AGI[1:10])
+p.plum1<-expression.pattern.graph5b(summary.vst.kazu,plum1$AGI) #plum1, Col. 
+```
+# how to look overlap between categories?
+```{r}
+ dim(test.wozero.melt.hormone.significant.s.summary) # 93 10
+ # pTable
+ for(i in 2:8) {
+   for(n in (i+1):9) {
+ category.overlapTable<-overlapTable(test.wozero.melt.hormone.significant.s.summary[,i],test.wozero.melt.hormone.significant.s.summary[,n])
+ category.overlapTable.pTable<-category.overlapTable$pTable
+     save(category.overlapTable.pTable,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("category.overlapTable.pTable",colnames(test.wozero.melt.hormone.significant.s.summary)[i],colnames(test.wozero.melt.hormone.significant.s.summary)[n],"Rdata",sep=".")))
+   }
+ }
+# combine pTable
+ category.overlapTable.pTable.files<-list.files(pattern="category.overlapTable.pTable",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+#
+ category.overlapTable.pTable.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",category.overlapTable.pTable.files),function(x) mget(load(x))) # mget
+ names(category.overlapTable.pTable.files.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/category.overlapTable.pTable.)([[:print:]]+)(.Rdata.category.overlap)","\\2",names(category.overlapTable.pTable.files.list))
+ #category.overlapTable.files.DF<-as.data.frame(category.overlapTable.files.list)
+ p.table<-data.frame(comparison=rep("",length(names(category.overlapTable.files.list))),signif.overlap="")
+ p.table[1,2]<-category.overlapTable.files.list[[1]][2,2]
+ p.table[1,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[1])
+
+ for(n in 2:length(names(category.overlapTable.files.list))) {
+ p.table[n,2]<-category.overlapTable.files.list[[n]][2,2]
+ p.table[n,1]<-gsub("([[:print:]]+)(Table.pTable)","\\1",names(category.overlapTable.files.list)[n])
+ }
+# p.table
+ # count
+ for(i in 1:9) {
+   for(n in (i+1):10) {
+ category.overlapTable<-overlapTable(test.wozero.melt.hormone.significant.s.summary[,i],test.wozero.melt.hormone.significant.s.summary[,n])
+ category.overlapTable.countTable<-category.overlapTable$countTable
+     save(category.overlapTable.countTable,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("category.overlapTable.count",colnames(test.wozero.melt.hormone.significant.s.summary)[i],colnames(test.wozero.melt.hormone.significant.s.summary)[n],"Rdata",sep=".")))
+   }
+ }
+ # count
+ category.overlapTable.count.files<-list.files(pattern="category.overlapTable.count",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
+ category.overlapTable.count.files.list<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",category.overlapTable.count.files),function(x) mget(load(x))) # mget
+ names(category.overlapTable.count.files.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/category.overlapTable.count.)([[:print:]]+)(.Rdata.category.overlap)","\\2",names(category.overlapTable.count.files.list))
+ #category.overlapTable.files.DF<-as.data.frame(category.overlapTable.files.list)
+ count.table<-data.frame(comparison=rep("",length(names(category.overlapTable.count.files.list))),count.overlap="")
+ count.table[1,2]<-category.overlapTable.count.files.list[[1]][2,2]
+ count.table[1,1]<-gsub("([[:print:]]+)(Table.countTable)","\\1",names(category.overlapTable.count.files.list)[1])
+
+ for(n in 2:length(names(category.overlapTable.count.files.list))) {
+ count.table[n,2]<-category.overlapTable.count.files.list[[n]][2,2]
+ count.table[n,1]<-gsub("([[:print:]]+)(Table.countTable)","\\1",names(category.overlapTable.count.files.list)[n])
+ }
+# count.table
+ #### combine signif.overlap and count.overlap
+ p.table.count<-merge(p.table,count.table,by="comparison")
+ p.table.count$x<-gsub("([[:print:]]+)(\\.)([[:print:]]+)","\\1",p.table.count$comparison)
+ p.table.count$y<-gsub("([[:print:]]+)(\\.)([[:print:]]+)","\\3",p.table.count$comparison)
+ # contingent table format
+ p.table.count.reshape<-reshape(data=p.table.count[,c("x","y","count.overlap")],idvar="x",timevar="y",direction="wide")
+ colnames(p.table.count.reshape)<-gsub("count.overlap.","",colnames(p.table.count.reshape))
+ p.table.count.reshape
+ p.table.count.reshape[is.na(p.table.count.reshape)]<-""
+ p.table.count.reshape
+
+# ######## under construction ######### 102417
+ #write.csv(test.wozero.melt.hormone.significant.ssss,file="../../Nozue2016_SAStranscriptome_output/figs_tables/TableS6_test.wozero.melt.hormone.significant.102417.csv") # This should be TableS6 (101017)
+ ```

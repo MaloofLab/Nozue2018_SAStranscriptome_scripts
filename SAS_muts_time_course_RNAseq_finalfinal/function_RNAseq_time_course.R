@@ -5,9 +5,10 @@
 ##  
 ###################################################
 library("annotate") #
+library(DESeq2)
 library(edgeR)
 library(ggplot2);library(reshape2);library(grid);library(class);library(MASS);library(plyr)
-library(kohonen) # for SOM analysis
+#library(kohonen) # for SOM analysis
 library(scales) # for muted
 library(WGCNA);library(ShortRead);library(goseq);library(GO.db); library("org.At.tair.db")
 options(stringsAsFactors = FALSE) # for WGCNA
@@ -23,8 +24,6 @@ library(lmerTest) # for significant analysis
 #TAIR10_gene_descriptions<-read.csv("../Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv")
 #TAIR10_gene_descriptions<-read.csv("Nozue2016_SAStranscriptome_data/input/TAIR10_functional_descriptions.csv")
 TAIR10_gene_descriptions<-read.csv(file.path(homedir,"..","..","Nozue2016_SAStranscriptome_data","input","TAIR10_functional_descriptions.csv"))
-
-#setwd(homedir2)
 TAIR10_gene_descriptions$AGI<-gsub("([[:print:]]+)(.[[:digit:]]+)","\\1",TAIR10_gene_descriptions$"Model_name")
 # 
 #conversion.table.nam<-data.frame(num=20:27, genotype=c("Blh_1","Jea","Shahdara","Col_0","Cvi_0","Bur_0","Oy_0","Ita_0"))
@@ -391,9 +390,6 @@ expression.pattern.graph5.FC<-function(data.cpm,target.genes,plot.order=NULL){# 
 # ORA with GOseq
 # prerequisit
 #library(ShortRead);library(goseq);library(GO.db);library("org.At.tair.db");library("annotate")
-
-#TIR10_cdna_rep_model<-readDNAStringSet("../../Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") 
-#setwd("../")
 TIR10_cdna_rep_model<-readDNAStringSet(file.path(homedir,"..","..","Nozue2016_SAStranscriptome_data/input/TAIR10_cdna_20110103_representative_gene_model") )
 #setwd(homedir2)
 head(TIR10_cdna_rep_model)
