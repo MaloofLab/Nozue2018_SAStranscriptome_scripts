@@ -1850,14 +1850,135 @@ topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value<-topgene.RP.E_GEOD_31587.phyABDE.
 
 # summary
 topgene.RP.RP.E_GEOD_31587.phyABDE.summary<-rbind(topgene.RP.E_GEOD_31587.phyABDE.T1.m.exp.value,topgene.RP.E_GEOD_31587.phyABDE.T2.m.exp.value)
-write.csv(topgene.RP.RP.E_GEOD_31587.phyABDE.summary,file=file("/Volumes","data_work","Data8","E-GEOD-31587_RAW","topgene.RP.RP.E_GEOD_31587.phyABDE.summary.csv"))
+write.csv(topgene.RP.RP.E_GEOD_31587.phyABDE.summary,file=file.path("/Volumes","data_work","Data8","E-GEOD-31587_RAW","topgene.RP.RP.E_GEOD_31587.phyABDE.summary.csv"))
 # GOseq
 topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus<-topgene.RP.RP.E_GEOD_31587.phyABDE.summary[nchar(topgene.RP.RP.E_GEOD_31587.phyABDE.summary$locus)==9,"locus"]
 phyABDE.seedlings.GOseq<-GOseq.ORA(topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus)
 # write
 write.csv(phyABDE.seedlings.GOseq,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Table1_phyABDE.GOseq.summary.csv_phyABDE.GOseq.summary.csv"))
 phyABDE.seedlings.GOseq.genes<-genes.in.enriched.category(enrich.result=temp.GOseq,gene.list=topgene.RP.RP.E_GEOD_31587.phyABDE.summary.locus,category.table=Atgo.list) #  no auxin?! as I expected.
+# Is auxin responsive genes enriched?
+topgene.RP.RP.E_GEOD_31587.phyABDE.summary<-read.csv(file.path("/Volumes","data_work","Data8","E-GEOD-31587_RAW","topgene.RP.RP.E_GEOD_31587.phyABDE.summary.csv"),row.names = 1)
+topgene.RP.RP.E_GEOD_31587.phyABDE.summary
+# load custom categories
+load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.DF.s.Rdata")) # using SAup_combined & SAdown_combined
+hormone.responsiveness6.DF.s
+hormone.responsiveness6.DF.s$AGI
+# ORA (use overlapTable because of microarray data)
+names(topgene.RP.RP.E_GEOD_31587.phyABDE.summary)<-gsub("locus","AGI",names(topgene.RP.RP.E_GEOD_31587.phyABDE.summary))
+temp1<-merge(hormone.responsiveness6.DF.s,topgene.RP.RP.E_GEOD_31587.phyABDE.summary[topgene.RP.RP.E_GEOD_31587.phyABDE.summary$FC..class1.class2.<1,c("AGI","FC..class1.class2.")],by="AGI",all=TRUE) # upregulated in phyABDE
+temp2<-merge(temp1,topgene.RP.RP.E_GEOD_31587.phyABDE.summary[topgene.RP.RP.E_GEOD_31587.phyABDE.summary$FC..class1.class2.>1,c("AGI","FC..class1.class2.")],by="AGI",all=TRUE)
+  names(temp2)<-gsub("FC..class1.class2..x","phyABDE_up",names(temp2))
+    names(temp2)<-gsub("FC..class1.class2..y","phyABDE_down",names(temp2))
+temp2[!is.na(temp2$"phyABDE_up"),"phyABDE_up"]<-"phyABDE_up"
+temp2[!is.na(temp2$"phyABDE_down"),"phyABDE_down"]<-"phyABDE_down"
+temp2[is.na(temp2)]<-""
+temp2$phyABDE<-paste(temp2$phyABDE_up,temp2$phyABDE_down)
+#temp2<-temp2[temp2$AGI %in% names(bias2),]
+
+
+test<-temp2
+#hormone.responsiveness.E_GEOD_31587.phyABDE
+for(i in 2:20) { # 2:32 for 092817.csv version. 19 and 20 are new (SAup_combined and SAdown_combined)
+  overlap<-overlapTable(test[,"phyABDE"],test[,i]) # all genes
+  overlap.melt<-melt(overlap$pTable,id=1) #
+  overlap.melt$count<-melt(overlap$countTable,id=1)$value
+  overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
+  #overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
+  save(overlap.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.melt.phyABDE.customcat.120717.",i,".Rdata",sep="")))
+} # renamed
 ```
+# overlapTable with Sessa 1h (as positive control)
+```{r}
+Sessa.1h<-read.csv("../../Nozue2016_SAStranscriptome_data/input/sessa1hour.csv")
+Sessa.exp.value<-read.csv("../../Nozue2016_SAStranscriptome_data/input/exp.values.Sessa.csv")
+names(Sessa.1h)<-gsub("ID","AGI",names(Sessa.1h))
+names(Sessa.exp.value)<-gsub("locus","AGI",names(Sessa.exp.value))
+Sessa.1h.exp.value<-merge(Sessa.1h,Sessa.exp.value[,c("AGI",grep("At_seedling",names(Sessa.exp.value),value=T))],by ="AGI")
+Sessa.1h.exp.value$Sessa.1h.up<-""
+Sessa.1h.exp.value[Sessa.1h.exp.value$logFC>1,] # up in shade 1h
+Sessa.1h.exp.value[Sessa.1h.exp.value$logFC>1,"Sessa.1h.up"]<-"Sessa.1h.up"
+Sessa.1h.exp.value$Sessa.1h.down<-""
+Sessa.1h.exp.value[Sessa.1h.exp.value$logFC<1,"Sessa.1h.down"]<-"Sessa.1h.down"
+Sessa.1h.exp.value$Sessa.1h<-paste(Sessa.1h.exp.value$Sessa.1h.up,Sessa.1h.exp.value$Sessa.1h.down)
+Sessa.1h.exp.value$Sessa.1h<-gsub(" ","",Sessa.1h.exp.value$Sessa.1h)
+temp3<-merge(temp2,Sessa.1h.exp.value[,c("AGI","Sessa.1h")],by="AGI",all=TRUE)
+table(temp3$Sessa.1h)
+temp3[is.na(temp3)]<-""
+test<-temp3
+#hormone.responsiveness.E_GEOD_31587.phyABDE
+for(i in 2:20) { # 2:32 for 092817.csv version. 19 and 20 are new (SAup_combined and SAdown_combined)
+  overlap<-overlapTable(test[,"Sessa.1h"],test[,i]) # all genes
+  overlap.melt<-melt(overlap$pTable,id=1) #
+  overlap.melt$count<-melt(overlap$countTable,id=1)$value
+  overlap.melt<-overlap.melt[!overlap.melt$Var2=="0",]
+  #overlap.melt.summary<-rbind(overlap.melt.summary,overlap.melt)
+  save(overlap.melt,file=file.path(homedir,"..","..","Nozue2016_SAStranscriptome_output","output",paste("overlap.melt.Sessa1h.customcat.120817.",i,".Rdata",sep="")))
+} # renamed
+
+```
+
+
+# combine overlapTables
+```{r}
+overlap.melt.phyABDE.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.phyABDE")
+overlap.melt.Sessa.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.Sessa")
+
+overlap.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",c(overlap.melt.phyABDE.custom.files,overlap.melt.Sessa.custom.files)),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see https://stackoverflow.com/questions/29398630/load-data-frames-into-list
+names(overlap.melt.summary.list2)
+overlap.melt.summary<-do.call("rbind",overlap.melt.summary.list2) 
+head(overlap.melt.summary) # make sure those are file names
+rownames(overlap.melt.summary)<-1:nrow(overlap.melt.summary)
+# format overlap.GOseq.melt.summary
+overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
+overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
+overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
+table(overlap.melt.summary$Var2)
+overlap.melt.summary<-overlap.melt.summary[!overlap.melt.summary$Var2=="",]
+
+overlap.melt.summary$Var2<-factor(as.character(overlap.melt.summary$Var2),levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup_combined","SAdown_combined","MYC234up","MYC234down","PIFtarget")) # (110917)
+
+save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.120717.Rdata") )
+```
+# reading and cleaning overlap table and graph (phyABDE, 120717)
+```{r}
+load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.120717.Rdata"))
+overlap.melt.summary
+overlap.melt.summary.ss<-overlap.melt.summary[!overlap.melt.summary$Var1==" ",]
+overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var1=="",]
+
+names(table(overlap.melt.summary.sss$Var1))
+
+
+overlap.melt.summary.ss$Var1<-as.factor(overlap.melt.summary.ss$Var1)
+overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var2=="",]
+overlap.melt.summary.ss$Var1<-droplevels(overlap.melt.summary.ss$Var1)
+overlap.melt.summary.ss$Var2<-droplevels(overlap.melt.summary.ss$Var2)
+
+#overlap.melt.summary.ss$Var2<-factor(overlap.melt.summary.ss$Var2,levels=paste(rep(conversion.table[-1,"genotype"],2),rep(c("sun","shade"),each=12),sep=".")) # sort Var2 (muts)
+# check data
+table(overlap.melt.summary.ss$Var1)
+# plot
+q4<-ggplot(overlap.melt.summary.ss,aes(y=factor(Var1),x=factor(Var2))) 
+#q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2) # this color coding is not good (061716)
+q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) # Is this better? (061716)
+#q4 <- q4 +theme(legend.position="none") # this removed all legend
+q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
+                 axis.ticks = element_line(size=0,color="white"),
+                 axis.line=element_line(size=1)) # adjust axis line width
+q4 <- q4 + geom_text(aes(label=count),size=4)
+q4 <- q4 + labs(x="custom category",y="phyABDE regulated",title="",fill="-log10\n pvalue")
+#q4 <- q4 + theme(legend.title=element_blank())
+ggsave(q4,file="Supplemental_FigX.phyABDE.Sessa1hvs..my.category.120817.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(q4,file="Supplemental_FigX.phyABDE.Sessa1hvs..my.category.120817.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+q4 # magenta indicates pvalue is smaller than 0.01.
+```
+# Number of Col genes in each module are: 
+```{r eval=FALSE} 
+table(SAS.expression.vst.s.kazu.largeCV.modules$"1")  # 28 modules
+```
+
+
 
 # Does each WGCNA module contain shade-responsive genes? (011216; 100417)
 ```{r}
