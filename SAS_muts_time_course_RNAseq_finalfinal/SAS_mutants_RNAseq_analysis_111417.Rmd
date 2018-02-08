@@ -769,7 +769,7 @@ ggsave(paste("Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_g
 
 } # end loop
 
-# To which clusters in mutants do genes in Col cluster 3 belong? (useful for looking transition?)
+# To which clusters in mutants do genes in Col cluster 3 belong? (useful for looking transition?)　(error: newdata.vsd not found, 020718)
 newdata.vst$gt2<-vlookup(newdata.vst$gt,conversion.table,2)
 cluster3.Col.AGI<-newdata.vst[newdata.vst$gt==1 & newdata.vst$ssom3.4.unit.classif==3,"AGI"]
 ftable(newdata.vst[newdata.vst$AGI %in% cluster3.Col.AGI,c("gt2","ssom3.4.unit.classif")])
@@ -816,10 +816,11 @@ p.heatmap
 ggsave(paste("Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718",x,".pdf",sep=""),width=11,height=8,unit="in",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
 } 
 # transfer representative one (eps3.3_MinPts13.set42) for Supplemental Fig2
-system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_102317eps3.3_MinPts13.set47.pdf")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718eps3.3_MinPts13.set47.pdf"),sep=""))
+# eps3.25_MinPts14.set45 (020818)
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718eps3.25_MinPts14.set45.pdf")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718eps3.25_MinPts14.set45.pdf"),sep=""))
 
-# archive (under construction for Supplemental Dataset1) (112917)
-system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset1_BH-SNE_cluster_responsiveness_heatmap.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020818eps*"),sep=""))
+# archive (Supplemental Dataset1) (112917,020818)
+system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset1_t-SNE_cluster_responsiveness_heatmap.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718eps*"),sep=""))
 
 ```
 # custom category heatmap (Fig. 2)
@@ -832,14 +833,14 @@ dim(summary.vst.response) #[1] 30533    52
 head(summary.vst.response)
 # find overlap between shade responsive (in Col) and hormone responsive
 #test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","TableS4_hormone.responsiveness.SOMclusters100717.csv") ,row.names=1) # needs to use updated one (092917)
-test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Dataset2_Custom_enrichment_tsnedbscan_clusters_of_shade-responsive_genes020718.csv") ,row.names=1) # tsnedbscan version
+test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset2_Custom_enrichment_tsnedbscan_clusters_of_shade-responsive_genes020718.csv") ,row.names=1) # tsnedbscan version
 test<-test %>% dplyr::select(-c(Short_description,colE...col.F))
 colnames(test)
 test<-test %>% filter(gt==1) %>% dplyr::select(-gt) # select only found in Col clusters. remove gt column
 
 # reading overlapTable
 #load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.GOseq.melt.summary.SOM.customcat.100717.Rdata")) 
-overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v2")
+overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.files<-list.files(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v3")
 
 for(y in overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.files) 
   { # 140 of y
@@ -851,9 +852,9 @@ overlap.melt.summary.s$Var2<-droplevels(overlap.melt.summary.s$Var2)
 overlap.melt.summary.s.significant<-overlap.melt.summary.s[overlap.melt.summary.s$value> -log10(0.01),] # pvalue<0.01 (the same as Fig3)
 overlap.melt.summary.s.significant$category.cluster<-with(overlap.melt.summary.s.significant,paste(Var2,Var1,sep="_")) # Var1 = cluster, Var2=category
 
-title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v2)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)(\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\6\\7\\9",y)
+title<-gsub("(overlap.melt.tsnedbscan.customcat.PLoSGenetics2015mutants.errrDE.summary.v3)(\\.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set)(\\.)([[:digit:]]+)(\\.Rdata)","\\3\\4\\5\\6\\7\\9",y)
 
-test.wozero<-test[!test[,title]=="0",c(grep("eps",colnames(test),invert=TRUE,value=TRUE),title)] # remove cluster 0 in test
+test.wozero<-test[!test[,title]=="0",c(grep("eps",colnames(test),invert=TRUE,value=TRUE),title)] # remove cluster 0 in test. 
 head(test.wozero)
 test.wozero.melt<-melt(test.wozero,id.var=c("AGI",title))
 colnames(test.wozero.melt)<-gsub(title,"cluster",colnames(test.wozero.melt))
@@ -901,7 +902,7 @@ save(test.wozero.melt.hormone.significant.s,file=file.path("..","..","Nozue2016_
 } # category.morethan3 > 0
 } # 
 ```
-# comparison of test.wozero.melt.hormone.significant.s gene list (102517;110717)
+# comparison of test.wozero.melt.hormone.significant.s gene list (102517;110717；020818)
 ```{r}
 #test.wozero.melt.hormone.significant.s.files<-list.files(pattern="test.wozero.melt.hormone.significant.s",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
 test.wozero.melt.hormone.significant.s.files<-list.files(pattern="test.wozero.melt.hormone.significant.s.v3",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # v3
@@ -941,7 +942,7 @@ test.wozero.melt.hormone.significant.s.files
 
  test.wozero.melt.hormone.significant.s.list<- sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",test.wozero.melt.hormone.significant.s.files),function(x) mget(load(x))) # mget 
 # rename 
-names(test.wozero.melt.hormone.significant.s.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/test.wozero.melt.hormone.significant.s.v2.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set[[:digit:]]+)(.Rdata.test.wozero.melt.hormone.significant.s)","\\2\\3\\4\\5\\6",names(test.wozero.melt.hormone.significant.s.list))
+names(test.wozero.melt.hormone.significant.s.list)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/test.wozero.melt.hormone.significant.s.v3.)(eps[[:print:]]+)(\\_)(MinPts[[:digit:]]+)(\\.)(set[[:digit:]]+)(.Rdata.test.wozero.melt.hormone.significant.s)","\\2\\3\\4\\5\\6",names(test.wozero.melt.hormone.significant.s.list))
 
 # summary.vst.response.kazu
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","summary.vst.response.Rdata")) # response (092917)
@@ -987,17 +988,18 @@ head(summary.vst.response.kazu)
 # for Fig5A, Col
 my.category.heatmap.graph<-list()
 for(i in c(1,17,19,3,4,5,14,10,6,13,7,8,9)) { # 
-my.category.heatmap.graph[[i]]<-my.category.heatmap6(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.102617v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),save.plot=F,legend.fill=F,file.name=paste("v2",title,sep=""),category.level=levels(categories$my.category)) #  legend.fill=F to T for new Fig5 (all absolute value, previously called FigS2). mean expression value was saved as FigS2.absolute.summary.table.melt   save(summary.table.melt,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("FigS2.absolute.summary.table.melt",gt.num,".Rdata",sep="")))
+my.category.heatmap.graph[[i]]<-my.category.heatmap6(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.102617v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),save.plot=F,legend.fill=F,file.name=paste("v3",title,sep=""),category.level=levels(categories$my.category)) #  legend.fill=F to T for new Fig5 (all absolute value, previously called FigS2). mean expression value was saved as FigS2.absolute.summary.table.melt   save(summary.table.melt,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("FigS2.absolute.summary.table.melt",gt.num,".Rdata",sep="")))
 
 }
 
 # summerize mean expression data in each category in one data frame
 FigS2.absolute.summary.table.melt.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="FigS2.absolute.summary.table.melt") # (102617)
-FigS2.absolute.summary.table.melt.files<-grep(paste("v2",title,".Rdata",sep=""),FigS2.absolute.summary.table.melt.files,value=T) # v2
+FigS2.absolute.summary.table.melt.files<-grep(paste("v3",title,".Rdata",sep=""),FigS2.absolute.summary.table.melt.files,value=T) # v2
 
 FigS2.absolute.summary.table.melt.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",FigS2.absolute.summary.table.melt.files),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see 
 FigS2.absolute.summary.table.melt.DF<-do.call(cbind,FigS2.absolute.summary.table.melt.list2)
-# remove redundant columns 
+colnames(FigS2.absolute.summary.table.melt.DF)
+# remove redundant columns (does work properly?, 020818)
 colnames(FigS2.absolute.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStranscriptome_output/output/tsne_dbscan_overlapTable_heatmap/FigS2.absolute.summary.table.melt)([[:print:]]+)(.Rdata.summary.table.melt.)(my.category|variable|value)","\\2.\\4",colnames(FigS2.absolute.summary.table.melt.DF))
 FigS2.absolute.summary.table.melt.DF<-FigS2.absolute.summary.table.melt.DF[,c(paste("1v3",title,".my.category",sep=""),paste("1v3",title,".variable",sep="") ,grep("value",colnames(FigS2.absolute.summary.table.melt.DF),value=TRUE))] # v2
 write.csv(FigS2.absolute.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("FigS2.absolute.summary.table.melt.DF.v3",title,".csv",sep="")))  # v3
@@ -1072,7 +1074,8 @@ save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne
 
 } # loop for test.wozero.melt.hormone.significant.s.list. v2
 # transfer eps3.3_MinPts13.set42 for Fig2
-system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.3_MinPts13.set47.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.3_MinPts13.set47.png"),sep=""))
+# eps3.25_MinPts14.set45 (020818)
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.25_MinPts14.set45.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.25_MinPts14.set45.png"),sep=""))
 
 # archivre Supplemental_Dataset4 files 
 # SupData4.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v2.")

@@ -12,8 +12,9 @@ library(ggplot2);library(reshape2);library(grid);library(class);library(MASS);li
 library(scales) # for muted
 library(WGCNA);library(ShortRead);library(goseq);library(GO.db); library("org.At.tair.db")
 options(stringsAsFactors = FALSE) # for WGCNA
-library(Rtsne);library(fpc) # for BH-SNE analysis
-
+library(Rtsne);library(fpc) # for t-SNE analysis
+library(cowplot) # for multiple plot
+library(tidyverse)
 # see http://www.bioconductor.org/install/ for installation of these packages 
 #library(ggdendro) # for dendrogram
 library(lmerTest) # for significant analysis
