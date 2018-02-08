@@ -1637,7 +1637,7 @@ temp.genes.wdescrition[temp.genes.wdescrition$"GO:0009697"==1,c("AGI","Short_des
 <!-- } -->
 <!-- }  -->
 <!-- ``` -->
-# overlap analysis with custome categories (WGCNA modules): Fig6  (no need to change, 100717). using SAup_combined & SAdown_combined (110917)
+# overlap analysis with custome categories (WGCNA modules): Fig6  (no need to change, 100717). using SAup_combined & SAdown_combined (110917). rename SAup_combined & SAdown_combined into SAup and sadown (020818)
 ```{r eval=FALSE}
 # custom categories
 load(file.path("..","..","Nozue2016_SAStranscriptome_data","input","hormone.responsiveness6.DF.s.Rdata")) # using SAup_combined & SAdown_combined
@@ -1660,7 +1660,7 @@ head(hormone.responsiveness.WGCNAmodules)
 # remove GRF1_3target (052616)
 hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,!names(hormone.responsiveness.WGCNAmodules)=="GRF1_3target"]
 # write in csv file (Supplemental Dataset6)
-write.csv(hormone.responsiveness.WGCNAmodules,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset5_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules110917.csv"))
+write.csv(hormone.responsiveness.WGCNAmodules,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset5_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules020818.csv"))
 
 
 # salmon genes and SA, npr1 responsiveness? (PCC1, XBAT34, AIG1, ACD6,SARD1,cbp60g)
@@ -1674,11 +1674,11 @@ hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmod
 hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$IAAup %in% "IAAup" & hormone.responsiveness.WGCNAmodules$WGCNAmodules=="green", c("AGI","IAAup","IAAdown","SAup_combined","SAdown_combined","WGCNAmodules")]
 
 ```
-# overlapTable for WGCNA module vs custome categories (100417)  (no need to change, 100717)
+# overlapTable for WGCNA module vs custome categories (100417)  (no need to change, 100717)(use updated csv file, 020818)
 ```{r}
-hormone.responsiveness.WGCNAmodules<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset6_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules110917.csv"),row.names=1)
-hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "salmon" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"), c("AGI","IAAup","IAAdown","SAup_combined","SAdown_combined","WGCNAmodules")]
-# OK, Salmon module and SAup_combined
+hormone.responsiveness.WGCNAmodules<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset5_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules020818.csv"),row.names=1)
+hormone.responsiveness.WGCNAmodules[hormone.responsiveness.WGCNAmodules$WGCNAmodules %in% "salmon" & hormone.responsiveness.WGCNAmodules$AGI %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"), c("AGI","IAAup","IAAdown","SAup","SAdown","WGCNAmodules")]
+# OK, Salmon module and SAup
 test<-hormone.responsiveness.WGCNAmodules
 for(i in 19:20) { # 2:32 for 092817.csv version. 19 and 20 are new (SAup_combined and SAdown_combined)
   overlap.GOseq<-GOseq.overlapTable(test[,"WGCNAmodules"],test[,i],genes=test$AGI) # all genes
@@ -1730,7 +1730,9 @@ save(custom.category.overlap.melt.summary.s,file=file.path("..","..","Nozue2016_
 # graph  (no need to change, 100717); chagned 110917 due to "SAup_combined" and "SAdown_combined"
 ```{r}
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","custom.category.v4.overlap.overlap.melt.summary.s.GOseq110917.Rdata")) # 11091717
-
+# rename (020818)
+custom.category.overlap.melt.summary.s$Var2<-gsub("_combined","",custom.category.overlap.melt.summary.s$Var2)
+# 
 f6<-ggplot(custom.category.overlap.melt.summary.s,aes(y=factor(Var1),x=factor(Var2))) 
 f6 <- f6 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2)
 f6 <- f6 + theme(axis.text.x=element_text(angle=90,hjust=1),
@@ -1742,7 +1744,9 @@ f6 <- f6 + theme(axis.text.x=element_text(angle=90,hjust=1),
 f6 <- f6 + geom_text(aes(label=count),size=4)
 f6 <- f6 + labs(x="custom category",y="WGCNA modules in Col",title="custom category enrichment",fill="-log10\n pvalue")
 #ggsave(f6,file="Fig3_Col.WGCNA.modules.vs.my.category.table.s.110917.pdf",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(f6,file="Fig3_Col.WGCNA.modules.vs.my.category.table.s.110917.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+#ggsave(f6,file="Fig3_Col.WGCNA.modules.vs.my.category.table.s.110917.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(f6,file="Fig3_Col.WGCNA.modules.vs.my.category.table.s.020818.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+
 f6 # magenta indicates pvalue is smaller than 0.01.
 ```
 
@@ -1956,7 +1960,11 @@ save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_
 # reading and cleaning overlap table and graph (phyABDE, 120717)
 ```{r}
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.120717.Rdata"))
+
 overlap.melt.summary
+# rename SAup_combined and SAdown_combined (020818)
+overlap.melt.summary$Var2<-gsub("_combined","",overlap.melt.summary$Var2)
+# 
 overlap.melt.summary.ss<-overlap.melt.summary[!overlap.melt.summary$Var1==" ",]
 overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var1=="",]
 
@@ -1982,8 +1990,8 @@ q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
 q4 <- q4 + geom_text(aes(label=count),size=4)
 q4 <- q4 + labs(x="custom category",y="phyABDE regulated",title="",fill="-log10\n pvalue")
 #q4 <- q4 + theme(legend.title=element_blank())
-ggsave(q4,file="Supplemental_FigX.phyABDE.Sessa1hvs..my.category.120817.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(q4,file="Supplemental_FigX.phyABDE.Sessa1hvs..my.category.120817.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(q4,file="Supplemental_Fig1.phyABDE.Sessa1hvs..my.category.020818.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(q4,file="Supplemental_Fig1.phyABDE.Sessa1hvs..my.category.020818.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
 q4 # magenta indicates pvalue is smaller than 0.01.
 ```
 # Number of Col genes in each module are: 
