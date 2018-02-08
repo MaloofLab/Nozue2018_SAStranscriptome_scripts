@@ -1,0 +1,275 @@
+---
+title: "2018ISPP_SA"
+author: "Kazu"
+date: "12/28/2017"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+if(Sys.info()["user"]=="nozue") {
+  homedir<-"/Volumes/data_work/Data8/NGS_related/Arabidopsis_analysis/Nozue2016_SAStranscriptome_finalfinal_newVST/Nozue2016_SAStranscriptome_scripts/SA_SASproject_scripts/"
+}
+setwd(homedir)
+# reading necessary funcitons and libraries
+source("function.R")
+library(tidyverse)
+library(stringi)
+#################################################
+# more SA mutant (eg. npr2/3/4) (Jan 26, 2017)
+#################################################
+moreSAmutSASdata<-read.csv("../../Nozue2016_SAStranscriptome_data/input/moreSAmut_SAS_leaf.csv")
+head(moreSAmutSASdata)
+# ftable
+moreSAmutSASdata.ftable<-ftable(moreSAmutSASdata[,c("petioleLength","treatment","set","plant")],col.vars=c("set"),row.vars=c("plant","treatment"))
+moreSAmutSASdata.ftable
+# select only setE, F, G, H, and J (new light condition since Feb 2017)
+moreSAmutSASdata<-moreSAmutSASdata[moreSAmutSASdata$set %in% c("E","F","G","H","J"),]
+moreSAmutSASdata$set<-as.factor(as.character(moreSAmutSASdata$set))
+moreSAmutSASdata$treatment<-as.factor(moreSAmutSASdata$treatment)
+moreSAmutSASdata.ftable<-ftable(moreSAmutSASdata[,c("petioleLength","treatment","set","plant")],col.vars=c("set"),row.vars=c("plant","treatment"))
+# rename sid1 into eds5 (083017): use library(stringi)
+moreSAmutSASdata %>% mutate(plant=stri_replace_all_regex(plant,"sid1","eds5")) -> moreSAmutSASdata
+class(moreSAmutSASdata$plant)
+moreSAmutSASdata$plant<-as.factor(moreSAmutSASdata$plant)
+moreSAmutSASdata$plant<-relevel(moreSAmutSASdata$plant,ref="Col")
+moreSAmutSASdata.ftable<-ftable(moreSAmutSASdata[,c("petioleLength","treatment","set","plant")],col.vars=c("set"),row.vars=c("plant","treatment"))
+
+moreSAmutSASdata.ftable# OK
+# PBL
+moreSAmutSASdata$petiole_bladeLength<-with(moreSAmutSASdata,petioleLength/bladeLength)
+# rename rep
+moreSAmutSASdata$rep2<-with(moreSAmutSASdata,paste(set,rep,sep="_"))
+moreSAmutSASdata$treatment<-relevel(moreSAmutSASdata$treatment,ref="sun")
+
+# only leaf3-6
+moreSAmutSASdata.leaf3_6<-moreSAmutSASdata[moreSAmutSASdata$leaf>2&moreSAmutSASdata$leaf<7,]
+# check strange data
+moreSAmutSASdata.leaf3_6[moreSAmutSASdata.leaf3_6$petiole_bladeLength<0.2,]
+
+#### cleaning up data in progress (6/14/2017) ####
+moreSAmutSASdata.leaf3_6[moreSAmutSASdata.leaf3_6$petiole_bladeLength>1,]
+
+# remove too small Col in setE, shade, rep1
+moreSAmutSASdata[moreSAmutSASdata$plant=="Col"&moreSAmutSASdata$treatment=="shade"&moreSAmutSASdata$set=="E"&moreSAmutSASdata$rep==1,]
+hist(moreSAmutSASdata[moreSAmutSASdata$plant=="Col","bladeArea",])
+moreSAmutSASdata<-moreSAmutSASdata[!(moreSAmutSASdata$plant=="Col"&moreSAmutSASdata$treatment=="shade"&moreSAmutSASdata$set=="E"&moreSAmutSASdata$rep==1),]
+
+# # only leaf3 to leaf6. find strange data
+moreSAmutSASdataleaf3_6.rawdataplot.PL<-ggplot(moreSAmutSASdata.leaf3_6, aes(x=treatment,y=petioleLength,color=treatment)) + geom_jitter() + facet_grid(plant~leaf)
+moreSAmutSASdata.leaf3_6.rawdataplot.PBL<-ggplot(moreSAmutSASdata.leaf3_6, aes(x=treatment,y=petiole_bladeLength,color=treatment)) + geom_jitter() + facet_grid(plant~leaf)
+# 
+###
+#moreSAmutSASdata.setE.leaf3_6[moreSAmutSASdata.setE.leaf3_6$petioleLength<1,] #none
+### reference is "sun"
+# PL
+moreSAmutSASdata.leaf3_6$plant<-relevel(moreSAmutSASdata.leaf3_6$plant,ref="Col")
+moreSAmutSASdata.leaf3_6$treatment<-relevel(moreSAmutSASdata.leaf3_6$treatment,ref="sun")
+moreSAmutSASdata.leaf3_6$plant<-as.factor(as.character(moreSAmutSASdata.leaf3_6$plant))
+summary.table.PL.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("PL",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(petioleLength~plant*treatment  + (1 | leaf) + (treatment | set) + (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) # use this if there are more sets
+#summary.table.PL.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("PL",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(petioleLength~plant*treatment  + (1 | leaf)  + (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) 
+
+# PBL
+summary.table.PBL.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("PBL",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(petiole_bladeLength~plant*treatment  + (1 | leaf) + (treatment | set)+ (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) # use this if there are more sets
+#summary.table.PBL.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("PBL",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(petiole_bladeLength~plant*treatment  + (1 | leaf) + (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) 
+
+#BA
+summary.table.BA.rCol.rSun.leaf3_6.moreSAmutSASdata<-model2e.lmer("BA",moreSAmutSASdata.leaf3_6,"Col","sun",lmer(bladeArea~plant*treatment  + (1 | leaf) + (1|rep2),data=moreSAmutSASdata.leaf3_6),saveplot=T) #errors
+
+########
+# hypocotyl (120716)
+## summary table
+SAmuthypdata<-read.csv("../../Nozue2016_SAStranscriptome_data/input/SAmut_hyp_data.csv")
+summary(SAmuthypdata)
+# remove empty cells
+SAmuthypdata<-SAmuthypdata[!SAmuthypdata$treatment=="",]
+# remove small plants  
+SAmuthypdata<-SAmuthypdata[!SAmuthypdata$root=="<2mm",]
+# change format
+#SAmuthypdata[,c("exp","treatment","genotype")]<-as.data.frame(lapply(SAmuthypdata[,c("exp","treatment","genotype")],as.factor)) # 
+#SAmuthypdata[,c("exp","treatment","genotype")]<-lapply(SAmuthypdata[,c("exp","treatment","genotype")],as.character)# 
+
+str(SAmuthypdata)
+## summary table
+SAmuthyp.table<-ftable(SAmuthypdata$plant,SAmuthypdata$treatment,SAmuthypdata$exp) # we do not have enough plants in npr1
+SAmuthyp.table
+# remove npr1
+SAmuthypdata.clean<-SAmuthypdata[!SAmuthypdata$plant=="npr1",]
+SAmuthypdata.clean<-SAmuthypdata
+# replace "sid1" into "eds5" (083017)
+SAmuthypdata.clean %>% mutate(plant=stri_replace_all_regex(plant,"sid1","eds5")) -> SAmuthypdata.clean
+SAmuthypdata.clean$plant<-as.factor(SAmuthypdata.clean$plant)
+SAmuthypdata.clean$plant<-relevel(SAmuthypdata.clean$plant, ref="Col")
+##
+str(SAmuthypdata.clean)
+SAmuthypdata.clean$plant<-droplevels(SAmuthypdata.clean$plant)
+str(SAmuthypdata.clean)
+### drawing graph
+library(ggplot2) # see http://ggplot2.org/
+str(SAmuthypdata.clean)
+#### drawing mean and SE (work later, Kazu)
+p <- ggplot(data=SAmuthypdata.clean,aes(x=treatment,y=hyp_mm,color=treatment)) 
+p <- p + geom_jitter()
+
+p <- p + stat_summary(fun.y="mean",geom="bar",alpha=0.5)
+p <- p + stat_summary(fun.data="calc.sem",geom="errorbar",position="dodge") 
+p<-p + facet_grid(.~plant)
+p <- p + labs(title="rawdata hyp")
+p <-p + theme(axis.title.x = element_blank(), axis.text.x=element_text(angle=90))
+p <- p + theme(strip.text.x = element_text(angle=90))
+p
+ggsave("rawdata_SAmut_hyp.pdf",height=8,width=11,unit="in")
+#
+
+# flowering time
+floweringtime.data<-read.csv("../../Nozue2016_SAStranscriptome_data/input/flowering_time.csv")
+str(floweringtime.data)
+# remove no data rows 
+floweringtime.data<-floweringtime.data[!floweringtime.data$bolted_date=="",]
+floweringtime.data<-floweringtime.data[!floweringtime.data$bolted_date=="na",]
+
+floweringtime.data$start_date<-as.Date(strptime(as.character(floweringtime.data$start_date),"%m/%d/%Y")) # w/o as.Date, the data has hrs/min/sec? subtraction gave me non-integer.
+floweringtime.data$bolted_date<-as.Date(strptime(as.character(floweringtime.data$bolted_date),"%m/%d/%Y"))
+floweringtime.data$days_bolted<-floweringtime.data$bolted_date-floweringtime.data$start_date # Date 
+floweringtime.data$days_bolted<-as.numeric(floweringtime.data$days_bolted) # convert into numeric
+colnames(floweringtime.data)<-sub("genotype","plant",colnames(floweringtime.data))
+# replace "sid1" into "eds5" (083017)
+conversion.table.moreSAmut<-data.frame(
+  genotype=1:9,
+  genotype2=c("Col","sid2","npr3/4","npr3","npr4","NahG","npr1","npr2/3/4","eds5")
+)
+floweringtime.data$plant<-vlookup(floweringtime.data$plant,conversion.table.moreSAmut,2)
+
+# raw data plot
+p<-ggplot(floweringtime.data,aes(x=treatment,y=days_bolted,color=treatment,shape=set)) + geom_jitter()+ facet_grid(~plant)
+ggsave(file="../../Nozue2016_SAStranscriptome_output/output/floweringtime.raw.data.pdf")
+# check data normality
+floweringtime.data$log2_days_bolted<-log2(floweringtime.data$days_bolted)
+shapiro.test(floweringtime.data$days_bolted) # p-value = 4.506e-05
+shapiro.test(floweringtime.data$log2_days_bolted) # p-value = 0.001406
+# use days_bolted (not log transformed)# 
+
+```
+
+# function
+```{r}
+graph.leafpos.selecttraits.ISPP2018<-function(SASdata=moreSAmutSASdata,leaf.start=4,leaf.end=7,plot.traits=c("PL","PBL","BA","bolted days","hyp"),FT.data=floweringtime.data,hyp.data=SAmuthypdata.clean,file.name="../../Nozue2016_SAStranscriptome_output/figs_tables/Fig8_plot.moreSAmut.test.png") { # file name including path. default is leaf4-7
+SASdata.part<-SASdata[SASdata$leaf>=leaf.start&SASdata$leaf<=leaf.end,]
+# 
+### reference is "sun"
+# PL
+SASdata.part$plant<-relevel(SASdata.part$plant,ref="Col")
+SASdata.part$treatment<-relevel(SASdata.part$treatment,ref="sun")
+SASdata.part$plant<-as.factor(as.character(SASdata.part$plant))
+summary.table.PL.rCol.rSun.SASdata.part<-model2e.lmer("PL",SASdata.part,"Col","sun",lmer(petioleLength~plant*treatment  + (1 | leaf) + (treatment | set) + (1|rep2),data=SASdata.part),saveplot=T) 
+# PBL
+summary.table.PBL.rCol.rSun.SASdata.part<-model2e.lmer("PBL",SASdata.part,"Col","sun",lmer(petiole_bladeLength~plant*treatment  + (1 | leaf) + (treatment | set)+ (1|rep2),data=SASdata.part),saveplot=T) 
+#BA
+summary.table.BA.rCol.rSun.SASdata.part<-model2e.lmer("BA",SASdata.part,"Col","sun",lmer(bladeArea~plant*treatment  + (1 | leaf) + (1|rep2),data=SASdata.part),saveplot=T) 
+
+### reference  is "Col" and "shade"
+# PL
+SASdata.part$treatment<-relevel(SASdata.part$treatment,ref="shade")
+summary.table.PL.rCol.rShade.SASdata.part<-model2e.lmer("PL",SASdata.part,"Col","shade",lmer(petioleLength~plant*treatment  + (1|leaf) + (1|rep2),data=SASdata.part),saveplot=T) 
+# PBL
+summary.table.PBL.rCol.rShade.SASdata.part<-model2e.lmer("PBL",SASdata.part,"Col","shade",lmer(petiole_bladeLength~plant*treatment  + (1 | leaf) + (1|rep2),data=SASdata.part),saveplot=T) 
+#BA
+summary.table.BA.rCol.rShade.SASdata.part<-model2e.lmer("BA",SASdata.part,"Col","shade",lmer(bladeArea~plant*treatment  + (1 | leaf)+ (1|rep2),data=SASdata.part),saveplot=T) 
+
+# hypocotyl
+### reference plant is "Col"
+# rep2
+hyp.data$rep2<-paste(hyp.data$exp, hyp.data$plate,hyp.data$rep,sep="_")
+# ref "Col"
+hyp.data$plant<-relevel(hyp.data$plant,ref="Col")
+### reference treatment is "sun"
+hyp.data$treatment<-relevel(hyp.data$treatment,ref="sun")
+str(hyp.data)
+hyp.data
+summary.table.hyp.rCol.rSun<-model2e.lmer("hyp_mm",hyp.data,"Col","sun",lmer(hyp_mm~plant*treatment+(1|rep2) + (1|exp),data=hyp.data),saveplot=T) # + leaf:plant will consider leaf effects, which gave me difficult interpretation. Remove it.
+summary.table.hyp.rCol.rSun[order(summary.table.hyp.rCol.rSun$hyp_mm_shade_pvalue_rCol_rsun),]
+#  reference treatment is "shade"
+hyp.data$treatment<-relevel(hyp.data$treatment,ref="shade")
+summary.table.hyp.rCol.rShade<-model2e.lmer("hyp_mm",hyp.data,"Col","shade",lmer(hyp_mm~plant*treatment+(1|rep2)+(1|exp),data=hyp.data),saveplot=T) # + leaf:plant will consider leaf effects, which gave me difficult interpretation. Remove it.
+
+
+# flowering time
+# ref "Col"
+# FT.data$plant<-relevel(FT.data$plant,ref="Col")
+### reference treatment is "sun"
+FT.data$treatment<-relevel(FT.data$treatment,ref="sun")
+str(FT.data)
+#FT.data
+# use days_bolted
+summary.table.FT.rCol.rSun<-model2e.lmer("bolted days",FT.data,"Col","sun",lmer(days_bolted~plant*treatment  + (1|flat)+ (treatment | set),data=FT.data),saveplot=T) # 
+#stop()
+### refernece treatment is "shade"
+FT.data$treatment<-relevel(FT.data$treatment,ref="shade")
+summary.table.FT.rCol.rShade<-model2e.lmer("bolted days",FT.data,"Col","shade",lmer(days_bolted~plant*treatment  + (1|flat)+ (treatment | set),data=FT.data),saveplot=T) # 
+
+
+# more SA mutant graph
+# summary plot (PL)
+PL.moreSAmutSASdata<-plot.bar7(trait="PL",title="",ylabel="petiole length (mm)",data.input=merge(summary.table.PL.rCol.rSun.SASdata.part,summary.table.PL.rCol.rShade.SASdata.part,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# summary plot (PBL)
+PBL.moreSAmutSASdata<-plot.bar7(trait="PBL",title="",ylabel="petiole/blade length",data.input=merge(summary.table.PBL.rCol.rSun.SASdata.part,summary.table.PBL.rCol.rShade.SASdata.part,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# summary plot (BA)
+BA.moreSAmutSASdata<-plot.bar7(trait="BA",title="",ylabel="blade area (mm2)",data.input=merge(summary.table.BA.rCol.rSun.SASdata.part,summary.table.BA.rCol.rShade.SASdata.part,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# summary plot (FT)
+FT.moreSAmutSASdata<-plot.bar7(trait="bolted days",title="",ylabel="days at bolting",data.input=merge(summary.table.FT.rCol.rSun,summary.table.FT.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# # summary plot (hyp)
+hyp<-plot.bar7(trait="hyp",title="",ylabel="hypocotyl length (mm)",data.input=merge(summary.table.hyp.rCol.rSun,summary.table.hyp.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) 
+# plot in one fig by (moreSAmut) (041917)
+library(cowplot)
+legend<-get_legend(hyp + theme(legend.title=element_blank(),legend.text = element_text(size=9)))
+if(identical(plot.traits,c("PL","PBL","BA","bolted days","hyp"))) {
+  plot.all<-plot_grid(
+    PL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="") + theme(strip.text.x=element_text(face="italic",size=8)),
+  PBL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=8)), 
+  BA.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=8)),
+  hyp+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=8)),
+  FT.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=8)),
+  legend,
+  #ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1.28),
+  ncol=2,nrow=3,labels=c("A","B","C","D","E",""),rel_widths=c(1,1,1,1,1,1)
+  )
+  save_plot(file=file.name, plot.all, ncol = 2, nrow = 2,base_aspect_ratio = 0.8)
+    return(plot.all)
+} else if(identical(plot.traits,c("PL","PBL","hyp"))) {
+    plot.all<-plot_grid(
+    PL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="") + theme(strip.text.x=element_text(face="italic",size=13)),
+  PBL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=13)), 
+  hyp+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=13)),
+  legend,
+  ncol=4,nrow=1,labels=c("A","B","C",""),rel_widths=c(1,1,0.7,0.2)
+  )
+  save_plot(file=file.name, plot.all, ncol = 4, nrow = 1,base_aspect_ratio = 0.8)
+  return(plot.all)
+} else if(identical(plot.traits,c("PL","PBL","bolted days","hyp"))) {
+    plot.all<-plot_grid(
+    PL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="") + theme(strip.text.x=element_text(face="italic",size=12)),
+  PBL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)), 
+  FT.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)),
+    hyp+theme(axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)),
+  #legend,
+  #ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1.28),
+  ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1)
+  )
+  save_plot(file=file.name, plot.all, ncol = 2, nrow = 2,base_aspect_ratio = 0.8)
+    return(plot.all)
+} else if(identical(plot.traits,c("PBL","bolted days","hyp"))) {
+      plot.all<-plot_grid(
+  PBL.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)), 
+  FT.moreSAmutSASdata+theme(legend.position="none",axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)),
+    hyp+theme(axis.line.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x = element_blank(),legend.title=element_blank())+labs(title="")+ theme(strip.text.x=element_text(face="italic",size=12)),
+  #legend,
+  #ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1.28),
+  ncol=2,nrow=2,labels=c("A","B","C","D"),rel_widths=c(1,1,1,1)
+  )
+ save_plot(file=file.name, plot.all, ncol = 3, nrow = 1,base_aspect_ratio = 0.8)
+    return(plot.all) 
+}else print("nothing plotted.")
+
+}
+```
