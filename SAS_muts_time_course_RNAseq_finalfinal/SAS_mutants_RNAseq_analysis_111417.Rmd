@@ -574,7 +574,7 @@ hormone.responsiveness.tsnedbscanclusters<-merge(hormone.responsiveness6.DF.s,ts
 hormone.responsiveness.tsnedbscanclusters[is.na(hormone.responsiveness.tsnedbscanclusters)]<-"0"
 hormone.responsiveness.tsnedbscanclusters.description<-merge(hormone.responsiveness.tsnedbscanclusters,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 #write.csv(hormone.responsiveness.tsnedbscanclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset1_Custom_enrichment_tsnedbscan_clusters_of_shade-responsive_genes110617.csv") 
-write.csv(hormone.responsiveness.tsnedbscanclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset2_Custom_enrichment_tsnedbscan_clusters_of_shade-responsive_genes020718.csv") 
+write.csv(hormone.responsiveness.tsnedbscanclusters.description,file="../../Nozue2016_SAStranscriptome_output/figs_tables/Supplemental_Dataset4_Custom_enrichment_tsnedbscan_clusters_of_shade-responsive_genes020718.csv") 
 
 ```
 # Run overlapTable (v2. with SAup or down combined; v3 with renamed SAup and SAdown)
@@ -663,12 +663,15 @@ q4b <- q4b + theme(axis.text.x=element_text(angle=90,hjust=1),
                  axis.ticks = element_line(size=0,color="white"))
 q4b <- q4b + geom_text(aes(label=count),size=5) 
 q4b <- q4b + labs(y="custom categories",x="tsnedbscan clusters in Col",title=title,fill="-log10\n p-value")
-ggsave(q4b,file=paste("Supplemental_Dataset3_Col.tsnedbscan.clusters.vs.my.category.v3.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # 
+ggsave(q4b,file=paste("Supplemental_Dataset5_Col.tsnedbscan.clusters.vs.my.category.v3.set.",title,".pdf",sep=""),width=13,height=6,path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap")) # 
 }
 # archive
-system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset3_ORA_custome_category_t-SNE_heatmap.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset3_Col.tsnedbscan.clusters.vs.my.category.v3.set.*"),sep=""))
+# system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset5_ORA_custome_category_t-SNE_heatmap.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset5_Col.tsnedbscan.clusters.vs.my.category.v3.set.*"),sep=""))
+# Select all those pdfs and finder > serve > select "combinePDFs2" (made by automator, https://www.orbitsit.co.uk/2013/06/combining-pdfs-using-automator/) named as "Supplemental_Dataset5_ORA_custom_category__tSNE_all.pdf"
 # rename and transfer representative one
-system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset3_Col.tsnedbscan.clusters.vs.my.category.v3.set.eps3.3_MinPts13.set47.pdf")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Fig3_Col.tsnedbscan.clusters.vs.my.category.v3.set.eps3.3_MinPts13.set47.pdf"),sep=""))
+## eps3.3_MinPts13.set47 (11**17)
+## eps3.25_MinPts14.set45 (020818)
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset5_Col.tsnedbscan.clusters.vs.my.category.v3.set.eps3.25_MinPts14.set45.pdf")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Fig3_Col.tsnedbscan.clusters.vs.my.category.v3.set.eps3.25_MinPts14.set45.pdf"),sep=""))
 
 ```
 # 
@@ -820,7 +823,8 @@ ggsave(paste("Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_g
 system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718eps3.25_MinPts14.set45.pdf")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718eps3.25_MinPts14.set45.pdf"),sep=""))
 
 # archive (Supplemental Dataset1) (112917,020818)
-system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset1_t-SNE_cluster_responsiveness_heatmap.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718eps*"),sep=""))
+# system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset1_t-SNE_cluster_responsiveness_heatmap.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Fig2_tsne_Coexpression_clusters_of_shade-responsive_genes_020718eps*"),sep=""))
+# use autometer service to combine all pdfs into "Supplemental_Dataset1_t-SNE_cluster_responsiveness_heatmap.pdf"
 
 ```
 # custom category heatmap (Fig. 2)
@@ -926,7 +930,7 @@ temp<-cbind(temp,temp2)
   names(temp)<-names(test.wozero.melt.hormone.significant.s.list)
   hormone.responsiveness6.DF.s.biomarker<-cbind(hormone.responsiveness6.DF.s[,"AGI"],hormone.responsiveness6.DF.s[,-22],temp)
 # save csv file
-write.csv(hormone.responsiveness6.DF.s.biomarker,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Table3_source_of_custom_categories_part2.csv")) 
+write.csv(hormone.responsiveness6.DF.s.biomarker,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset6_source_of_custom_categories_part2.csv")) 
 #
 test.wozero.melt.hormone.significant.s.list2<-sapply(test.wozero.melt.hormone.significant.s.list,c)
 test.wozero.melt.hormone.significant.s.list2["AGI",] # compare this with heatmap (Fig3) for double chekcing
@@ -1004,7 +1008,7 @@ colnames(FigS2.absolute.summary.table.melt.DF)<-gsub("(../../Nozue2016_SAStransc
 FigS2.absolute.summary.table.melt.DF<-FigS2.absolute.summary.table.melt.DF[,c(paste("1v3",title,".my.category",sep=""),paste("1v3",title,".variable",sep="") ,grep("value",colnames(FigS2.absolute.summary.table.melt.DF),value=TRUE))] # v2
 write.csv(FigS2.absolute.summary.table.melt.DF,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("FigS2.absolute.summary.table.melt.DF.v3",title,".csv",sep="")))  # v3
 
-# significance calculation (under construction)
+# significance calculation 
 summary(categories)
 table(categories$my.category)
 # select genes in categories
@@ -1063,8 +1067,8 @@ my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]]+theme(legend
                       labels=c("","","","","","","","","","","","","","",""),
                       vjust = 1.1, hjust=-0.5,
                       ncol=3,nrow=5,
-                      label_size = 50) # no "A" and "B". Label them later in Illustlator
-save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v3.",title,".png",sep="")), my.category.heatmap.all,
+                      label_size = 50) # no "A" and "B" because they overlap with graphs. Label them later in Illustlator (020818)
+save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v3.",title,".png",sep="")), my.category.heatmap.all,
           ncol = 3, # we're saving a grid plot of 2 columns
           nrow = 5, # and 2 rows
           base_aspect_ratio = 2.5,
@@ -1075,14 +1079,14 @@ save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne
 } # loop for test.wozero.melt.hormone.significant.s.list. v2
 # transfer eps3.3_MinPts13.set42 for Fig2
 # eps3.25_MinPts14.set45 (020818)
-system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.25_MinPts14.set45.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.25_MinPts14.set45.png"),sep=""))
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.25_MinPts14.set45.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.25_MinPts14.set45.png"),sep=""))
 
-# archivre Supplemental_Dataset4 files 
-# SupData4.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),pattern="Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v2.")
-system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset4.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v3.*"),sep=""))
-
+# archivre Supplemental_Dataset7 files 
+# zip files (not used)
+# system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset7.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v3.*"),sep=""))
+# convert into pdf and add parameter name onto graph, convert into png by sips (command line), convert into pdf, combine all (020918); see Rscripts for that (copy and paste them later)
 ```
-# the end of custom category heatmap (shade responsiveness) (Fig. 2 and Supplemental_Dataset4)
+# the end of custom category heatmap (shade responsiveness) (Fig. 2 and Supplemental_Dataset7)
 
 
 ## differentially expressed gene analysis (092617)
@@ -1493,10 +1497,10 @@ length(table(DE.genotype.batch.genes.WGCNAmodules$WGCNAmodules)) #
 # adding gene description
 DE.genotype.batch.genes.WGCNAmodules.description<-merge(DE.genotype.batch.genes.WGCNAmodules,TAIR10_gene_descriptions[!duplicated(TAIR10_gene_descriptions$AGI),c("AGI","Short_description","colE...col.F")],by="AGI")
 # Supplemental Dataset6
-write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset6_Complete_gene_list_misexpressed_in_mutant_and_WGCNA_modules_in_Fig4.csv")) #112817
+write.csv(DE.genotype.batch.genes.WGCNAmodules.description,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset10_Complete_gene_list_misexpressed_in_mutant_and_WGCNA_modules_in_Fig4.csv")) #112817
 
 # in whitney
-test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset6_Complete_gene_list_misexpressed_in_mutant_and_WGCNA_modules_in_Fig4.csv"),row.names=1) # does  work (100717)
+test<-read.csv(file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset10_Complete_gene_list_misexpressed_in_mutant_and_WGCNA_modules_in_Fig4.csv"),row.names=1) # does  work (100717)
 ## checking test object
 test[ gsub("([[:digit:]]+)(\\.)([[:digit:]]+)","\\1",test$AGI) %in% c("AT3G22231","AT4G14365","AT1G33960","AT4G14400"),] # OK they are salmon
 
@@ -1599,7 +1603,7 @@ for(i in WGCNA.Col.module.GOseq.files[-1]) {
   temp<-rbind(temp,temp.GOseq)
 }
 WGCNA.Col.module.GOseq.summary<-temp
-write.csv(WGCNA.Col.module.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Table5_GO_WGCNA_modules092817.csv")) # Dataset 5. GO enrichment analysis of WGCNA gene co-expression modules (091716, salmon4<>orange 121316, rerun 091817; 092817)
+write.csv(WGCNA.Col.module.GOseq.summary,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset8_GO_WGCNA_modules092817.csv")) # Dataset 5. GO enrichment analysis of WGCNA gene co-expression modules (091716, salmon4<>orange 121316, rerun 091817; 092817)
 ```
 ## What genes are found in given module with given GO category? (no need to change 100717)
 ```{r eval=FALSE}
@@ -1660,7 +1664,7 @@ head(hormone.responsiveness.WGCNAmodules)
 # remove GRF1_3target (052616)
 hormone.responsiveness.WGCNAmodules<-hormone.responsiveness.WGCNAmodules[,!names(hormone.responsiveness.WGCNAmodules)=="GRF1_3target"]
 # write in csv file (Supplemental Dataset6)
-write.csv(hormone.responsiveness.WGCNAmodules,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset5_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules020818.csv"))
+write.csv(hormone.responsiveness.WGCNAmodules,file=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset9_Custom_category_enrichment_analysis_of_WGCNA_gene_co-expression_modules020818.csv"))
 
 
 # salmon genes and SA, npr1 responsiveness? (PCC1, XBAT34, AIG1, ACD6,SARD1,cbp60g)
@@ -1957,7 +1961,7 @@ overlap.melt.summary$Var2<-factor(as.character(overlap.melt.summary$Var2),levels
 
 save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.120717.Rdata") )
 ```
-# reading and cleaning overlap table and graph (phyABDE, 120717)
+# reading and cleaning overlap table and graph (phyABDE, 120717, 020818)
 ```{r}
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.120717.Rdata"))
 
