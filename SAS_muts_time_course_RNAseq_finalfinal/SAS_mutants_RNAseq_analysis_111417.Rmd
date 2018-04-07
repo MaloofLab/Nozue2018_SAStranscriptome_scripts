@@ -1954,67 +1954,62 @@ for(i in 2:20) { # 2:32 for 092817.csv version. 19 and 20 are new (SAup_combined
 ```
 # combine overlapTables (Sessa 1h, phyABDE, phyB.adult)
 ```{r}
-overlap.melt.phyABDE.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.phyABDE")
-overlap.melt.Sessa.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.Sessa")
-overlap.melt.phyB.adult.sun.1h.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.phyB.adult")
-# combine
-overlap.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",c(overlap.melt.phyABDE.custom.files,overlap.melt.Sessa.custom.files,overlap.melt.phyB.adult.sun.1h.custom.files)),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see https://stackoverflow.com/questions/29398630/load-data-frames-into-list
-names(overlap.melt.summary.list2)
-overlap.melt.summary<-do.call("rbind",overlap.melt.summary.list2) 
-head(overlap.melt.summary) # make sure those are file names
-rownames(overlap.melt.summary)<-1:nrow(overlap.melt.summary)
-# format overlap.GOseq.melt.summary
-overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
-overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
-overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
-table(overlap.melt.summary$Var2)
-overlap.melt.summary<-overlap.melt.summary[!overlap.melt.summary$Var2=="",]
-
-overlap.melt.summary$Var2<-factor(as.character(overlap.melt.summary$Var2),levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","MYC234up","MYC234down","PIFtarget")) # (110917)
-
-save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.phyBadult.033018.Rdata") )
+# overlap.melt.phyABDE.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.phyABDE")
+# overlap.melt.Sessa.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.Sessa")
+# overlap.melt.phyB.adult.sun.1h.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.phyB.adult")
+# # combine
+# overlap.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",c(overlap.melt.phyABDE.custom.files,overlap.melt.Sessa.custom.files,overlap.melt.phyB.adult.sun.1h.custom.files)),function(x) mget(load(x))) # mget will return the value of the object(or objects) in a list. see https://stackoverflow.com/questions/29398630/load-data-frames-into-list
+# names(overlap.melt.summary.list2)
+# overlap.melt.summary<-do.call("rbind",overlap.melt.summary.list2) 
+# head(overlap.melt.summary) # make sure those are file names
+# rownames(overlap.melt.summary)<-1:nrow(overlap.melt.summary)
+# # format overlap.GOseq.melt.summary
+# overlap.melt.summary[,"value"]<--log10(overlap.melt.summary[,"value"])
+# overlap.melt.summary[overlap.melt.summary$value>10,"value"]<-10
+# overlap.melt.summary[overlap.melt.summary$count==0,"count"]<-""
+# table(overlap.melt.summary$Var2)
+# overlap.melt.summary<-overlap.melt.summary[!overlap.melt.summary$Var2=="",]
+# 
+# overlap.melt.summary$Var2<-factor(as.character(overlap.melt.summary$Var2),levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","MYC234up","MYC234down","PIFtarget")) # (110917)
+# 
+# save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.phyBadult.033018.Rdata") )
 ```
 # reading and cleaning overlap table and graph (phyABDE, 120717, 020818,033118)
 ```{r}
-load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.phyBadult.033018.Rdata"))
-
-overlap.melt.summary
-# rename SAup_combined and SAdown_combined (020818)
-overlap.melt.summary$Var2<-gsub("_combined","",overlap.melt.summary$Var2)
-# remove extra space in Var1
-overlap.melt.summary$Var1<-gsub(" ","",overlap.melt.summary$Var1)
-# remove no data in Var1
-overlap.melt.summary.ss<-overlap.melt.summary[!overlap.melt.summary$Var1==" ",]
-overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var1=="",]
-# count number of Var1
-names(table(overlap.melt.summary.ss$Var1))
-# cleanup Var2
-overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var2=="",]
-overlap.melt.summary.ss$Var1<-droplevels(overlap.melt.summary.ss$Var1)
-overlap.melt.summary.ss$Var2<-droplevels(overlap.melt.summary.ss$Var2)
-# check data
-table(overlap.melt.summary.ss$Var1)
-# plot
-q4<-ggplot(overlap.melt.summary.ss,aes(y=factor(overlap.melt.summary.ss$Var1,levels=rev(c("phyABDE_up","phyABDE_down","Sessa.1h.up","Sessa.1h.down","phyB.adult.up","phyB.adult.down"))),x=factor(Var2))) # sort row
-#q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low=muted("green"), high=muted("magenta"),midpoint=2) # this color coding is not good (061716)
-q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) # Is this better? (061716)
-#q4 <- q4 +theme(legend.position="none") # this removed all legend
-q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
-                 axis.ticks = element_line(size=0,color="white"),
-                 axis.line=element_line(size=1)) # adjust axis line width
-q4 <- q4 + geom_text(aes(label=count),size=4)
-q4 <- q4 + labs(x="custom category",y="",title="",fill="-log10\n pvalue")
-#q4 <- q4 + theme(legend.title=element_blank())
-# ggsave(q4,file="Supplemental_Fig1.phyABDE.Sessa1hvs..my.category.020818.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-# ggsave(q4,file="Supplemental_Fig1.phyABDE.Sessa1hvs..my.category.020818.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(q4,file="Supplemental_Fig1.phyABDE.Sessa1h.phyBadlut.vs.my.category.040618.pdf",width=11,height=5,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(q4,file="Supplemental_Fig1.phyABDE.Sessa1hvs.phyBadlut.vs.my.category.040618.png",width=11,height=5,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-
-q4 # magenta indicates pvalue is smaller than 0.01.
+# load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.phyBadult.033018.Rdata"))
+# 
+# overlap.melt.summary
+# # rename SAup_combined and SAdown_combined (020818)
+# overlap.melt.summary$Var2<-gsub("_combined","",overlap.melt.summary$Var2)
+# # remove extra space in Var1
+# overlap.melt.summary$Var1<-gsub(" ","",overlap.melt.summary$Var1)
+# # remove no data in Var1
+# overlap.melt.summary.ss<-overlap.melt.summary[!overlap.melt.summary$Var1==" ",]
+# overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var1=="",]
+# # count number of Var1
+# names(table(overlap.melt.summary.ss$Var1))
+# # cleanup Var2
+# overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var2=="",]
+# overlap.melt.summary.ss$Var1<-droplevels(overlap.melt.summary.ss$Var1)
+# overlap.melt.summary.ss$Var2<-droplevels(overlap.melt.summary.ss$Var2)
+# # check data
+# table(overlap.melt.summary.ss$Var1)
+# # plot
+# q4<-ggplot(overlap.melt.summary.ss,aes(y=factor(overlap.melt.summary.ss$Var1,levels=rev(c("phyABDE_up","phyABDE_down","Sessa.1h.up","Sessa.1h.down","phyB.adult.up","phyB.adult.down"))),x=factor(Var2))) # sort row
+# q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) # Is this better? (061716)
+# #q4 <- q4 +theme(legend.position="none") # this removed all legend
+# q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
+#                  axis.ticks = element_line(size=0,color="white"),
+#                  axis.line=element_line(size=1)) # adjust axis line width
+# q4 <- q4 + geom_text(aes(label=count),size=4)
+# q4 <- q4 + labs(x="custom category",y="",title="",fill="-log10\n pvalue")
+# ggsave(q4,file="Supplemental_Fig1.phyABDE.Sessa1h.phyBadlut.vs.my.category.040618.pdf",width=11,height=5,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# ggsave(q4,file="Supplemental_Fig1.phyABDE.Sessa1hvs.phyBadlut.vs.my.category.040618.png",width=11,height=5,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# q4 # magenta indicates pvalue is smaller than 0.01.
 ```
 # Separate heatmap (Sessa1h and phyABDE, and only phyB adult)
 ```{r}
-# Sessa1h and phyABDE
+# Sessa1h and phyABDE (Supplemental Fig 1A)
 overlap.melt.phyABDE.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.phyABDE")
 overlap.melt.Sessa.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.Sessa")
 # combine
@@ -2031,7 +2026,7 @@ table(overlap.melt.summary$Var2)
 overlap.melt.summary<-overlap.melt.summary[!overlap.melt.summary$Var2=="",]
 overlap.melt.summary$Var2<-factor(as.character(overlap.melt.summary$Var2),levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","MYC234up","MYC234down","PIFtarget")) # (110917)
 save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.120717.Rdata") )
-
+# load overlap.melt.summary
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyABDE.120717.Rdata"))
 overlap.melt.summary
 # rename SAup_combined and SAdown_combined (020818)
@@ -2046,28 +2041,24 @@ names(table(overlap.melt.summary.ss$Var1))
 # cleanup Var2
 overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var2=="",]
 overlap.melt.summary.ss<-overlap.melt.summary.ss[!is.na(overlap.melt.summary.ss$Var2),]
-
-#overlap.melt.summary.ss$Var1<-droplevels(overlap.melt.summary.ss$Var1)
-#overlap.melt.summary.ss$Var2<-droplevels(overlap.melt.summary.ss$Var2)
-
 # check data
 table(overlap.melt.summary.ss$Var1)
 table(overlap.melt.summary.ss$Var2)
 # plot
-q4<-ggplot(overlap.melt.summary.ss,aes(y=factor(overlap.melt.summary.ss$Var1,levels=rev(c("phyABDE_up","phyABDE_down","Sessa.1h.up","Sessa.1h.down"))),x=factor(Var2))) # sort row
-q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) # Is this better? (061716)
+SupF1A<-ggplot(overlap.melt.summary.ss,aes(y=factor(overlap.melt.summary.ss$Var1,levels=rev(c("phyABDE_up","phyABDE_down","Sessa.1h.up","Sessa.1h.down"))),x=factor(Var2))) # sort row
+SupF1A <- SupF1A + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) # Is this better? (061716)
 #q4 <- q4 +theme(legend.position="none") # this removed all legend
-q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
+SupF1A <- SupF1A + theme(axis.text.x=element_text(angle=90,hjust=1),
                  axis.ticks = element_line(size=0,color="white"),
                  axis.line=element_line(size=1)) # adjust axis line width
-q4 <- q4 + geom_text(aes(label=count),size=4)
-q4 <- q4 + labs(x="custom category",y="",title="",fill="-log10\n pvalue")
+SupF1A <- SupF1A + geom_text(aes(label=count),size=4)
+SupF1A <- SupF1A + labs(x="custom category",y="",title="",fill="-log10\n pvalue")
 #q4 <- q4 + theme(legend.title=element_blank())
-ggsave(q4,file="Supplemental_Fig1b.phyABDE.Sessa1hvs.my.category.040618.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(q4,file="Supplemental_Fig1b.phyABDE.Sessa1hvs.my.category.040618.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# ggsave(q4,file="Supplemental_Fig1b.phyABDE.Sessa1hvs.my.category.040618.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# ggsave(q4,file="Supplemental_Fig1b.phyABDE.Sessa1hvs.my.category.040618.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
 
 ```
-# only phyB adult
+# only phyB adult (Supplemental Fig1B)
 ```{r}
 overlap.melt.phyB.adult.sun.1h.custom.files<-list.files(path=file.path("..","..","Nozue2016_SAStranscriptome_output","output"),pattern="overlap.melt.phyB.adult")
 overlap.melt.summary.list2<-sapply(file.path("..","..","Nozue2016_SAStranscriptome_output","output",overlap.melt.phyB.adult.sun.1h.custom.files),function(x) mget(load(x))) # 
@@ -2083,7 +2074,7 @@ table(overlap.melt.summary$Var2)
 overlap.melt.summary<-overlap.melt.summary[!overlap.melt.summary$Var2=="",]
 overlap.melt.summary$Var2<-factor(as.character(overlap.melt.summary$Var2),levels=c("IAAup","IAAdown","BLup","BLdown","MJup","MJdown","GAup","GAdown","ABAup","ABAdown","ACCup","ACCdown","CKup","CKdown","SAup","SAdown","MYC234up","MYC234down","PIFtarget")) # (110917)
 save(overlap.melt.summary, file=file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyB.adult.040618.Rdata") )
-
+# load overlap.melt.summary
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","overlap.melt.summary.phyB.adult.040618.Rdata"))
 overlap.melt.summary
 # rename SAup_combined and SAdown_combined (020818)
@@ -2098,26 +2089,29 @@ names(table(overlap.melt.summary.ss$Var1))
 # cleanup Var2
 overlap.melt.summary.ss<-overlap.melt.summary.ss[!overlap.melt.summary.ss$Var2=="",]
 overlap.melt.summary.ss<-overlap.melt.summary.ss[!is.na(overlap.melt.summary.ss$Var2),]
-
-#overlap.melt.summary.ss$Var1<-droplevels(overlap.melt.summary.ss$Var1)
-#overlap.melt.summary.ss$Var2<-droplevels(overlap.melt.summary.ss$Var2)
-
 # check data
 table(overlap.melt.summary.ss$Var1)
 table(overlap.melt.summary.ss$Var2)
 # plot
-q4<-ggplot(overlap.melt.summary.ss,aes(y=factor(Var1),x=factor(Var2))) # sort row
-q4 <- q4 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) # Is this better? (061716)
-#q4 <- q4 +theme(legend.position="none") # this removed all legend
-q4 <- q4 + theme(axis.text.x=element_text(angle=90,hjust=1),
+SupF1B<-ggplot(overlap.melt.summary.ss,aes(y=factor(Var1),x=factor(Var2))) # sort row
+SupF1B <- SupF1B + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) # Is this better? (061716)
+SupF1B <- SupF1B + theme(axis.text.x=element_text(angle=90,hjust=1),
                  axis.ticks = element_line(size=0,color="white"),
                  axis.line=element_line(size=1)) # adjust axis line width
-q4 <- q4 + geom_text(aes(label=count),size=4)
-q4 <- q4 + labs(x="custom category",y="",title="",fill="-log10\n pvalue")
+SupF1B <- SupF1B + geom_text(aes(label=count),size=4)
+SupF1B <- SupF1B + labs(x="custom category",y="",title="",fill="-log10\n pvalue")
 #q4 <- q4 + theme(legend.title=element_blank())
-ggsave(q4,file="Supplemental_FigX.phyB.adult.my.category.040618.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-ggsave(q4,file="Supplemental_FigX.phyB.adult.my.category.040618.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-
+# ggsave(SupF1B,file="Supplemental_FigX.phyB.adult.my.category.040618.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+# ggsave(SupF1B,file="Supplemental_FigX.phyB.adult.my.category.040618.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+```
+# composit two heatmaps (Supplemental Fig 1)
+```{r}
+library(cowplot)
+SupF1.AandB<-plot_grid(SupF1A,SupF1B,labels=c("A","B"),nrow=2)
+save_plot("Supplemental_Fig1AB.phyABDE.Sessa1h.phyB.adult.vs.my.category.040618.pdf",SupF1.AandB,
+          ncol=1,nrow=2,base_aspect_ratio = 2,
+          path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables")
+          )
 ```
 
 # Number of Col genes in each module are: 
@@ -2188,24 +2182,20 @@ names(table(overlap.melt.summary.ss$Var2))
 # check data
 table(overlap.melt.summary.ss$Var1)
 # plot
-SupF.S1B<-ggplot(overlap.melt.summary.ss,aes(y=Var2,x=factor(Var1))) 
-SupF.S1B <- SupF.S1B + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) 
-SupF.S1B <- SupF.S1B + theme(axis.text.x=element_text(angle=90,hjust=1),
+q5<-ggplot(overlap.melt.summary.ss,aes(y=Var2,x=factor(Var1))) 
+q5 <- q5 + geom_tile(color="black",aes(fill=value))+scale_fill_gradient2(low="white", mid="white",high="magenta",midpoint=2) 
+q5 <- q5 + theme(axis.text.x=element_text(angle=90,hjust=1),
                  axis.ticks = element_line(size=0,color="white"),
                  axis.line=element_line(size=1)) # adjust axis line width
-SupF.S1B <- SupF.S1B + geom_text(aes(label=count),size=4)
-SupF.S1B <- SupF.S1B + labs(x="WGCNA category",y="",title="",fill="-log10\n pvalue")
-SupF.S1B
+q5 <- q5 + geom_text(aes(label=count),size=4)
+q5 <- q5 + labs(x="WGCNA category",y="",title="",fill="-log10\n pvalue")
 ## 
-# ggsave(SupF.S1B,file="Supplemental_Fig5.phyABDE.Sessa1h.vs.WGCNA.040618.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-# ggsave(SupF.S1B,file="Supplemental_Fig5.phyABDE.Sessa1h.vs.WGCNA.040618.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
-```
-# Making a composit fig 
-```{r}
-library(cowplot)
-
+ggsave(q5,file="Supplemental_Fig6.phyABDE.Sessa1h.vs.WGCNA.040618.pdf",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+ggsave(q5,file="Supplemental_Fig6.phyABDE.Sessa1h.vs.WGCNA.040618.png",width=11,height=4,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
+q5
 
 ```
+
 # Does each WGCNA module contain shade-responsive genes? (011216; 100417)
 ```{r}
 load(file.path("..","..","Nozue2016_SAStranscriptome_output","output","SAS.expression.vst.s.kazu.largeCV.modules092817.Rdata") ) #
