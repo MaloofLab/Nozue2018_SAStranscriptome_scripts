@@ -651,7 +651,6 @@ my.category.heatmap6<-function(summary3.response,gt.num,gt2,newdata.Col.wGO.sele
   print(paste("summary table for ",gt2))
   print(summary.table)
   summary.table$my.category<-factor(rownames(summary.table),levels=levels(summary3.response.log2.temp.selected.noINF.melt$my.category))
-  
   summary.table.melt<-melt(summary.table,id="my.category")
   #names(summary.table)
   #summary.table

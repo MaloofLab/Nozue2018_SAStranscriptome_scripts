@@ -70,7 +70,9 @@ night[,1:2]<-night[,1:2]-7
 
 
 ## YUC5
-YUC5<-ggplot(all[all$promoter=="YUC5",], aes(x=TimeAfterTreatment,y=value2,color=treatment))  + geom_smooth(stat="smooth",method="loess",span = 0.2,aes(fill=treatment)) #+ geom_point()
+YUC5<-ggplot(all[all$promoter=="YUC5",], aes(x=TimeAfterTreatment,y=value2,color=treatment,linetype=treatment))  + geom_smooth(stat="smooth",method="loess",span = 0.2,aes(fill=treatment)) #+ geom_point()
+# YUC5<-ggplot(all[all$promoter=="YUC5",], aes(x=TimeAfterTreatment,y=value2,color=treatment,linetype=treatment))  + geom_line(stat="smooth",method="loess",span = 0.2,alpha=0.2) #+ geom_point()
+
 YUC5<-YUC5 + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
                    panel.background = element_blank(), axis.line = element_line(colour = "black"))
 # drawing night period
@@ -81,9 +83,14 @@ YUC5 <-YUC5 + geom_rect(data=day[day$promoter=="YUC5",],mapping=aes(xmin=x1,xmax
 # change bar color
 YUC5 <- YUC5 + scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) +
   scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# specify linetype (high R/FR = dashed, low R/FR solid)
+#YUC5<-YUC5 + scale_linetype_manual(values=c("dashed","solid"))
+YUC5<-YUC5 + scale_linetype_manual(values=c("solid","dashed"))
 
 #YUC5<-YUC5 + theme(legend.position = "none", axis.text.y=element_text(size=10)) + labs(x="Time after treatment (h)",y="Percent increase of signal to -1h")
-YUC5<-YUC5 + theme(legend.position = "none", axis.text.y=element_text(size=10)) + labs(x="Time after treatment (h)",y="Normalized Signal")
+# with legend
+#YUC5<-YUC5 + theme(legend.position = "none", axis.text.y=element_text(size=10)) + labs(x="Time after treatment (h)",y="Normalized Signal")
+YUC5<-YUC5 + theme(axis.text.y=element_text(size=10),legend.text=element_text(size=10),legend.title=element_blank()) + labs(x="Time after treatment (h)",y="Normalized Signal")
 
 # change range of y
 #YUC5<-YUC5 + scale_y_continuous(limits=c(0.9995,1.0003))
@@ -92,7 +99,7 @@ YUC5<-YUC5 + theme(legend.position = "none", axis.text.y=element_text(size=10)) 
 YUC5<-YUC5 + annotate("text",label="YUC5",x=-2,y=(1.00017-1)*10^4) # Arbitary Units
 YUC5
 ## YUC8
-YUC8<-ggplot(all[all$promoter=="YUC8",], aes(x=TimeAfterTreatment,y=value2,color=treatment))  + geom_smooth(stat="smooth",method="loess",span = 0.2,aes(fill=treatment)) #+ geom_point()
+YUC8<-ggplot(all[all$promoter=="YUC8",], aes(x=TimeAfterTreatment,y=value2,color=treatment,linetype=treatment))  + geom_smooth(stat="smooth",method="loess",span = 0.2,aes(fill=treatment)) #+ geom_point()
 YUC8<-YUC8 + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
                    panel.background = element_blank(), axis.line = element_line(colour = "black"))
 # drawing night period
@@ -103,6 +110,8 @@ YUC8 <-YUC8 + geom_rect(data=day[day$promoter=="YUC8",],mapping=aes(xmin=x1,xmax
 # change bar color
 YUC8 <- YUC8 + scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) +
   scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+# specify linetype (high R/FR = dashed, low R/FR solid)
+#YUC8<-YUC8 + scale_linetype_manual(values=c("dashed","solid"))
 
 #YUC8<-YUC8 + theme(legend.position = "none", axis.text.y=element_text(size=10)) + labs(x="Time after treatment (h)",y="Percent increase of signal to -1h")
 YUC8<-YUC8 + theme(legend.position = "none", axis.text.y=element_text(size=10)) + labs(x="Time after treatment (h)",y="Normalized Signal")
@@ -114,7 +123,7 @@ YUC8<-YUC8 + annotate("text",label="YUC8",x=-2,y=(1.00021-1)*10^4) # Arbitary un
 YUC8
 
 ## YUC9
-YUC9<-ggplot(all[all$promoter=="YUC9",], aes(x=TimeAfterTreatment,y=value2,color=treatment))  + geom_smooth(stat="smooth",method="loess",span = 0.2,aes(fill=treatment)) #+ geom_point()
+YUC9<-ggplot(all[all$promoter=="YUC9",], aes(x=TimeAfterTreatment,y=value2,color=treatment,linetype=treatment))  + geom_smooth(stat="smooth",method="loess",span = 0.2,aes(fill=treatment)) #+ geom_point()
 YUC9<-YUC9 + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
                    panel.background = element_blank(), axis.line = element_line(colour = "black"))
 # drawing night period
@@ -127,7 +136,12 @@ YUC9 <- YUC9 + scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" 
   scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
 
 #YUC9<-YUC9 + theme(axis.text.y=element_text(size=10),legend.text=element_text(size=10),legend.title=element_blank()) + labs(x="Time after treatment (h)",y="Percent increase of signal to -1h")
-YUC9<-YUC9 + theme(axis.text.y=element_text(size=10),legend.text=element_text(size=10),legend.title=element_blank()) + labs(x="Time after treatment (h)",y="Normalized Signal")
+# with legend
+#YUC9<-YUC9 + theme(axis.text.y=element_text(size=10),legend.text=element_text(size=10),legend.title=element_blank()) + labs(x="Time after treatment (h)",y="Normalized Signal")
+# specify linetype (high R/FR = dashed, low R/FR solid)
+# YUC9<-YUC9 + scale_linetype_manual(values=c("dashed","solid"))
+# no legend (v7)
+YUC9<-YUC9 + theme(legend.position = "none", axis.text.y=element_text(size=10)) + labs(x="Time after treatment (h)",y="Normalized Signal")
 
 # write promoter name
 # YUC9<-YUC9 + annotate("text",label="YUC9",x=-2,y=(1.00023-1)*10^2)
@@ -136,8 +150,12 @@ YUC9<-YUC9 + annotate("text",label="YUC9",x=-2,y=(1.00023-1)*10^4) # Arbitrary U
 YUC9
 # cowplot
 library(cowplot)
-plot.YUC589<-plot_grid(YUC5,YUC8,YUC9,ncol=3,labels=c("A","B","C"),
+#plot.YUC589<-plot_grid(YUC5,YUC8,YUC9,ncol=3,labels=c("A","B","C"),
+#                       scale=0.9,vjust=0,rel_widths=c(1,1,1.35))
+# according to reviewer1's comment
+plot.YUC589<-plot_grid(YUC8,YUC9,YUC5,ncol=3,labels=c("A","B","C"),
                        scale=0.9,vjust=0,rel_widths=c(1,1,1.35))
+
 # save_plot("Fig1_promYUC589_LUC2v4_ratio.png", plot.YUC589,
 #           ncol = 3, # we're saving a grid plot of 2 columns
 #           nrow = 1, # and 2 rows
@@ -149,7 +167,7 @@ plot.YUC589<-plot_grid(YUC5,YUC8,YUC9,ncol=3,labels=c("A","B","C"),
 #           # each individual subplot should have an aspect ratio of 1.3
 #           base_aspect_ratio = 0.8)
 setwd("../../Nozue2016_SAStranscriptome_output/figs_tables/")
-save_plot("Fig1_promYUC589_LUC2v6_ratio.png", plot.YUC589,
+save_plot("Fig1_promYUC589_LUC2v7_ratio.png", plot.YUC589,
           ncol = 3, # we're saving a grid plot of 2 columns
           nrow = 1, # and 2 rows
           # each individual subplot should have an aspect ratio of 1.3

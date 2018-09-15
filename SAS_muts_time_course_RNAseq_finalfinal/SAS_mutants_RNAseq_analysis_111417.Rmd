@@ -938,7 +938,7 @@ test.wozero.melt.hormone.significant.s.list2["AGI",] %>% sapply(length) %>% tibb
 
 ```
 ## draw expression pattern of custom categories (significantly enriched); Fig2A
-# visualize hormone pathway related genes (1213-1214,2015). Updated (052616-), v3 020717
+# visualize hormone pathway related genes (1213-1214,2015). Updated (052616-), v3 020717, With color legend for Plant Physiol (v4, 091118)
 ```{r}
 #test.wozero.melt.hormone.significant.s.files<-list.files(pattern="test.wozero.melt.hormone.significant.s",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
 test.wozero.melt.hormone.significant.s.files<-list.files(pattern="test.wozero.melt.hormone.significant.s.v3",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
@@ -991,7 +991,9 @@ dim(summary.vst.response.kazu) # [1] 30533    52
 head(summary.vst.response.kazu)
 # for Fig5A, Col
 my.category.heatmap.graph<-list()
-for(i in c(1,17,19,3,4,5,14,10,6,13,7,8,9)) { # 
+# add legend to Col (Plant Physiol rev1 version)
+my.category.heatmap.graph[[1]]<-my.category.heatmap6(summary3.response=summary.vst.response.kazu,gt.num=1,gt2=conversion.table[conversion.table$num==1,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.102617v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),save.plot=F,legend.fill=T,file.name=paste("v3",title,sep=""),category.level=levels(categories$my.category))
+for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # 
 my.category.heatmap.graph[[i]]<-my.category.heatmap6(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.102617v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),save.plot=F,legend.fill=F,file.name=paste("v3",title,sep=""),category.level=levels(categories$my.category)) #  legend.fill=F to T for new Fig5 (all absolute value, previously called FigS2). mean expression value was saved as FigS2.absolute.summary.table.melt   save(summary.table.melt,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("FigS2.absolute.summary.table.melt",gt.num,".Rdata",sep="")))
 
 }
@@ -1061,59 +1063,54 @@ significant.position$symbol.gt<-(as.numeric(as.character(vlookup(significant.pos
 my.category.heatmap.graph[[i]]<-my.category.heatmap.graph[[i]] + geom_text(data=significant.position,aes(x=x-0.2,y=y,label=symbol.gt),size=20,color="red") #, remove lines for x and y axis. "gt" is red.
 rm(significant.position)
 }
-
-my.category.heatmap.all <- plot_grid(my.category.heatmap.graph[[1]]+theme(legend.position="none"), 
-                                     ggplot()+geom_blank(), ggplot()+geom_blank(),my.category.heatmap.graph[[17]],my.category.heatmap.graph[[19]],my.category.heatmap.graph[[3]],my.category.heatmap.graph[[4]],my.category.heatmap.graph[[5]],my.category.heatmap.graph[[14]],my.category.heatmap.graph[[10]],my.category.heatmap.graph[[6]],my.category.heatmap.graph[[13]],my.category.heatmap.graph[[7]],my.category.heatmap.graph[[8]],my.category.heatmap.graph[[9]],
-                      labels=c("","","","","","","","","","","","","","",""),
+# separate drawing of Fig2A (with color legend) and Fig2B 
+my.category.heatmap.Fig2A <- plot_grid(my.category.heatmap.graph[[1]]+labs(fill="Log2 fold change\n (shade/sun)"),ggplot()+geom_blank(),  ggplot()+geom_blank(),                            
                       vjust = 1.1, hjust=-0.5,
-                      ncol=3,nrow=5,
-                      label_size = 50) # no "A" and "B" because they overlap with graphs. Label them later in Illustlator (020818)
-save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v3.",title,".png",sep="")), my.category.heatmap.all,
-          ncol = 3, # we're saving a grid plot of 2 columns
-          nrow = 5, # and 2 rows
+                      ncol=3,nrow=1,
+                      rel_widths=c(1.275,0.725,1),
+                      label_size = 10
+                      ) # no "A" and "B" because they overlap with graphs. Label 
+my.category.heatmap.Fig2B<-plot_grid(my.category.heatmap.graph[[17]],my.category.heatmap.graph[[19]],my.category.heatmap.graph[[3]],my.category.heatmap.graph[[4]],my.category.heatmap.graph[[5]],my.category.heatmap.graph[[14]],my.category.heatmap.graph[[10]],my.category.heatmap.graph[[6]],my.category.heatmap.graph[[13]],my.category.heatmap.graph[[7]],my.category.heatmap.graph[[8]],my.category.heatmap.graph[[9]],
+                      vjust = 1.1, hjust=-0.5,
+                      ncol=3,nrow=4,
+                      label_size = 10) 
+my.category.heatmap.all2<-plot_grid(my.category.heatmap.Fig2A,my.category.heatmap.Fig2B,rel_heights=c(1,4),ncol=1,nrow=2)+ draw_text(title,x=0.75,y=0.95,size=50)
+# no "A" and "B" because they overlap with graphs. Label them later in Illustlator (020818)
+save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.",title,".png",sep="")), my.category.heatmap.all2,
           base_aspect_ratio = 2.5,
-          base_height=6,
-          limitsize = FALSE
+          base_height=20,
+          limitsize = FALSE,
+          ncol=1,nrow=2
 )
 
 } # loop for test.wozero.melt.hormone.significant.s.list. v2
 # transfer eps3.3_MinPts13.set42 for Fig2
-# eps3.25_MinPts14.set45 (020818)
-system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.25_MinPts14.set45.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v3.eps3.25_MinPts14.set45.png"),sep=""))
+# eps3.25_MinPts14.set45 (020818; Plant Physiol version 091118)
+# system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.eps3.25_MinPts14.set45.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v4.eps3.25_MinPts14.set45.png"),sep=""))
 ```
 # archivre Supplemental_Dataset7 files 
 ```{r}
 # zip files (not used because they were too big (~1G)
-# system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset7.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset4_all.my.category.expression.pattern.v16.log2.signif.v3.*"),sep=""))
+# system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset7v4.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.*"),sep=""))
 ```
 # convert into pdf and add parameter name onto graph, convert into png by sips (command line), convert into pdf, combine all (020918); see Rscripts for that (copy and paste them later)
 ```{r}
 # 
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.*")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","pngs"),sep=""))
+#pdf.files<-list.files(path="../../Nozue2016_SAStranscriptome_output/output/converted.pdfs/")
+png.files<-list.files(path="../../Nozue2016_SAStranscriptome_output/output/pngs/")
 
-pdf.files<-list.files(path="converted.pdfs")
-png.names<-paste(gsub("([[:print:]]+)(.pdf)","\\1",pdf.files),".png",sep="")
-jpg.names<-paste(gsub("([[:print:]]+)(.pdf)","\\1",pdf.files),".jpg",sep="")
+system("mkdir ../reduced.pngs")
+system("mkdir ../reduced.pdfs")
+system(paste("sips -z 600 800 -s format png ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","pngs",png.files[2])," --out ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pngs",png.files[2]),sep=""))
 
-system(paste("sips -s format png ",file.path(".","converted.pdfs",pdf.files)," --out ", file.path(".","converted.pdfs.pngs",png.names),sep=""))
-# only one file
-system(paste("sips -s format png ",file.path(".","converted.pdfs",pdf.files[1])," --out ", file.path(".","converted.pdfs.pngs",png.names[1]),sep=""))
-# resize
-system(paste("sips -z 600 800 -s format png ",file.path(".","converted.pdfs",pdf.files[2])," --out ", file.path(".","converted.pdfs.pngs",png.names[2]),sep=""))
-# all
-for(i in 1:length(pdf.files)) {
-system(paste("sips -z 600 800 -s format png ",file.path(".","converted.pdfs",pdf.files[i])," --out ", file.path(".","converted.pdfs.pngs",png.names[i]),sep=""))
-}
-# all jpg (not super reduced size)
-for(i in 1:length(pdf.files)) {
-system(paste("sips -z 600 800 -s format jpeg ",file.path(".","converted.pdfs",pdf.files[i])," --out ", file.path(".","converted.pdfs.jpgs",jpg.names[i]),sep=""))
+# reduce size
+for(i in 1:length(png.files)) {
+system(paste("sips -z 600 800 -s format png ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","pngs",png.files[i])," --out ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pngs",png.files[i]),sep=""))
 }
 # convert resultant png into pdf
-for(i in 1:length(pdf.files)) {
-system(paste("sips -s format pdf ",file.path(".","converted.pdfs.pngs",png.names[i])," --out ", file.path(".","converted.pdfs.pngs.pdfs",pdf.files[i]),sep=""))
-}
-# convert resultant jpg into pdf (not much reduced size)
-for(i in 1:length(pdf.files)) {
-system(paste("sips -s format pdf ",file.path(".","converted.pdfs.jpgs",jpg.names[i])," --out ", file.path(".","converted.pdfs.jpgs.pdfs",pdf.files[i]),sep=""))
+for(i in 1:length(png.files)) {
+system(paste("sips -s format pdf ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pngs",png.files[i])," --out ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pdfs",gsub(".png",".pdf",png.files[i])),sep=""))
 }
 
 # combine those pdf into one pdf using Autometor (22.4 M with -z 600 800 for png)
@@ -1605,6 +1602,7 @@ q4 <- q4 + labs(x="genotype specific genes",y="WGCNA modules in Col",title="modu
 ggsave(q4,file="Fig4_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq100717.pdf",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
 ggsave(q4,file="Fig4_Col.WGCNA.modules.vs.GenotypeSpecific.genes.table.s.GOseq100717.png",width=11,height=8,path=file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables"))
 q4 # magenta indicates pvalue is smaller than 0.01.
+# Modify the pdf file in Illustrator (remove ".sun" and ".shade", change color of genotypes, highlighting genotypes with red or brown colors. 091318) 
 ```
 # Number of Col genes in each module are: 
 ```{r eval=FALSE} 
@@ -2649,4 +2647,17 @@ newdata.vst[newdata.vst$AGI %in% c("AT3G48090","AT4G35580","AT1G74710","AT5G0833
 # session info
 ```{r}
 sessionInfo()
+```
+
+# omake
+```{r}
+summary.vst.response.kazu %>% rownames_to_column() %>% group_by(rowname)
+# usage of dplyr::gather (instead of melt)
+summary.vst.response.kazu %>% rownames_to_column() %>% 
+  gather(sample, # the column name of the new column that will contain the key 
+         value,# the column name of the column that will contain the observations
+         -rowname # the column names that we want to gather.
+         ) %>% 
+  group_by(rowname) %>% summarise(max=max(value),min=min(value),mean=mean(value)) %>%  ggplot(aes(max)) + geom_histogram(binwidth=0.2)
+
 ```
