@@ -29,6 +29,7 @@ output: html_document
 * SAup_combined int SAup (020618)
 ## preparation
 ```{r}
+# change working directory (see below)
 knitr::opts_chunk$set(echo = TRUE)
 homedir<-getwd()
 homedir
@@ -938,7 +939,7 @@ test.wozero.melt.hormone.significant.s.list2["AGI",] %>% sapply(length) %>% tibb
 
 ```
 ## draw expression pattern of custom categories (significantly enriched); Fig2A
-# visualize hormone pathway related genes (1213-1214,2015). Updated (052616-), v3 020717, With color legend for Plant Physiol (v4, 091118)
+### visualize hormone pathway related genes (1213-1214,2015). Updated (052616-), v3 020717, With color legend for Plant Physiol (v4, 091118)
 ```{r}
 #test.wozero.melt.hormone.significant.s.files<-list.files(pattern="test.wozero.melt.hormone.significant.s",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
 test.wozero.melt.hormone.significant.s.files<-list.files(pattern="test.wozero.melt.hormone.significant.s.v3",path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"))
@@ -992,7 +993,7 @@ head(summary.vst.response.kazu)
 # for Fig5A, Col
 my.category.heatmap.graph<-list()
 # add legend to Col (Plant Physiol rev1 version)
-my.category.heatmap.graph[[1]]<-my.category.heatmap6(summary3.response=summary.vst.response.kazu,gt.num=1,gt2=conversion.table[conversion.table$num==1,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.102617v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),save.plot=F,legend.fill=T,file.name=paste("v3",title,sep=""),category.level=levels(categories$my.category))
+my.category.heatmap.graph[[1]]<-my.category.heatmap6(summary3.response=summary.vst.response.kazu,gt.num=1,gt2=conversion.table[conversion.table$num==1,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.102617v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),save.plot=F,legend.fill=T,file.name=paste("v3",title,sep=""),category.level=levels(categories$my.category)) + theme(legend.direction = "horizontal",legend.text=element_text(angle=90),legend.key.width=unit(2,"inch"), legend.text.align=1,legend.justification=c(0,0)) # +labs(fill="Log2 fold change\n (shade/sun)") # +guides(fill=guide_legend(title.position = "top")) ,legend.title.align=1,legend.justification=c(0,0) did not work. Below adding legend title by using draw_text(). (092418)
 for(i in c(17,19,3,4,5,14,10,6,13,7,8,9)) { # 
 my.category.heatmap.graph[[i]]<-my.category.heatmap6(summary3.response=summary.vst.response.kazu,gt.num=i,gt2=conversion.table[conversion.table$num==i,2],newdata.Col.wGO.selected=categories,plotname="my.category.expression.pattern.102617v1.png",w=5,h=5*4/3, path=file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap"),save.plot=F,legend.fill=F,file.name=paste("v3",title,sep=""),category.level=levels(categories$my.category)) #  legend.fill=F to T for new Fig5 (all absolute value, previously called FigS2). mean expression value was saved as FigS2.absolute.summary.table.melt   save(summary.table.melt,file=file.path("..","..","Nozue2016_SAStranscriptome_output","output",paste("FigS2.absolute.summary.table.melt",gt.num,".Rdata",sep="")))
 
@@ -1064,17 +1065,19 @@ my.category.heatmap.graph[[i]]<-my.category.heatmap.graph[[i]] + geom_text(data=
 rm(significant.position)
 }
 # separate drawing of Fig2A (with color legend) and Fig2B 
-my.category.heatmap.Fig2A <- plot_grid(my.category.heatmap.graph[[1]]+labs(fill="Log2 fold change\n (shade/sun)"),ggplot()+geom_blank(),  ggplot()+geom_blank(),                            
+my.category.heatmap.Fig2A <- plot_grid(my.category.heatmap.graph[[1]],ggplot()+geom_blank(),  ggplot()+geom_blank(),                            
                       vjust = 1.1, hjust=-0.5,
                       ncol=3,nrow=1,
-                      rel_widths=c(1.275,0.725,1),
+                      # rel_widths=c(1.275,0.725,1),
+                      rel_widths=c(1.64,0.36,1),
+
                       label_size = 10
                       ) # no "A" and "B" because they overlap with graphs. Label 
 my.category.heatmap.Fig2B<-plot_grid(my.category.heatmap.graph[[17]],my.category.heatmap.graph[[19]],my.category.heatmap.graph[[3]],my.category.heatmap.graph[[4]],my.category.heatmap.graph[[5]],my.category.heatmap.graph[[14]],my.category.heatmap.graph[[10]],my.category.heatmap.graph[[6]],my.category.heatmap.graph[[13]],my.category.heatmap.graph[[7]],my.category.heatmap.graph[[8]],my.category.heatmap.graph[[9]],
                       vjust = 1.1, hjust=-0.5,
                       ncol=3,nrow=4,
                       label_size = 10) 
-my.category.heatmap.all2<-plot_grid(my.category.heatmap.Fig2A,my.category.heatmap.Fig2B,rel_heights=c(1,4),ncol=1,nrow=2)+ draw_text(title,x=0.75,y=0.95,size=50)
+my.category.heatmap.all2<-plot_grid(my.category.heatmap.Fig2A,my.category.heatmap.Fig2B,rel_heights=c(0.92,4),ncol=1,nrow=2)+ draw_text(title,x=0.75,y=0.95,size=50) + draw_text("Log2 fold change\n (shade/sun)",x=0.45,y=0.955,size=50) # adding legend title by using draw_text()
 # no "A" and "B" because they overlap with graphs. Label them later in Illustlator (020818)
 save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap",paste("Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.",title,".png",sep="")), my.category.heatmap.all2,
           base_aspect_ratio = 2.5,
@@ -1085,24 +1088,24 @@ save_plot(file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne
 
 } # loop for test.wozero.melt.hormone.significant.s.list. v2
 # transfer eps3.3_MinPts13.set42 for Fig2
-# eps3.25_MinPts14.set45 (020818; Plant Physiol version 091118)
-# system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.eps3.25_MinPts14.set45.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v4.eps3.25_MinPts14.set45.png"),sep=""))
+# eps3.25_MinPts14.set45 (020818; Plant Physiol version 091118; horizontal legend version 092418)
+system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.eps3.25_MinPts14.set45.png")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Fig2_all.my.category.expression.pattern.v16.log2.signif.v4.eps3.25_MinPts14.set45.png"),sep=""))
 ```
 # archivre Supplemental_Dataset7 files 
 ```{r}
 # zip files (not used because they were too big (~1G)
 # system(paste("zip ",file.path("..","..","Nozue2016_SAStranscriptome_output","figs_tables","Supplemental_Dataset7v4.zip")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.*"),sep=""))
 ```
-# convert into pdf and add parameter name onto graph, convert into png by sips (command line), convert into pdf, combine all (020918); see Rscripts for that (copy and paste them later)
+# convert into pdf and add parameter name onto graph, convert into png by sips (command line), convert into pdf, combine all (020918); see Rscripts for that (copy and paste them later).
 ```{r}
 # 
 system(paste("cp ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","tsne_dbscan_overlapTable_heatmap","Supplemental_Dataset7_all.my.category.expression.pattern.v16.log2.signif.v4.*")," ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","pngs"),sep=""))
 #pdf.files<-list.files(path="../../Nozue2016_SAStranscriptome_output/output/converted.pdfs/")
 png.files<-list.files(path="../../Nozue2016_SAStranscriptome_output/output/pngs/")
 
-system("mkdir ../reduced.pngs")
-system("mkdir ../reduced.pdfs")
-system(paste("sips -z 600 800 -s format png ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","pngs",png.files[2])," --out ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pngs",png.files[2]),sep=""))
+system(paste("mkdir ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pngs"),sep=""))
+system(paste("mkdir ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pdfs"),sep=""))
+system(paste("sips -z 600 800 -s format png ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","pngs",png.files[2])," --out ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pngs",png.files[2]),sep="")) # works
 
 # reduce size
 for(i in 1:length(png.files)) {
@@ -1112,10 +1115,8 @@ system(paste("sips -z 600 800 -s format png ",file.path("..","..","Nozue2016_SAS
 for(i in 1:length(png.files)) {
 system(paste("sips -s format pdf ",file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pngs",png.files[i])," --out ", file.path("..","..","Nozue2016_SAStranscriptome_output","output","reduced.pdfs",gsub(".png",".pdf",png.files[i])),sep=""))
 }
-
-# combine those pdf into one pdf using Autometor (22.4 M with -z 600 800 for png)
-
-
+# combine those pdf into one pdf using Autometor (22.4 M with -z 600 800 for png). Select files and find "combinePDFs under Action button"
+# add legend for manuscript submission to Plant Physiol by using Illustrator.
 ```
 
 
